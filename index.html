@@ -2399,7 +2399,10 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 stock9015: parseNumber(values[mapping.stock9015] || 0),
                 stockMonths: parseNumber(values[mapping.stockMonths] || 0),
                 vendas4M: parseNumber(values[mapping.vendas4M] || 0),
-                media3M: parseNumber(values[mapping.media3M]) || 0
+                media3M: parseNumber(values[mapping.media3M]) || 0,
+                novembro: parseNumber(values[mapping.novembro]) || 0,
+                dezembro: parseNumber(values[mapping.dezembro]) || 0,
+                cobertura: parseNumber(values[mapping.cobertura]) || 0
 
             };
         }
@@ -2415,6 +2418,14 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             });
             
             const upperHeaders = headers.map(h => (h || '').toString().toUpperCase().trim());
+            const normalizedHeaders = headers.map(h => {
+                return (h || '')
+                    .toString()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, '');
+            });
             const mapping = {};
             const warnings = [];
 
@@ -2441,9 +2452,52 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                     debugLog(`media3M: ${i} - ${headers[i]}`);
                     break;
                 }
-            }   
+            }
 
-            
+
+            // 9. NOVEMBRO
+            for (let i = 0; i < normalizedHeaders.length; i++) {
+                const normalized = normalizedHeaders[i];
+                if (normalized.includes('NOVEMBRO')) {
+                    mapping.novembro = i;
+                    debugLog(`✅ novembro → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            if (mapping.novembro === undefined) {
+                warnings.push('Coluna NOVEMBRO não encontrada; aplicando fallback se possível.');
+                debugLog('⚠️ Coluna NOVEMBRO não identificada nos cabeçalhos recebidos.');
+            }
+
+            // 10. DEZEMBRO
+            for (let i = 0; i < normalizedHeaders.length; i++) {
+                const normalized = normalizedHeaders[i];
+                if (normalized.includes('DEZEMBRO')) {
+                    mapping.dezembro = i;
+                    debugLog(`✅ dezembro → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            if (mapping.dezembro === undefined) {
+                warnings.push('Coluna DEZEMBRO não encontrada; aplicando fallback se possível.');
+                debugLog('⚠️ Coluna DEZEMBRO não identificada nos cabeçalhos recebidos.');
+            }
+
+            // 11. COBERTURA
+            for (let i = 0; i < normalizedHeaders.length; i++) {
+                const normalized = normalizedHeaders[i];
+                if (normalized.includes('COBERTURA') || normalized.includes('COVERAGE')) {
+                    mapping.cobertura = i;
+                    debugLog(`✅ cobertura → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            if (mapping.cobertura === undefined) {
+                warnings.push('Coluna COBERTURA não encontrada; aplicando fallback se possível.');
+                debugLog('⚠️ Coluna COBERTURA não identificada nos cabeçalhos recebidos.');
+            }
+
+
             // 2. FORNECEDOR
             for (let i = 0; i < upperHeaders.length; i++) {
                 const h = upperHeaders[i];
@@ -2541,9 +2595,13 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             // FALLBACK APENAS SE ABSOLUTAMENTE NECESSÁRIO
             const fallbacks = {
                 code: 0, supplier: 1, family: 2, item: 3,
-                stock14: 5, stock9013: 6, stock9015: 7, 
+                stock14: 5, stock9013: 6, stock9015: 7,
                 stockMonths: 8, vendas4M: 9
             };
+
+            fallbacks.novembro = (headers.length > 2) ? headers.length - 3 : 0;
+            fallbacks.dezembro = (headers.length > 1) ? headers.length - 2 : 0;
+            fallbacks.cobertura = (headers.length > 0) ? headers.length - 1 : 0;
 
             for (const [field, fallbackIndex] of Object.entries(fallbacks)) {
                 if (mapping[field] === undefined) {
