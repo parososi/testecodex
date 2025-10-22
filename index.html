@@ -535,6 +535,51 @@
             word-break: break-word;
         }
 
+        .item-name {
+            font-weight: 600;
+            color: #1f2a44;
+        }
+
+        .item-coverage {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #4d5f94;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .item-coverage strong {
+            color: #1F448C;
+        }
+
+        .coverage-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .coverage-tag.from-import {
+            background: #e3f2fd;
+            color: #1F448C;
+        }
+
+        .coverage-tag.from-estimate {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .coverage-tag.no-data {
+            background: #eceff1;
+            color: #546e7a;
+        }
+
         .status-cell {
             white-space: nowrap;
         }
@@ -1283,6 +1328,10 @@
                     <div class="stat-label"><span class="label-text">Mediana de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Mediana de estoque" data-tooltip="Valor central da distribuição de meses de estoque: metade dos itens possui cobertura acima e metade abaixo desse ponto." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
+                    <div class="stat-value" id="importCoverageAverage">--</div>
+                    <div class="stat-label"><span class="label-text">Cobertura (Planilha)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura da planilha" data-tooltip="Média dos meses de cobertura informados diretamente na planilha importada. Se o campo não existir para alguns itens, mostramos o valor estimado ou '--'." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item">
                     <div class="stat-value" id="totalStockValue">0</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
                 </div>
@@ -1361,9 +1410,6 @@
                             <th><span class="header-label">Total<span class="info-icon has-tooltip" tabindex="0" aria-label="Total em estoque" data-tooltip="Soma do estoque disponível em todos os estabelecimentos selecionados.">?</span></span></th>
                             <th><span class="header-label">Vendas 4M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas 4 meses" data-tooltip="Quantidade vendida acumulada nos últimos 4 meses para o item, conforme informado na planilha." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Média 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Média 3 meses" data-tooltip="Média mensal das vendas dos últimos 3 meses, usada para estimar o consumo.">?</span></span></th>
-                            <th><span class="header-label">Novembro<span class="info-icon has-tooltip" tabindex="0" aria-label="Dados de novembro" data-tooltip="Quantidade informada na coluna NOVEMBRO da planilha importada." data-tooltip-position="top">?</span></span></th>
-                            <th><span class="header-label">Dezembro<span class="info-icon has-tooltip" tabindex="0" aria-label="Dados de dezembro" data-tooltip="Quantidade informada na coluna DEZEMBRO da planilha importada." data-tooltip-position="top">?</span></span></th>
-                            <th><span class="header-label">Cobertura (Planilha)<span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura importada" data-tooltip="Valor em meses recebido na coluna COBERTURA. Caso não exista, utiliza o campo ESTOQUE EM MESES." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Previsão<span class="info-icon has-tooltip" tabindex="0" aria-label="Previsão de ruptura" data-tooltip="Resumo da previsão de ruptura calculada para o item.">?</span></span></th>
                             <th><span class="header-label">Status<span class="info-icon has-tooltip" tabindex="0" aria-label="Status" data-tooltip="Classificação do risco atual com base nos meses de cobertura.">?</span></span></th>
                             <th><span class="header-label">Classe ABC<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Classificação calculada pelo % Individual das vendas filtradas: itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C.">?</span></span></th>
@@ -1756,17 +1802,6 @@
             }
 
             return value.toFixed(digits);
-        }
-
-        function formatMonthlyValue(value) {
-            const numeric = Number(value);
-            if (!Number.isFinite(numeric)) {
-                return '—';
-            }
-            if (numeric === 0) {
-                return '0';
-            }
-            return numeric.toLocaleString('pt-BR');
         }
 
         function getCoverageValue(product) {
@@ -3594,12 +3629,34 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }, 0);
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
+            const importedCoverageValues = filteredData
+                .map(function(product) {
+                    if (Number.isFinite(product.cobertura)) {
+                        return product.cobertura;
+                    }
+                    if (Number.isFinite(product.stockMonths)) {
+                        return product.stockMonths;
+                    }
+                    return null;
+                })
+                .filter(function(value) { return value !== null; });
+
+            const importedCoverageAverage = importedCoverageValues.length > 0
+                ? importedCoverageValues.reduce(function(sum, value) { return sum + value; }, 0) / importedCoverageValues.length
+                : null;
+
             document.getElementById('totalProducts').textContent = total;
             document.getElementById('avgStockMonths').textContent = monthsValues.length > 0 ? formatStatValue(avgStock) : '--';
             document.getElementById('medianStock').textContent = median !== null ? formatStatValue(median) : '--';
             document.getElementById('totalStockValue').textContent = safeTotalStock.toLocaleString('pt-BR');
             document.getElementById('criticalCount').textContent = criticalCount;
             document.getElementById('totalFamilies').textContent = families;
+            const importCoverageElement = document.getElementById('importCoverageAverage');
+            if (importCoverageElement) {
+                importCoverageElement.textContent = importedCoverageAverage !== null
+                    ? formatStatValue(importedCoverageAverage)
+                    : '--';
+            }
             updateMonthlySummaryMetrics();
         }
 
@@ -3792,11 +3849,25 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const media3MDisplay = Number.isFinite(product.media3M)
                     ? Math.round(product.media3M).toLocaleString('pt-BR')
                     : '0';
-                const novemberDisplay = formatMonthlyValue(product.novembro);
-                const decemberDisplay = formatMonthlyValue(product.dezembro);
-                const coverageDisplay = Number.isFinite(coverageValue)
-                    ? formatStatValue(coverageValue)
-                    : formatStatValue(normalizedCoverage);
+                const hasImportedCoverage = Number.isFinite(product.cobertura);
+                const hasCoverageEstimate = !hasImportedCoverage && Number.isFinite(product.stockMonths);
+                const hasCoverageData = hasImportedCoverage || hasCoverageEstimate;
+                const coverageValueDisplay = hasCoverageData
+                    ? `${formatStatValue(coverageValue)} meses`
+                    : '--';
+                const coverageSourceClass = hasImportedCoverage
+                    ? 'from-import'
+                    : (hasCoverageEstimate ? 'from-estimate' : 'no-data');
+                const coverageSourceLabel = hasImportedCoverage
+                    ? 'Planilha'
+                    : (hasCoverageEstimate ? 'Estimado' : 'Sem dados');
+                const itemCellContent = `
+                    <div class="item-name">${escapeTooltip(product.item)}</div>
+                    <div class="item-coverage">
+                        Cobertura: <strong>${coverageValueDisplay}</strong>
+                        <span class="coverage-tag ${coverageSourceClass}">${coverageSourceLabel}</span>
+                    </div>
+                `.trim();
 
                 const fallbackAbcClass = abcClassificationMap.get(product.code);
                 const rawAbcClass = (typeof product.currentAbcClass === 'string' && product.currentAbcClass)
@@ -3814,16 +3885,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     <td>${product.code}</td>
                     <td>${product.supplier}</td>
                     <td>${product.family}</td>
-                    <td>${product.item}</td>
+                    <td>${itemCellContent}</td>
                     <td>${Number(product.stock14).toLocaleString('pt-BR')}</td>
                     <td>${Number(product.stock9013).toLocaleString('pt-BR')}</td>
                     <td>${Number(product.stock9015).toLocaleString('pt-BR')}</td>
                     <td><strong>${Number(totalStock).toLocaleString('pt-BR')}</strong></td>
                     <td class="${vendas4MClass}">${vendas4MDisplay}</td>
                     <td>${media3MDisplay}</td>
-                    <td>${novemberDisplay}</td>
-                    <td>${decemberDisplay}</td>
-                    <td class="status-cell ${statusClass}">${coverageDisplay}</td>
                     <td class="status-cell prediction-cell ${statusClass}">${predictionCellContent}</td>
                     <td class="status-cell ${statusClass}">${getStatusText(normalizedCoverage)}</td>
                     <td>${abcCellContent}</td>
