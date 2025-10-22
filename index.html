@@ -339,72 +339,6 @@
             border-radius: 5px;
         }
         
-        .analytics-section {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .prediction-card {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .prediction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid #eee;
-            transition: all 0.3s ease;
-        }
-
-        .prediction-item.clickable {
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .prediction-item.clickable:hover {
-            background-color: #f8f9fa;
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .prediction-item.active {
-            background-color: #e3f2fd;
-            border-left: 4px solid #1F448C;
-        }
-        
-        .prediction-item:last-child {
-            border-bottom: none;
-        }
-        
-        .prediction-label {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .prediction-value {
-            color: #1F448C;
-            font-weight: bold;
-        }
-        
-        .prediction-critical {
-            color: #dc3545;
-        }
-        
-        .prediction-warning {
-            color: #ffc107;
-        }
-        
-        .prediction-good {
-            color: #28a745;
-        }
-        
         .gauges-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -950,55 +884,31 @@
             border: 1px solid #ffeaa7;
         }
 
-        .sheet-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding-right: 6px;
-        }
-
-        .sheet-option {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(31, 68, 140, 0.12);
-            background: #f9fbff;
-            font-weight: 600;
-            color: #1F448C;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease, background 0.15s ease;
-        }
-
-        .sheet-option:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(31, 68, 140, 0.15);
-            border-color: rgba(31, 68, 140, 0.4);
-        }
-
-        .sheet-option.active {
-            border-color: #1F448C;
-            background: rgba(31, 68, 140, 0.12);
-            box-shadow: 0 6px 18px rgba(31, 68, 140, 0.25);
-        }
-
-        .sheet-option small {
-            font-size: 11px;
-            font-weight: 500;
-            color: #4d5f94;
-        }
-
-        .sheet-modal {
-            max-width: 540px;
-        }
-
         .modal-buttons button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .link-button {
+            background: none;
+            border: none;
+            color: #1F448C;
+            cursor: pointer;
+            padding: 0;
+            font: inherit;
+            text-decoration: underline;
+        }
+
+        .link-button:hover,
+        .link-button:focus-visible {
+            color: #0d2a5d;
+            text-decoration: none;
+        }
+
+        .link-button:focus-visible {
+            outline: 2px solid rgba(31, 68, 140, 0.35);
+            outline-offset: 2px;
+            border-radius: 4px;
         }
 
         .info-message {
@@ -1291,27 +1201,6 @@
             </div>
         </div>
 
-        <div class="analytics-section">
-            <h3>🔮 Análise Preditiva</h3>
-            <div class="prediction-card" style="max-width: 600px; margin: 0 auto;">
-                <h4>⚠️ Alertas Preditivos</h4>
-                <div id="predictionAlerts">
-                    <div class="prediction-item clickable" onclick="filterZeroIn30()" title="Clique para filtrar produtos">
-                        <span class="prediction-label">Produtos zerando em <span id="urgentDaysLabel">30</span> dias:</span>
-                        <span class="prediction-value prediction-critical" id="zeroIn30">0</span>
-                    </div>
-                    <div class="prediction-item clickable" onclick="filterZeroIn60()" title="Clique para filtrar produtos">
-                        <span class="prediction-label">Produtos zerando em <span id="warningDaysLabel">60</span> dias:</span>
-                        <span class="prediction-value prediction-warning" id="zeroIn60">0</span>
-                    </div>
-                    <div class="prediction-item">
-                        <span class="prediction-label">Ponto de reposição ideal:</span>
-                        <span class="prediction-value prediction-good" id="reorderPoint">--</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="summary-card">
             <h3 class="header-label">Resumo Geral <span class="info-icon has-tooltip" tabindex="0" aria-label="Resumo Geral" data-tooltip="Indicadores principais do estoque considerando os filtros atuais, ajudando a entender a distribuição e risco de ruptura." data-tooltip-position="top">?</span></h3>
             <div class="summary-stats">
@@ -1448,21 +1337,6 @@
         </div>
     </div>
 
-    <div id="sheetSelectionModal" class="modal">
-        <div class="modal-content sheet-modal">
-            <div class="modal-header">
-                <h2>Selecione a aba para importar</h2>
-                <span class="close" onclick="cancelSheetSelection()">&times;</span>
-            </div>
-            <p style="margin-top: 0; margin-bottom: 16px; color: #4d5f94;">Identificamos mais de uma aba na planilha. Escolha qual delas deve alimentar o dashboard.</p>
-            <div id="sheetOptions" class="sheet-options"></div>
-            <div class="modal-buttons">
-                <button class="btn-secondary" onclick="cancelSheetSelection()">Cancelar</button>
-                <button id="confirmSheetBtn" onclick="confirmSheetSelection()" disabled>Importar aba selecionada</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Inclusão das bibliotecas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
@@ -1484,9 +1358,6 @@
         let mappingDebugMode = false;
         let lastMappingInfo = null;
         let advancedStockFilter = '';
-        let pendingWorkbook = null;
-        let pendingWorkbookName = '';
-        let selectedSheetName = '';
         let activeImportDescriptor = 'dados carregados';
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
@@ -1499,6 +1370,284 @@
         let tooltipElement = null;
         let activeTooltipTarget = null;
         let tooltipHideTimeout = null;
+
+        const monthDetectionPatterns = Object.freeze([
+            { order: 0, keywords: ['JANEIRO', 'JAN'] },
+            { order: 1, keywords: ['FEVEREIRO', 'FEV'] },
+            { order: 2, keywords: ['MARCO', 'MARÇO', 'MAR'] },
+            { order: 3, keywords: ['ABRIL', 'ABR'] },
+            { order: 4, keywords: ['MAIO', 'MAI'] },
+            { order: 5, keywords: ['JUNHO', 'JUN'] },
+            { order: 6, keywords: ['JULHO', 'JUL'] },
+            { order: 7, keywords: ['AGOSTO', 'AGO'] },
+            { order: 8, keywords: ['SETEMBRO', 'SET', 'SEP'] },
+            { order: 9, keywords: ['OUTUBRO', 'OUT', 'OCT'] },
+            { order: 10, keywords: ['NOVEMBRO', 'NOV'] },
+            { order: 11, keywords: ['DEZEMBRO', 'DEZ', 'DEC'] }
+        ]);
+
+        function normalizeHeaderForMonth(header) {
+            if (header === null || typeof header === 'undefined') {
+                return '';
+            }
+
+            return header.toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase();
+        }
+
+        function detectMonthInfo(header) {
+            const normalizedHeader = normalizeHeaderForMonth(header);
+            if (!normalizedHeader) {
+                return null;
+            }
+
+            for (const pattern of monthDetectionPatterns) {
+                for (const keyword of pattern.keywords) {
+                    if (normalizedHeader.includes(keyword)) {
+                        return {
+                            order: pattern.order,
+                            keyword,
+                            normalizedHeader
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function isMonthHeader(header) {
+            return detectMonthInfo(header) !== null;
+        }
+
+        function hasMeaningfulValue(value) {
+            return value !== null && typeof value !== 'undefined' && String(value).trim() !== '';
+        }
+
+        function sortMonthlyValues(values) {
+            if (!Array.isArray(values)) {
+                return [];
+            }
+
+            return values.slice().sort(function(a, b) {
+                const infoA = detectMonthInfo(a && a.label);
+                const infoB = detectMonthInfo(b && b.label);
+                const orderA = infoA ? infoA.order : Number.MAX_SAFE_INTEGER;
+                const orderB = infoB ? infoB.order : Number.MAX_SAFE_INTEGER;
+
+                if (orderA === orderB) {
+                    const labelA = (a && a.label) ? a.label.toString() : '';
+                    const labelB = (b && b.label) ? b.label.toString() : '';
+                    return labelA.localeCompare(labelB, 'pt-BR', { sensitivity: 'base', numeric: true });
+                }
+
+                return orderA - orderB;
+            });
+        }
+
+        function cloneMonthlyValues(values) {
+            if (!Array.isArray(values)) {
+                return [];
+            }
+
+            return values.map(function(entry) {
+                if (!entry || typeof entry !== 'object') {
+                    return { label: '', value: 0, rawValue: '' };
+                }
+
+                const numericValue = Number(entry.value);
+                const parsedValue = Number.isFinite(numericValue) ? numericValue : parseNumber(entry.value);
+                const rawValue = typeof entry.rawValue !== 'undefined' ? entry.rawValue : entry.value;
+
+                return {
+                    label: entry.label ? entry.label.toString() : '',
+                    value: Number.isFinite(parsedValue) ? parsedValue : 0,
+                    rawValue: rawValue
+                };
+            });
+        }
+
+        function aggregateMonthlyValues(existingValues, newValues) {
+            const aggregated = new Map();
+
+            (Array.isArray(existingValues) ? existingValues : []).forEach(function(entry) {
+                if (!entry || !entry.label) return;
+                aggregated.set(entry.label, {
+                    label: entry.label,
+                    value: Number.isFinite(entry.value) ? entry.value : parseNumber(entry.value),
+                    rawValue: typeof entry.rawValue !== 'undefined' ? entry.rawValue : entry.value
+                });
+            });
+
+            (Array.isArray(newValues) ? newValues : []).forEach(function(entry) {
+                if (!entry || !entry.label) return;
+                aggregated.set(entry.label, {
+                    label: entry.label,
+                    value: Number.isFinite(entry.value) ? entry.value : parseNumber(entry.value),
+                    rawValue: typeof entry.rawValue !== 'undefined' ? entry.rawValue : entry.value
+                });
+            });
+
+            return sortMonthlyValues(Array.from(aggregated.values()));
+        }
+
+        function createHistoryEntry(product, sheetName) {
+            const months = cloneMonthlyValues(product.sheetMonthlyValues);
+            const totalStock = Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0);
+
+            return {
+                sheetName: sheetName || '',
+                months: months,
+                totals: {
+                    stock14: Number(product.stock14) || 0,
+                    stock9013: Number(product.stock9013) || 0,
+                    stock9015: Number(product.stock9015) || 0,
+                    totalStock: Number.isFinite(totalStock) ? totalStock : 0,
+                    vendas4M: Number(product.vendas4M) || 0,
+                    media3M: Number(product.media3M) || 0,
+                    cobertura: Number.isFinite(product.cobertura)
+                        ? product.cobertura
+                        : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0)
+                }
+            };
+        }
+
+        function buildFallbackMonthlyValues(product) {
+            if (!product || typeof product !== 'object') {
+                return [];
+            }
+
+            const fallback = [];
+
+            Object.keys(product).forEach(function(key) {
+                if (!key) return;
+                const info = detectMonthInfo(key);
+                if (!info) return;
+
+                const value = product[key];
+                if (!hasMeaningfulValue(value)) return;
+
+                const numericValue = parseNumber(value);
+                fallback.push({
+                    label: key.toString().replace(/_/g, ' ').toUpperCase(),
+                    value: Number.isFinite(numericValue) ? numericValue : 0,
+                    rawValue: value
+                });
+            });
+
+            return sortMonthlyValues(fallback);
+        }
+
+        function normalizeHistoryEntry(entry) {
+            if (!entry || typeof entry !== 'object') {
+                return {
+                    sheetName: '',
+                    months: [],
+                    totals: {
+                        stock14: 0,
+                        stock9013: 0,
+                        stock9015: 0,
+                        totalStock: 0,
+                        vendas4M: 0,
+                        media3M: 0,
+                        cobertura: 0
+                    }
+                };
+            }
+
+            const normalizedTotals = Object.assign({
+                stock14: 0,
+                stock9013: 0,
+                stock9015: 0,
+                totalStock: 0,
+                vendas4M: 0,
+                media3M: 0,
+                cobertura: 0
+            }, entry.totals || {});
+
+            normalizedTotals.stock14 = Number.isFinite(Number(normalizedTotals.stock14))
+                ? Number(normalizedTotals.stock14)
+                : parseNumber(normalizedTotals.stock14);
+            normalizedTotals.stock9013 = Number.isFinite(Number(normalizedTotals.stock9013))
+                ? Number(normalizedTotals.stock9013)
+                : parseNumber(normalizedTotals.stock9013);
+            normalizedTotals.stock9015 = Number.isFinite(Number(normalizedTotals.stock9015))
+                ? Number(normalizedTotals.stock9015)
+                : parseNumber(normalizedTotals.stock9015);
+            normalizedTotals.vendas4M = Number.isFinite(Number(normalizedTotals.vendas4M))
+                ? Number(normalizedTotals.vendas4M)
+                : parseNumber(normalizedTotals.vendas4M);
+            normalizedTotals.media3M = Number.isFinite(Number(normalizedTotals.media3M))
+                ? Number(normalizedTotals.media3M)
+                : parseNumber(normalizedTotals.media3M);
+            normalizedTotals.cobertura = Number.isFinite(Number(normalizedTotals.cobertura))
+                ? Number(normalizedTotals.cobertura)
+                : parseNumber(normalizedTotals.cobertura);
+            normalizedTotals.totalStock = Number.isFinite(Number(normalizedTotals.totalStock))
+                ? Number(normalizedTotals.totalStock)
+                : (normalizedTotals.stock14 + normalizedTotals.stock9013 + normalizedTotals.stock9015);
+
+            return {
+                sheetName: entry.sheetName || '',
+                months: sortMonthlyValues(cloneMonthlyValues(entry.months)),
+                totals: normalizedTotals
+            };
+        }
+
+        function ensureProductHistoryStructure(product) {
+            if (!product || typeof product !== 'object') {
+                return product;
+            }
+
+            if (Array.isArray(product.monthlyValues) && product.monthlyValues.length > 0) {
+                product.monthlyValues = sortMonthlyValues(cloneMonthlyValues(product.monthlyValues));
+            } else {
+                product.monthlyValues = buildFallbackMonthlyValues(product);
+            }
+
+            if (Array.isArray(product.importHistory) && product.importHistory.length > 0) {
+                product.importHistory = product.importHistory.map(normalizeHistoryEntry);
+            } else {
+                product.importHistory = [];
+            }
+
+            return product;
+        }
+
+        function formatHistoryDisplayValue(entry) {
+            if (!entry || typeof entry !== 'object') {
+                return '--';
+            }
+
+            const raw = entry.rawValue;
+            if (typeof raw === 'string') {
+                const trimmedRaw = raw.trim();
+                if (!trimmedRaw || trimmedRaw === '--') {
+                    return '--';
+                }
+
+                if (/^-?[0-9.,]+$/.test(trimmedRaw)) {
+                    const numeric = parseNumber(trimmedRaw);
+                    return Number.isFinite(numeric)
+                        ? numeric.toLocaleString('pt-BR')
+                        : escapeTooltip(trimmedRaw);
+                }
+
+                return escapeTooltip(trimmedRaw);
+            }
+
+            if (typeof raw === 'number' && Number.isFinite(raw)) {
+                return raw.toLocaleString('pt-BR');
+            }
+
+            if (Number.isFinite(entry.value)) {
+                return entry.value.toLocaleString('pt-BR');
+            }
+
+            return '--';
+        }
 
         function ensureTooltipElement() {
             if (!tooltipElement) {
@@ -2203,7 +2352,9 @@
             debugLog('=== CARREGANDO DADOS ===');
             
             if (typeof window.stockData !== 'undefined' && Array.isArray(window.stockData) && window.stockData.length > 0) {
-                allProductsData = window.stockData;
+                allProductsData = window.stockData.map(function(product) {
+                    return ensureProductHistoryStructure(product);
+                });
                 debugLog(`Dados carregados do data.js: ${allProductsData.length} produtos`);
                 showMessage(`✅ ${allProductsData.length} produtos carregados do data.js`, 'success');
                 if (typeof window.stockMetadata === 'object' && window.stockMetadata !== null) {
@@ -2219,7 +2370,12 @@
                 const storedData = localStorage.getItem('stockData');
                 if (storedData) {
                     try {
-                        allProductsData = JSON.parse(storedData);
+                        const parsedData = JSON.parse(storedData);
+                        allProductsData = Array.isArray(parsedData)
+                            ? parsedData.map(function(product) {
+                                return ensureProductHistoryStructure(product);
+                            })
+                            : [];
                         debugLog(`Dados carregados do localStorage: ${allProductsData.length} produtos`);
                         showMessage(`✅ ${allProductsData.length} produtos carregados do backup local`, 'info');
                         activeImportDescriptor = 'backup local';
@@ -2267,6 +2423,18 @@
                 debugLog('Gerando arquivo data.js');
 
                 const processedData = data.map(function(product) {
+                    const monthlyValues = sortMonthlyValues(cloneMonthlyValues(product.monthlyValues));
+                    const historyEntries = Array.isArray(product.importHistory)
+                        ? product.importHistory.map(function(entry) {
+                            const normalizedEntry = normalizeHistoryEntry(entry);
+                            return {
+                                sheetName: normalizedEntry.sheetName,
+                                months: normalizedEntry.months,
+                                totals: normalizedEntry.totals
+                            };
+                        })
+                        : [];
+
                     return {
                         code: product.code || '',
                         supplier: product.supplier || '',
@@ -2282,7 +2450,9 @@
                         dezembro: product.dezembro || 0,
                         cobertura: Number.isFinite(product.cobertura)
                             ? product.cobertura
-                            : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0)
+                            : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0),
+                        monthlyValues: monthlyValues,
+                        importHistory: historyEntries
                     };
                 });
 
@@ -2313,89 +2483,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
         }
 
-        function resetPendingWorkbook() {
-            pendingWorkbook = null;
-            pendingWorkbookName = '';
-            selectedSheetName = '';
-        }
-
-        function openSheetSelectionModal(sheetNames) {
-            const modal = document.getElementById('sheetSelectionModal');
-            const optionsContainer = document.getElementById('sheetOptions');
-            const confirmBtn = document.getElementById('confirmSheetBtn');
-
-            if (!modal || !optionsContainer || !confirmBtn) {
-                debugLog('Modal de seleção de abas não encontrado', 'warn');
-                return;
-            }
-
-            optionsContainer.innerHTML = '';
-            sheetNames.forEach(function(name, index) {
-                const option = document.createElement('button');
-                option.type = 'button';
-                option.className = 'sheet-option';
-
-                const label = document.createElement('span');
-                label.textContent = name;
-                const badge = document.createElement('small');
-                badge.textContent = `Aba ${index + 1}`;
-                option.appendChild(label);
-                option.appendChild(badge);
-
-                option.addEventListener('click', function() {
-                    selectSheetOption(name, option);
-                });
-                optionsContainer.appendChild(option);
-            });
-
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Importar aba selecionada';
-            modal.style.display = 'block';
-        }
-
-        function closeSheetSelectionModal() {
-            const modal = document.getElementById('sheetSelectionModal');
-            const confirmBtn = document.getElementById('confirmSheetBtn');
-            const options = document.querySelectorAll('#sheetOptions .sheet-option');
-
-            if (modal) {
-                modal.style.display = 'none';
-            }
-
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.textContent = 'Importar aba selecionada';
-            }
-
-            options.forEach(function(option) {
-                option.classList.remove('active');
-            });
-        }
-
-        function cancelSheetSelection() {
-            closeSheetSelectionModal();
-            resetPendingWorkbook();
-            showMessage('⚠️ Importação cancelada. Nenhum dado foi alterado.', 'warning');
-        }
-
-        function selectSheetOption(name, element) {
-            selectedSheetName = name;
-            const options = document.querySelectorAll('#sheetOptions .sheet-option');
-            options.forEach(function(option) {
-                option.classList.remove('active');
-            });
-
-            if (element) {
-                element.classList.add('active');
-            }
-
-            const confirmBtn = document.getElementById('confirmSheetBtn');
-            if (confirmBtn) {
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = `Importar "${name}"`;
-            }
-        }
-
         function extractWorkbookData(workbook, sheetName) {
             if (!workbook || !sheetName) {
                 throw new Error('Dados da planilha indisponíveis para processamento.');
@@ -2406,8 +2493,19 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 throw new Error(`Aba "${sheetName}" não encontrada.`);
             }
 
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-            return processExcelData(jsonData);
+            const sheetRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+            if (!Array.isArray(sheetRows) || sheetRows.length === 0) {
+                return [];
+            }
+
+            const headers = sheetRows[0].map(function(headerCell) {
+                return headerCell === null || typeof headerCell === 'undefined'
+                    ? ''
+                    : headerCell.toString();
+            });
+
+            const rows = sheetRows.slice(1);
+            return processExcelRows(headers, rows, sheetName);
         }
 
         function completeImport(data, sourceInfo) {
@@ -2415,10 +2513,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 throw new Error('Nenhum produto válido encontrado na planilha');
             }
 
-            allProductsData = data;
+            allProductsData = data.map(function(product) {
+                return ensureProductHistoryStructure(product);
+            });
             debugLog(`Dados importados: ${data.length} produtos`);
 
-            localStorage.setItem('stockData', JSON.stringify(data));
+            localStorage.setItem('stockData', JSON.stringify(allProductsData));
             localStorage.setItem('stockDataTimestamp', Date.now().toString());
 
             const descriptor = sourceInfo && sourceInfo.label ? sourceInfo.label : 'dados importados';
@@ -2426,7 +2526,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             lastImportedFileName = sourceInfo && sourceInfo.fileName ? sourceInfo.fileName : '';
             lastImportedSheetName = sourceInfo && sourceInfo.sheetName ? sourceInfo.sheetName : '';
 
-            showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.`, 'success');
+            const sheetSummary = sourceInfo && sourceInfo.sheetName
+                ? ` Abas: ${sourceInfo.sheetName}.`
+                : '';
+            showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.${sheetSummary}`, 'success');
 
             if (fileSystemSupported && directoryHandle) {
                 debugLog('Tentando salvamento automático após importação');
@@ -2445,28 +2548,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             initializeDashboard();
         }
 
-        function confirmSheetSelection() {
-            if (!pendingWorkbook || !selectedSheetName) {
-                showMessage('❌ Selecione uma aba para continuar a importação.', 'error');
-                return;
-            }
-
-            try {
-                const data = extractWorkbookData(pendingWorkbook, selectedSheetName);
-                closeSheetSelectionModal();
-                completeImport(data, {
-                    label: pendingWorkbookName ? `${pendingWorkbookName} · ${selectedSheetName}` : selectedSheetName,
-                    fileName: pendingWorkbookName,
-                    sheetName: selectedSheetName
-                });
-            } catch (error) {
-                debugLog(`Erro ao importar aba selecionada: ${error.message}`, 'error');
-                showMessage(`❌ Erro ao importar aba selecionada: ${error.message}`, 'error');
-            } finally {
-                resetPendingWorkbook();
-            }
-        }
-
         function importData() {
             const file = document.getElementById('excelFile').files[0];
             if (!file) {
@@ -2482,32 +2563,39 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const fileName = file.name.toLowerCase();
 
                     if (fileName.endsWith('.csv')) {
-                        const data = processCSV(e.target.result);
-                        completeImport(data, { label: file.name, fileName: file.name });
+                        const rawProducts = processCSV(e.target.result);
+                        const finalizedProducts = finalizeProductList(rawProducts, 'Arquivo CSV');
+                        completeImport(finalizedProducts, {
+                            label: file.name,
+                            fileName: file.name,
+                            sheetName: 'Arquivo CSV'
+                        });
                     } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                        const workbook = XLSX.read(e.target.result, {type: 'array'});
+                        const workbook = XLSX.read(e.target.result, { type: 'array' });
                         const sheetNames = workbook.SheetNames || [];
 
                         if (sheetNames.length === 0) {
                             throw new Error('A planilha não contém abas disponíveis.');
                         }
 
-                        if (sheetNames.length === 1) {
-                            const sheetName = sheetNames[0];
-                            const data = extractWorkbookData(workbook, sheetName);
-                            completeImport(data, {
-                                label: `${file.name} · ${sheetName}`,
-                                fileName: file.name,
-                                sheetName
-                            });
-                        } else {
-                            pendingWorkbook = workbook;
-                            pendingWorkbookName = file.name;
-                            selectedSheetName = '';
-                            openSheetSelectionModal(sheetNames);
-                            showMessage('🔍 Selecione a aba que deseja importar.', 'info');
-                            return;
+                        const { combinedData, processedSheets } = mergeWorkbookData(workbook, sheetNames);
+
+                        if (processedSheets.length === 0 || combinedData.length === 0) {
+                            throw new Error('Nenhum dado válido encontrado nas abas da planilha.');
                         }
+
+                        const label = processedSheets.length === 1
+                            ? `${file.name} · ${processedSheets[0].name}`
+                            : `${file.name} · ${processedSheets.length} abas`;
+                        const sheetSummary = processedSheets.map(function(info) {
+                            return `${info.name} (${info.count})`;
+                        }).join(', ');
+
+                        completeImport(combinedData, {
+                            label,
+                            fileName: file.name,
+                            sheetName: sheetSummary
+                        });
                     } else {
                         throw new Error('Formato de arquivo não suportado');
                     }
@@ -2799,9 +2887,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 if (!line) continue;
 
                 const values = parseCSVLine(line);
-                if (values.length < headers.length) continue;
+                if (values.length === 0) continue;
 
-                const product = mapProductData(headers, values);
+                while (values.length < headers.length) {
+                    values.push('');
+                }
+
+                const product = mapProductData(headers, values, 'Arquivo CSV');
                 if (product.code) {
                     products.push(product);
                 }
@@ -2832,20 +2924,36 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             return result;
         }
 
-        function processExcelData(jsonData) {
+        function processExcelRows(headers, rows, sheetName) {
             const products = [];
-            
-            for (const row of jsonData) {
-                const product = mapProductData(Object.keys(row), Object.values(row));
+
+            rows.forEach(function(row) {
+                if (!Array.isArray(row)) {
+                    return;
+                }
+
+                const hasContent = row.some(function(cell) {
+                    return hasMeaningfulValue(cell);
+                });
+
+                if (!hasContent) {
+                    return;
+                }
+
+                const values = headers.map(function(_, index) {
+                    return typeof row[index] !== 'undefined' ? row[index] : '';
+                });
+
+                const product = mapProductData(headers, values, sheetName);
                 if (product.code) {
                     products.push(product);
                 }
-            }
-            
+            });
+
             return products;
         }
 
-        function mapProductData(headers, values) {
+        function mapProductData(headers, values, sheetName) {
             const mapping = findColumnMapping(headers);
 
             const rawStockMonthsCell = mapping.stockMonths !== undefined ? values[mapping.stockMonths] : null;
@@ -2854,8 +2962,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const parsedStockMonths = parseNumber(rawStockMonthsCell);
             const parsedCobertura = parseNumber(rawCoberturaCell);
 
-            const hasStockMonths = rawStockMonthsCell !== null && typeof rawStockMonthsCell !== 'undefined' && String(rawStockMonthsCell).trim() !== '';
-            const hasCobertura = rawCoberturaCell !== null && typeof rawCoberturaCell !== 'undefined' && String(rawCoberturaCell).trim() !== '';
+            const hasStockMonths = hasMeaningfulValue(rawStockMonthsCell);
+            const hasCobertura = hasMeaningfulValue(rawCoberturaCell);
 
             const effectiveCoverage = hasCobertura
                 ? parsedCobertura
@@ -2879,8 +2987,115 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             };
 
             product.stockMonths = Number.isFinite(effectiveCoverage) ? effectiveCoverage : 0;
+            product.originSheet = sheetName || '';
+
+            const monthlyValues = [];
+            headers.forEach(function(header, index) {
+                if (!header || !isMonthHeader(header)) {
+                    return;
+                }
+
+                const rawValue = values[index];
+                if (!hasMeaningfulValue(rawValue)) {
+                    return;
+                }
+
+                const numericValue = parseNumber(rawValue);
+                monthlyValues.push({
+                    label: header.toString().trim(),
+                    value: Number.isFinite(numericValue) ? numericValue : 0,
+                    rawValue: rawValue
+                });
+            });
+
+            product.sheetMonthlyValues = sortMonthlyValues(monthlyValues);
 
             return product;
+        }
+
+        function mergeProductIntoMap(map, product, sheetName) {
+            if (!product || !product.code) {
+                return;
+            }
+
+            const monthlyValues = cloneMonthlyValues(product.sheetMonthlyValues);
+            const historyEntry = createHistoryEntry(product, sheetName || product.originSheet || '');
+
+            if (!map.has(product.code)) {
+                const newProduct = Object.assign({}, product);
+                newProduct.monthlyValues = aggregateMonthlyValues([], monthlyValues);
+                newProduct.importHistory = [historyEntry];
+                newProduct.latestSheet = sheetName || product.originSheet || '';
+                delete newProduct.sheetMonthlyValues;
+                delete newProduct.originSheet;
+                map.set(product.code, newProduct);
+                return;
+            }
+
+            const existing = map.get(product.code);
+            existing.importHistory = Array.isArray(existing.importHistory) ? existing.importHistory : [];
+            existing.importHistory.push(historyEntry);
+            existing.latestSheet = sheetName || existing.latestSheet || '';
+
+            existing.monthlyValues = aggregateMonthlyValues(existing.monthlyValues || [], monthlyValues);
+
+            existing.supplier = product.supplier || existing.supplier;
+            existing.family = product.family || existing.family;
+            existing.item = product.item || existing.item;
+            existing.stock14 = product.stock14;
+            existing.stock9013 = product.stock9013;
+            existing.stock9015 = product.stock9015;
+            existing.stockMonths = product.stockMonths;
+            existing.vendas4M = product.vendas4M;
+            existing.media3M = product.media3M;
+            existing.novembro = product.novembro;
+            existing.dezembro = product.dezembro;
+            existing.cobertura = product.cobertura;
+
+            delete existing.sheetMonthlyValues;
+            delete existing.originSheet;
+        }
+
+        function finalizeProductList(products, sheetName) {
+            const productMap = new Map();
+            (Array.isArray(products) ? products : []).forEach(function(product) {
+                mergeProductIntoMap(productMap, product, sheetName || product.originSheet || '');
+            });
+            return Array.from(productMap.values()).sort(function(a, b) {
+                return a.code.localeCompare(b.code, 'pt-BR', { sensitivity: 'base', numeric: true });
+            });
+        }
+
+        function mergeWorkbookData(workbook, sheetNames) {
+            const productMap = new Map();
+            const processedSheets = [];
+
+            sheetNames.forEach(function(sheetName) {
+                try {
+                    const sheetData = extractWorkbookData(workbook, sheetName);
+                    if (!Array.isArray(sheetData) || sheetData.length === 0) {
+                        debugLog(`Aba "${sheetName}" sem dados relevantes ou vazia.`, 'warn');
+                        return;
+                    }
+
+                    sheetData.forEach(function(product) {
+                        mergeProductIntoMap(productMap, product, sheetName);
+                    });
+
+                    processedSheets.push({
+                        name: sheetName,
+                        count: sheetData.length
+                    });
+                } catch (error) {
+                    debugLog(`Erro ao processar aba "${sheetName}": ${error.message}`, 'error');
+                }
+            });
+
+            const combinedData = Array.from(productMap.values()).sort(function(a, b) {
+                return a.code.localeCompare(b.code, 'pt-BR', { sensitivity: 'base', numeric: true });
+            });
+
+            return { combinedData, processedSheets };
         }
 
         // FUNÇÃO ATUALIZADA v1.3.0 - Mapeamento Específico para sua Planilha
@@ -3833,7 +4048,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             filteredData.forEach(function(product) {
                 const row = document.createElement('tr');
-                const totalStock = product.stock14 + product.stock9013 + product.stock9015;
+                const stock14Value = Number(product.stock14 || 0);
+                const stock9013Value = Number(product.stock9013 || 0);
+                const stock9015Value = Number(product.stock9015 || 0);
+                const totalStock = stock14Value + stock9013Value + stock9015Value;
                 const coverageValue = getCoverageValue(product);
                 const normalizedCoverage = Number.isFinite(product.stockMonths)
                     ? product.stockMonths
@@ -3861,8 +4079,21 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const coverageSourceLabel = hasImportedCoverage
                     ? 'Planilha'
                     : (hasCoverageEstimate ? 'Estimado' : 'Sem dados');
+                const codeValue = (product.code || '').toString();
+                const hasCode = codeValue.trim() !== '';
+                const safeCodeAttr = escapeTooltip(codeValue);
+                const codeDisplay = hasCode ? escapeTooltip(codeValue) : '—';
+                const codeCellContent = hasCode
+                    ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${codeDisplay}</button>`
+                    : '—';
+                const safeSupplier = escapeTooltip(product.supplier || '—');
+                const safeFamily = escapeTooltip(product.family || '—');
+                const itemText = escapeTooltip(product.item || '—');
+                const itemInteractive = hasCode
+                    ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${itemText}</button>`
+                    : itemText;
                 const itemCellContent = `
-                    <div class="item-name">${escapeTooltip(product.item)}</div>
+                    <div class="item-name">${itemInteractive}</div>
                     <div class="item-coverage">
                         Cobertura: <strong>${coverageValueDisplay}</strong>
                         <span class="coverage-tag ${coverageSourceClass}">${coverageSourceLabel}</span>
@@ -3882,14 +4113,14 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     : '—';
 
                 row.innerHTML = `
-                    <td>${product.code}</td>
-                    <td>${product.supplier}</td>
-                    <td>${product.family}</td>
+                    <td>${codeCellContent}</td>
+                    <td>${safeSupplier}</td>
+                    <td>${safeFamily}</td>
                     <td>${itemCellContent}</td>
-                    <td>${Number(product.stock14).toLocaleString('pt-BR')}</td>
-                    <td>${Number(product.stock9013).toLocaleString('pt-BR')}</td>
-                    <td>${Number(product.stock9015).toLocaleString('pt-BR')}</td>
-                    <td><strong>${Number(totalStock).toLocaleString('pt-BR')}</strong></td>
+                    <td>${stock14Value.toLocaleString('pt-BR')}</td>
+                    <td>${stock9013Value.toLocaleString('pt-BR')}</td>
+                    <td>${stock9015Value.toLocaleString('pt-BR')}</td>
+                    <td><strong>${totalStock.toLocaleString('pt-BR')}</strong></td>
                     <td class="${vendas4MClass}">${vendas4MDisplay}</td>
                     <td>${media3MDisplay}</td>
                     <td class="status-cell prediction-cell ${statusClass}">${predictionCellContent}</td>
@@ -3918,6 +4149,280 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             initializeTooltips(tableBody);
+        }
+
+        function openProductHistoryFromElement(element) {
+            if (!element) {
+                return;
+            }
+
+            const code = element.getAttribute('data-code');
+            if (code) {
+                openProductHistory(code);
+            }
+        }
+
+        function openProductHistory(code) {
+            if (!code) {
+                showMessage('❌ Código inválido para exibir detalhes.', 'error');
+                return;
+            }
+
+            const normalizedCode = code.toString().trim().toLowerCase();
+            const product = allProductsData.find(function(item) {
+                return (item.code || '').toString().trim().toLowerCase() === normalizedCode;
+            });
+
+            if (!product) {
+                showMessage('❌ Produto não encontrado para exibir histórico.', 'error');
+                return;
+            }
+
+            const historyWindow = window.open('', '_blank');
+            if (!historyWindow) {
+                showMessage('❌ Não foi possível abrir os detalhes. Permita pop-ups e tente novamente.', 'error');
+                return;
+            }
+
+            const aggregatedMonthly = (Array.isArray(product.monthlyValues) && product.monthlyValues.length > 0)
+                ? sortMonthlyValues(cloneMonthlyValues(product.monthlyValues))
+                : buildFallbackMonthlyValues(product);
+
+            const historyEntries = Array.isArray(product.importHistory)
+                ? product.importHistory.map(normalizeHistoryEntry)
+                : [];
+
+            const monthlyRows = aggregatedMonthly.length > 0
+                ? aggregatedMonthly.map(function(entry) {
+                    return `<tr><td>${escapeTooltip(entry.label || 'Mês')}</td><td>${formatHistoryDisplayValue(entry)}</td></tr>`;
+                }).join('')
+                : '<tr><td colspan="2">Sem dados mensais importados.</td></tr>';
+
+            const formatMetric = function(value, decimals) {
+                const numeric = Number(value);
+                if (!Number.isFinite(numeric)) {
+                    return '--';
+                }
+                return numeric.toLocaleString('pt-BR', {
+                    minimumFractionDigits: decimals || 0,
+                    maximumFractionDigits: decimals || 0
+                });
+            };
+
+            const productTotals = {
+                stock14: Number(product.stock14) || 0,
+                stock9013: Number(product.stock9013) || 0,
+                stock9015: Number(product.stock9015) || 0,
+                totalStock: Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0),
+                vendas4M: Number(product.vendas4M) || 0,
+                media3M: Number(product.media3M) || 0,
+                cobertura: getCoverageValue(product)
+            };
+
+            const overviewMetrics = [
+                { label: 'Estoque 1-4', value: productTotals.stock14 },
+                { label: 'Estoque 90-13', value: productTotals.stock9013 },
+                { label: 'Estoque 90-15', value: productTotals.stock9015 },
+                { label: 'Estoque Total', value: productTotals.totalStock },
+                { label: 'Vendas 4M', value: productTotals.vendas4M },
+                { label: 'Média 3M', value: productTotals.media3M },
+                { label: 'Cobertura (meses)', value: productTotals.cobertura, decimals: 2 }
+            ].map(function(metric) {
+                return `<li><span class="metric-label">${metric.label}</span><span class="metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
+            }).join('');
+
+            const historySections = historyEntries.length > 0
+                ? historyEntries.map(function(entry, index) {
+                    const sectionTitle = entry.sheetName ? escapeTooltip(entry.sheetName) : `Registro ${index + 1}`;
+                    const monthsRows = entry.months.length > 0
+                        ? entry.months.map(function(monthEntry) {
+                            return `<tr><td>${escapeTooltip(monthEntry.label || 'Mês')}</td><td>${formatHistoryDisplayValue(monthEntry)}</td></tr>`;
+                        }).join('')
+                        : '<tr><td colspan="2">Sem valores informados.</td></tr>';
+                    const totals = entry.totals || {};
+                    const totalsMetrics = [
+                        { label: 'Estoque 1-4', value: totals.stock14 },
+                        { label: 'Estoque 90-13', value: totals.stock9013 },
+                        { label: 'Estoque 90-15', value: totals.stock9015 },
+                        { label: 'Estoque Total', value: totals.totalStock },
+                        { label: 'Vendas 4M', value: totals.vendas4M },
+                        { label: 'Média 3M', value: totals.media3M },
+                        { label: 'Cobertura (meses)', value: totals.cobertura, decimals: 2 }
+                    ].map(function(metric) {
+                        return `<li><span class="metric-label">${metric.label}</span><span class="metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
+                    }).join('');
+
+                    return `
+                        <article class="history-entry">
+                            <h4>${sectionTitle}</h4>
+                            <div class="history-grid">
+                                <div class="history-summary">
+                                    <h5>Resumo do período</h5>
+                                    <ul class="metric-list">${totalsMetrics}</ul>
+                                </div>
+                                <div class="history-months">
+                                    <h5>Valores informados</h5>
+                                    <table class="month-table">
+                                        <thead>
+                                            <tr><th>Mês</th><th>Valor</th></tr>
+                                        </thead>
+                                        <tbody>${monthsRows}</tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                }).join('')
+                : '<p class="empty-history">Sem histórico de importações salvo para este item.</p>';
+
+            const codeDisplay = escapeTooltip(product.code || '—');
+            const itemDisplay = escapeTooltip(product.item || '—');
+            const supplierDisplay = escapeTooltip(product.supplier || '—');
+            const familyDisplay = escapeTooltip(product.family || '—');
+            const latestSheet = escapeTooltip(product.latestSheet || lastImportedSheetName || '—');
+
+            const content = `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico do Produto ${codeDisplay}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background-color: #f5f7fb;
+            color: #1f2a44;
+        }
+        header {
+            margin-bottom: 24px;
+        }
+        header h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+        }
+        header p {
+            margin: 4px 0;
+            color: #4d5f94;
+        }
+        .overview {
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+        .metric-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .metric-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eef2fb;
+            font-size: 14px;
+        }
+        .metric-list li:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            font-weight: 600;
+            color: #2f3e6d;
+        }
+        .metric-value {
+            font-weight: 600;
+            color: #1f448c;
+        }
+        .month-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .month-table th,
+        .month-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e6ecfb;
+            text-align: left;
+            font-size: 14px;
+        }
+        .month-table th {
+            background: #f0f4ff;
+            color: #1f2a44;
+        }
+        .month-table tr:last-child td {
+            border-bottom: none;
+        }
+        .history-entry {
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(31, 68, 140, 0.08);
+        }
+        .history-entry h4 {
+            margin-top: 0;
+            color: #1f448c;
+        }
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .history-summary,
+        .history-months {
+            min-width: 0;
+        }
+        .history-summary h5,
+        .history-months h5 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #2f3e6d;
+        }
+        .empty-history {
+            margin: 16px 0;
+            color: #4d5f94;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Histórico do Produto</h1>
+        <p><strong>${codeDisplay}</strong> — ${itemDisplay}</p>
+        <p>Fornecedor: ${supplierDisplay} • Família: ${familyDisplay}</p>
+        <p>Última origem importada: ${latestSheet}</p>
+    </header>
+    <section class="overview">
+        <h2 class="section-title">Resumo atual</h2>
+        <ul class="metric-list">${overviewMetrics}</ul>
+    </section>
+    <section class="overview">
+        <h2 class="section-title">Valores por mês</h2>
+        <table class="month-table">
+            <thead><tr><th>Mês</th><th>Valor</th></tr></thead>
+            <tbody>${monthlyRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2 class="section-title">Histórico de importações</h2>
+        ${historySections}
+    </section>
+</body>
+</html>`;
+
+            historyWindow.document.write(content);
+            historyWindow.document.close();
+            historyWindow.focus();
         }
 
         function normalizeStockValue(value) {
@@ -4266,12 +4771,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         // Fechar modal ao clicar fora dele
         window.onclick = function(event) {
             const modal = document.getElementById('exportModal');
-            const sheetModal = document.getElementById('sheetSelectionModal');
             if (event.target === modal) {
                 closeExportModal();
-            }
-            if (event.target === sheetModal) {
-                cancelSheetSelection();
             }
         }
 
