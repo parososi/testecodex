@@ -770,6 +770,78 @@
             box-shadow: 0 2px 8px rgba(31, 68, 140, 0.08);
         }
 
+        .history-overview.history-coverage {
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .history-coverage-info {
+            background: #f2f6ff;
+            border: 1px solid #d7e1ff;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-coverage-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .history-coverage-title {
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #1f448c;
+            font-weight: 700;
+        }
+
+        .history-coverage-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f448c;
+            line-height: 1;
+        }
+
+        .history-coverage-unit {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f448c;
+        }
+
+        .history-coverage-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .history-coverage-status.status-neutral {
+            background-color: #eceff1;
+            color: #546e7a;
+        }
+
+        .history-coverage-meta {
+            font-size: 12px;
+            color: #4d5f94;
+            margin: 0;
+        }
+
+        .history-summary .history-coverage-meta {
+            margin-top: 12px;
+        }
+
         .history-section-title {
             margin: 0 0 12px 0;
             font-size: 18px;
@@ -1511,6 +1583,8 @@
         function createHistoryEntry(product, sheetName) {
             const months = cloneMonthlyValues(product.sheetMonthlyValues);
             const totalStock = Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0);
+            const coverageValue = getCoverageValue(product);
+            const historyCoverageSource = resolveCoverageSource(product);
 
             return {
                 sheetName: sheetName || '',
@@ -1522,10 +1596,9 @@
                     totalStock: Number.isFinite(totalStock) ? totalStock : 0,
                     vendas4M: Number(product.vendas4M) || 0,
                     media3M: Number(product.media3M) || 0,
-                    cobertura: Number.isFinite(product.cobertura)
-                        ? product.cobertura
-                        : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0)
-                }
+                    cobertura: Number.isFinite(coverageValue) ? coverageValue : 0
+                },
+                coverageSource: historyCoverageSource
             };
         }
 
@@ -1568,7 +1641,8 @@
                         vendas4M: 0,
                         media3M: 0,
                         cobertura: 0
-                    }
+                    },
+                    coverageSource: 'none'
                 };
             }
 
@@ -1581,6 +1655,8 @@
                 media3M: 0,
                 cobertura: 0
             }, entry.totals || {});
+
+            const normalizedCoverageSource = entry.coverageSource || 'none';
 
             normalizedTotals.stock14 = Number.isFinite(Number(normalizedTotals.stock14))
                 ? Number(normalizedTotals.stock14)
@@ -1607,7 +1683,8 @@
             return {
                 sheetName: entry.sheetName || '',
                 months: sortMonthlyValues(cloneMonthlyValues(entry.months)),
-                totals: normalizedTotals
+                totals: normalizedTotals,
+                coverageSource: normalizedCoverageSource
             };
         }
 
@@ -1626,6 +1703,16 @@
                 product.importHistory = product.importHistory.map(normalizeHistoryEntry);
             } else {
                 product.importHistory = [];
+            }
+
+            if (!product.coverageSource) {
+                if (Number.isFinite(product.stockMonths)) {
+                    product.coverageSource = 'stockMonths';
+                } else if (Number.isFinite(product.cobertura)) {
+                    product.coverageSource = 'cobertura';
+                } else {
+                    product.coverageSource = 'none';
+                }
             }
 
             return product;
@@ -1979,14 +2066,94 @@
             return Math.round(value).toLocaleString('pt-BR');
         }
 
-        function getCoverageValue(product) {
-            if (product && Number.isFinite(product.cobertura)) {
-                return product.cobertura;
+        function resolveCoverageSource(product) {
+            if (!product || typeof product !== 'object') {
+                return 'none';
             }
-            if (product && Number.isFinite(product.stockMonths)) {
+
+            if (typeof product.coverageSource === 'string' && product.coverageSource) {
+                if (product.coverageSource === 'estimated') {
+                    return 'calculated';
+                }
+                return product.coverageSource;
+            }
+
+            if (Number.isFinite(product.stockMonths)) {
+                return 'stockMonths';
+            }
+
+            if (Number.isFinite(product.cobertura)) {
+                return 'cobertura';
+            }
+
+            return 'none';
+        }
+
+        function getCoverageValue(product) {
+            if (!product || typeof product !== 'object') {
+                return null;
+            }
+
+            const source = resolveCoverageSource(product);
+            if (source === 'none') {
+                return null;
+            }
+
+            if (Number.isFinite(product.stockMonths)) {
                 return product.stockMonths;
             }
-            return 0;
+
+            if (Number.isFinite(product.cobertura)) {
+                return product.cobertura;
+            }
+
+            return null;
+        }
+
+        function getCoverageSourceMetadata(product) {
+            const sourceKey = resolveCoverageSource(product);
+            const coverageValue = getCoverageValue(product);
+            const hasCoverageData = sourceKey !== 'none' && Number.isFinite(coverageValue);
+
+            if (!hasCoverageData && sourceKey === 'none') {
+                return {
+                    key: 'none',
+                    label: 'Sem dados',
+                    detail: 'Nenhuma informação de cobertura disponível.',
+                    className: 'no-data'
+                };
+            }
+
+            switch (sourceKey) {
+                case 'stockMonths':
+                    return {
+                        key: 'stockMonths',
+                        label: 'Planilha',
+                        detail: 'Estoque em meses (planilha)',
+                        className: 'from-import'
+                    };
+                case 'cobertura':
+                    return {
+                        key: 'cobertura',
+                        label: 'Planilha',
+                        detail: 'Cobertura (planilha)',
+                        className: 'from-import'
+                    };
+                case 'calculated':
+                    return {
+                        key: 'calculated',
+                        label: 'Estimado',
+                        detail: 'Cobertura estimada automaticamente.',
+                        className: 'from-estimate'
+                    };
+                default:
+                    return {
+                        key: 'none',
+                        label: 'Sem dados',
+                        detail: 'Nenhuma informação de cobertura disponível.',
+                        className: 'no-data'
+                    };
+            }
         }
 
         function escapeTooltip(text) {
@@ -2970,10 +3137,19 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const hasStockMonths = hasMeaningfulValue(rawStockMonthsCell);
             const hasCobertura = hasMeaningfulValue(rawCoberturaCell);
+            const validStockMonths = hasStockMonths && Number.isFinite(parsedStockMonths);
+            const validCobertura = hasCobertura && Number.isFinite(parsedCobertura);
 
-            const effectiveCoverage = hasCobertura
-                ? parsedCobertura
-                : (hasStockMonths ? parsedStockMonths : (Number.isFinite(parsedCobertura) ? parsedCobertura : parsedStockMonths));
+            let effectiveCoverage = 0;
+            let coverageSource = 'none';
+
+            if (validStockMonths) {
+                effectiveCoverage = parsedStockMonths;
+                coverageSource = 'stockMonths';
+            } else if (validCobertura) {
+                effectiveCoverage = parsedCobertura;
+                coverageSource = 'cobertura';
+            }
 
             const product = {
                 code: sanitizeText(values[columnMapping.code] || ''),
@@ -2987,12 +3163,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 media3M: parseNumber(values[columnMapping.media3M]) || 0,
                 novembro: parseNumber(values[columnMapping.novembro]) || 0,
                 dezembro: parseNumber(values[columnMapping.dezembro]) || 0,
-                cobertura: hasCobertura
-                    ? parsedCobertura
-                    : (hasStockMonths ? parsedStockMonths : parsedCobertura)
+                cobertura: validCobertura ? parsedCobertura : null
             };
 
             product.stockMonths = Number.isFinite(effectiveCoverage) ? effectiveCoverage : 0;
+            product.coverageSource = coverageSource;
             product.originSheet = sheetName || '';
 
             const monthlyValues = [];
@@ -3057,6 +3232,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             existing.novembro = product.novembro;
             existing.dezembro = product.dezembro;
             existing.cobertura = product.cobertura;
+            existing.coverageSource = product.coverageSource;
 
             delete existing.sheetMonthlyValues;
             delete existing.originSheet;
@@ -3929,6 +4105,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const stock9015Value = Number(product.stock9015 || 0);
                 const totalStock = stock14Value + stock9013Value + stock9015Value;
                 const coverageValue = getCoverageValue(product);
+                const coverageMeta = getCoverageSourceMetadata(product);
                 const normalizedCoverage = Number.isFinite(product.stockMonths)
                     ? product.stockMonths
                     : (Number.isFinite(coverageValue) ? coverageValue : 0);
@@ -3943,18 +4120,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const media3MDisplay = Number.isFinite(product.media3M)
                     ? Math.round(product.media3M).toLocaleString('pt-BR')
                     : '0';
-                const hasImportedCoverage = Number.isFinite(product.cobertura);
-                const hasCoverageEstimate = !hasImportedCoverage && Number.isFinite(product.stockMonths);
-                const hasCoverageData = hasImportedCoverage || hasCoverageEstimate;
+                const hasCoverageData = coverageMeta.key !== 'none' && Number.isFinite(coverageValue);
                 const coverageValueDisplay = hasCoverageData
                     ? `${formatStatValue(coverageValue)} meses`
                     : '--';
-                const coverageSourceClass = hasImportedCoverage
-                    ? 'from-import'
-                    : (hasCoverageEstimate ? 'from-estimate' : 'no-data');
-                const coverageSourceLabel = hasImportedCoverage
-                    ? 'Planilha'
-                    : (hasCoverageEstimate ? 'Estimado' : 'Sem dados');
+                const coverageSourceClass = coverageMeta.className;
+                const coverageSourceLabel = coverageMeta.label;
+                const coverageSourceDetail = coverageMeta.detail || '';
+                const coverageSourceTitle = coverageSourceDetail
+                    ? ` title="${escapeTooltip(coverageSourceDetail)}"`
+                    : '';
                 const codeValue = (product.code || '').toString();
                 const hasCode = codeValue.trim() !== '';
                 const safeCodeAttr = escapeTooltip(codeValue);
@@ -3972,7 +4147,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     <div class="item-name">${itemInteractive}</div>
                     <div class="item-coverage">
                         Cobertura: <strong>${coverageValueDisplay}</strong>
-                        <span class="coverage-tag ${coverageSourceClass}">${coverageSourceLabel}</span>
+                        <span class="coverage-tag ${coverageSourceClass}"${coverageSourceTitle}>${coverageSourceLabel}</span>
                     </div>
                 `.trim();
 
@@ -4088,27 +4263,29 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
             };
 
-            const productTotals = {
-                stock14: Number(product.stock14) || 0,
-                stock9013: Number(product.stock9013) || 0,
-                stock9015: Number(product.stock9015) || 0,
-                totalStock: Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0),
-                vendas4M: Number(product.vendas4M) || 0,
-                media3M: Number(product.media3M) || 0,
-                cobertura: getCoverageValue(product)
-            };
-
-            const overviewMetrics = [
-                { label: 'Estoque 1-4', value: productTotals.stock14 },
-                { label: 'Estoque 90-13', value: productTotals.stock9013 },
-                { label: 'Estoque 90-15', value: productTotals.stock9015 },
-                { label: 'Estoque Total', value: productTotals.totalStock },
-                { label: 'Vendas 4M', value: productTotals.vendas4M },
-                { label: 'Média 3M', value: productTotals.media3M },
-                { label: 'Cobertura (meses)', value: productTotals.cobertura, decimals: 2 }
-            ].map(function(metric) {
-                return `<li><span class="history-metric-label">${metric.label}</span><span class="history-metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
-            }).join('');
+            const coverageMeta = getCoverageSourceMetadata(product);
+            const currentCoverageValue = getCoverageValue(product);
+            const hasCoverageInfo = coverageMeta.key !== 'none' && Number.isFinite(currentCoverageValue);
+            const coverageValueDisplay = hasCoverageInfo ? formatStatValue(currentCoverageValue, 2) : '--';
+            const coverageStatusClass = hasCoverageInfo ? getStatusClass(currentCoverageValue) : 'status-neutral';
+            const coverageStatusText = hasCoverageInfo ? getStatusText(currentCoverageValue) : 'Sem dados suficientes';
+            const coverageSourceDescription = coverageMeta.key === 'none'
+                ? coverageMeta.detail
+                : `Origem: ${coverageMeta.label} · ${coverageMeta.detail}`;
+            const coverageUnitHtml = hasCoverageInfo ? '<span class="history-coverage-unit">meses</span>' : '';
+            const coverageSectionHtml = `
+                <section class="history-overview history-coverage">
+                    <div class="history-coverage-info">
+                        <div class="history-coverage-main">
+                            <span class="history-coverage-title">Cobertura atual</span>
+                            <span class="history-coverage-value">${coverageValueDisplay}</span>
+                            ${coverageUnitHtml}
+                            <span class="history-coverage-status ${coverageStatusClass}">${coverageStatusText}</span>
+                        </div>
+                        <div class="history-coverage-meta">${escapeTooltip(coverageSourceDescription)}</div>
+                    </div>
+                </section>
+            `;
 
             const historySections = historyEntries.length > 0
                 ? historyEntries.map(function(entry, index) {
@@ -4130,6 +4307,15 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ].map(function(metric) {
                         return `<li><span class="history-metric-label">${metric.label}</span><span class="history-metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
                     }).join('');
+                    const entryCoverageMeta = getCoverageSourceMetadata({
+                        coverageSource: entry.coverageSource,
+                        stockMonths: totals.cobertura,
+                        cobertura: totals.cobertura
+                    });
+                    const entryCoverageDescription = entryCoverageMeta.key === 'none'
+                        ? 'Cobertura não informada para este período.'
+                        : `Origem da cobertura: ${entryCoverageMeta.label} · ${entryCoverageMeta.detail}`;
+                    const entryCoverageNote = `<p class="history-coverage-meta">${escapeTooltip(entryCoverageDescription)}</p>`;
 
                     return `
                         <article class="history-entry">
@@ -4138,6 +4324,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                 <div class="history-summary">
                                     <h5>Resumo do período</h5>
                                     <ul class="history-metric-list">${totalsMetrics}</ul>
+                                    ${entryCoverageNote}
                                 </div>
                                 <div class="history-months">
                                     <h5>Valores informados</h5>
@@ -4166,10 +4353,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         <p>Fornecedor: ${supplierDisplay} • Família: ${familyDisplay}</p>
                         <p>Última origem importada: ${latestSheet}</p>
                     </div>
-                    <section class="history-overview">
-                        <h2 class="history-section-title">Resumo atual</h2>
-                        <ul class="history-metric-list">${overviewMetrics}</ul>
-                    </section>
+                    ${coverageSectionHtml}
                     <section class="history-overview">
                         <h2 class="history-section-title">Valores por mês</h2>
                         <table class="history-month-table">
@@ -4500,6 +4684,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             
             const exportData = filteredData.map(function(p) {
                 const predictionInfo = getPrediction(p);
+                const coverageValueExport = getCoverageValue(p);
                     return {
                         'CÓDIGO': p.code,
                         'FORNECEDOR': p.supplier,
@@ -4513,7 +4698,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         'MÉDIA 3M': p.media3M,
                         'NOVEMBRO': p.novembro,
                         'DEZEMBRO': p.dezembro,
-                        'COBERTURA (PLANILHA)': getCoverageValue(p),
+                        'COBERTURA (PLANILHA)': Number.isFinite(coverageValueExport) ? coverageValueExport : '',
                         'ESTOQUE EM MESES': p.stockMonths,
                         'PREVISÃO': predictionInfo ? (predictionInfo.fullText || predictionInfo.label) : '--',
                         'STATUS': getStatusText(p.stockMonths)
