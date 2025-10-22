@@ -2880,6 +2880,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const headers = lines[0].split(',').map(function(h) {
                 return h.trim().replace(/"/g, '');
             });
+            const mapping = findColumnMapping(headers);
             const products = [];
 
             for (let i = 1; i < lines.length; i++) {
@@ -2893,7 +2894,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     values.push('');
                 }
 
-                const product = mapProductData(headers, values, 'Arquivo CSV');
+                const product = mapProductData(headers, values, 'Arquivo CSV', mapping);
                 if (product.code) {
                     products.push(product);
                 }
@@ -2926,6 +2927,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
         function processExcelRows(headers, rows, sheetName) {
             const products = [];
+            const mapping = findColumnMapping(headers);
 
             rows.forEach(function(row) {
                 if (!Array.isArray(row)) {
@@ -2944,7 +2946,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     return typeof row[index] !== 'undefined' ? row[index] : '';
                 });
 
-                const product = mapProductData(headers, values, sheetName);
+                const product = mapProductData(headers, values, sheetName, mapping);
                 if (product.code) {
                     products.push(product);
                 }
@@ -2953,11 +2955,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             return products;
         }
 
-        function mapProductData(headers, values, sheetName) {
-            const mapping = findColumnMapping(headers);
+        function mapProductData(headers, values, sheetName, mapping) {
+            const columnMapping = mapping || findColumnMapping(headers);
 
-            const rawStockMonthsCell = mapping.stockMonths !== undefined ? values[mapping.stockMonths] : null;
-            const rawCoberturaCell = mapping.cobertura !== undefined ? values[mapping.cobertura] : null;
+            const rawStockMonthsCell = columnMapping.stockMonths !== undefined ? values[columnMapping.stockMonths] : null;
+            const rawCoberturaCell = columnMapping.cobertura !== undefined ? values[columnMapping.cobertura] : null;
 
             const parsedStockMonths = parseNumber(rawStockMonthsCell);
             const parsedCobertura = parseNumber(rawCoberturaCell);
@@ -2970,17 +2972,17 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 : (hasStockMonths ? parsedStockMonths : (Number.isFinite(parsedCobertura) ? parsedCobertura : parsedStockMonths));
 
             const product = {
-                code: sanitizeText(values[mapping.code] || ''),
-                supplier: sanitizeText(values[mapping.supplier] || ''),
-                family: sanitizeText(values[mapping.family] || ''),
-                item: sanitizeText(values[mapping.item] || ''),
-                stock14: parseNumber(values[mapping.stock14] || 0),
-                stock9013: parseNumber(values[mapping.stock9013] || 0),
-                stock9015: parseNumber(values[mapping.stock9015] || 0),
-                vendas4M: parseNumber(values[mapping.vendas4M] || 0),
-                media3M: parseNumber(values[mapping.media3M]) || 0,
-                novembro: parseNumber(values[mapping.novembro]) || 0,
-                dezembro: parseNumber(values[mapping.dezembro]) || 0,
+                code: sanitizeText(values[columnMapping.code] || ''),
+                supplier: sanitizeText(values[columnMapping.supplier] || ''),
+                family: sanitizeText(values[columnMapping.family] || ''),
+                item: sanitizeText(values[columnMapping.item] || ''),
+                stock14: parseNumber(values[columnMapping.stock14] || 0),
+                stock9013: parseNumber(values[columnMapping.stock9013] || 0),
+                stock9015: parseNumber(values[columnMapping.stock9015] || 0),
+                vendas4M: parseNumber(values[columnMapping.vendas4M] || 0),
+                media3M: parseNumber(values[columnMapping.media3M]) || 0,
+                novembro: parseNumber(values[columnMapping.novembro]) || 0,
+                dezembro: parseNumber(values[columnMapping.dezembro]) || 0,
                 cobertura: hasCobertura
                     ? parsedCobertura
                     : (hasStockMonths ? parsedStockMonths : parsedCobertura)
@@ -3102,232 +3104,135 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function findColumnMapping(headers) {
             debugLog('=== MAPEAMENTO v1.3.0 - ANÁLISE ESPECÍFICA ===');
             debugLog(`Colunas encontradas: ${headers.length}`);
-            
-            // Log todas as colunas encontradas
-            headers.forEach((h, index) => {
+
+            headers.forEach(function(h, index) {
                 debugLog(`[${index}] "${h}"`);
             });
-            
-            const upperHeaders = headers.map(h => (h || '').toString().toUpperCase().trim());
-            const normalizedHeaders = headers.map(h => {
-                return (h || '')
+
+            const upperHeaders = headers.map(function(header) {
+                return (header || '').toString().toUpperCase().trim();
+            });
+            const normalizedHeaders = headers.map(function(header) {
+                return (header || '')
                     .toString()
                     .normalize('NFD')
                     .replace(/[\u0300-\u036f]/g, '')
                     .toUpperCase()
                     .replace(/[^A-Z0-9]/g, '');
             });
+
             const mapping = {};
             const warnings = [];
+            const headerCount = headers.length;
 
-            // MAPEAMENTO DIRETO E ESPECÍFICO baseado na sua planilha
-
-            // 1. CÓDIGO (primeira coluna)
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h === 'CÓDIGO' || h === 'CODIGO' || h === 'CODE') {
-                    mapping.code = i;
-                    debugLog(`✅ code → [${i}] "${headers[i]}"`);
-                    break;
+            function assignField(field, index, detail) {
+                if (typeof index === 'number' && index >= 0) {
+                    mapping[field] = index;
+                    const label = headers[index] || '';
+                    const suffix = detail ? ` ${detail}` : '';
+                    debugLog(`✅ ${field} → [${index}] "${label}"${suffix}`);
                 }
             }
 
-            // 7. VENDAS 4M - busca específica para evitar conflito com outras colunas de vendas
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if ((h.includes('VENDAS') && h.includes('4M')) ||
-                    (h.includes('SALES') && h.includes('4M')) ||
-                    (h === 'VENDAS 4M') || (h === 'VENDAS4M')) {
-                    mapping.vendas4M = i;
-                    debugLog(`✅ vendas4M (busca dedicada) → [${i}] "${headers[i]}"`);
-                    break;
+            function findIndex(predicate) {
+                for (let i = 0; i < headerCount; i++) {
+                    if (predicate(i, upperHeaders[i], normalizedHeaders[i])) {
+                        return i;
+                    }
+                }
+                return undefined;
+            }
+
+            assignField('code', findIndex(function(_, upper) {
+                return upper === 'CÓDIGO' || upper === 'CODIGO' || upper === 'CODE';
+            }));
+
+            assignField('supplier', findIndex(function(_, upper) {
+                return upper === 'FORNECEDOR' || upper === 'SUPPLIER';
+            }));
+
+            assignField('family', findIndex(function(_, upper) {
+                return upper === 'FAMÍLIA' || upper === 'FAMILIA' || upper === 'FAMILY';
+            }));
+
+            assignField('item', findIndex(function(_, upper) {
+                return upper === 'ITEM' || upper === 'PRODUTO' || upper === 'PRODUCT';
+            }));
+
+            for (let i = 0; i < headerCount; i++) {
+                const upper = upperHeaders[i];
+                if (mapping.stock14 === undefined && (upper === '1-4' || upper === '1_4' || upper.includes('1-4'))) {
+                    assignField('stock14', i);
+                } else if (mapping.stock9013 === undefined && (upper === '90-13' || upper === '90_13' || upper.includes('90-13'))) {
+                    assignField('stock9013', i);
+                } else if (mapping.stock9015 === undefined && (upper === '90-15' || upper === '90_15' || upper.includes('90-15'))) {
+                    assignField('stock9015', i);
                 }
             }
 
-            // 8. MÉDIA 3M - novo mapeamento específico
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h === "MÉDIA 3M" || h === "MEDIA 3M" || h === "MEDIA3M" || h === "MÉDIA3M") {
-                    mapping.media3M = i;
-                    debugLog(`media3M: ${i} - ${headers[i]}`);
-                    break;
+            assignField('stockMonths', findIndex(function(_, upper, normalized) {
+                return (upper.includes('ESTOQUE') && upper.includes('MESES')) || normalized.includes('STOCKMONTHS');
+            }));
+
+            assignField('cobertura', findIndex(function(_, __, normalized) {
+                return normalized.includes('COBERTURA') || normalized.includes('COVERAGE');
+            }));
+
+            let vendasIndex = findIndex(function(_, __, normalized) {
+                return normalized.includes('VENDAS4');
+            });
+            if (typeof vendasIndex === 'number') {
+                assignField('vendas4M', vendasIndex);
+            } else {
+                vendasIndex = findIndex(function(_, __, normalized) {
+                    return normalized.includes('VENDAS3');
+                });
+                if (typeof vendasIndex === 'number') {
+                    assignField('vendas4M', vendasIndex, '(usando VENDAS 3M)');
+                    warnings.push('Coluna VENDAS 4M não encontrada; utilizando VENDAS 3M da planilha.');
                 }
             }
 
+            assignField('media3M', findIndex(function(_, __, normalized) {
+                return normalized.includes('MEDIA3');
+            }));
 
-            // 9. NOVEMBRO
-            for (let i = 0; i < normalizedHeaders.length; i++) {
-                const normalized = normalizedHeaders[i];
-                if (normalized.includes('NOVEMBRO')) {
-                    mapping.novembro = i;
-                    debugLog(`✅ novembro → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            if (mapping.novembro === undefined) {
-                warnings.push('Coluna NOVEMBRO não encontrada; aplicando fallback se possível.');
+            const novembroIndex = findIndex(function(_, __, normalized) {
+                return normalized.includes('NOVEMBRO');
+            });
+            if (typeof novembroIndex === 'number') {
+                assignField('novembro', novembroIndex);
+            } else {
+                warnings.push('Coluna NOVEMBRO não encontrada na planilha.');
                 debugLog('⚠️ Coluna NOVEMBRO não identificada nos cabeçalhos recebidos.');
             }
 
-            // 10. DEZEMBRO
-            for (let i = 0; i < normalizedHeaders.length; i++) {
-                const normalized = normalizedHeaders[i];
-                if (normalized.includes('DEZEMBRO')) {
-                    mapping.dezembro = i;
-                    debugLog(`✅ dezembro → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            if (mapping.dezembro === undefined) {
-                warnings.push('Coluna DEZEMBRO não encontrada; aplicando fallback se possível.');
+            const dezembroIndex = findIndex(function(_, __, normalized) {
+                return normalized.includes('DEZEMBRO');
+            });
+            if (typeof dezembroIndex === 'number') {
+                assignField('dezembro', dezembroIndex);
+            } else {
+                warnings.push('Coluna DEZEMBRO não encontrada na planilha.');
                 debugLog('⚠️ Coluna DEZEMBRO não identificada nos cabeçalhos recebidos.');
             }
 
-            // 11. COBERTURA
-            for (let i = 0; i < normalizedHeaders.length; i++) {
-                const normalized = normalizedHeaders[i];
-                if (normalized.includes('COBERTURA') || normalized.includes('COVERAGE')) {
-                    mapping.cobertura = i;
-                    debugLog(`✅ cobertura → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            if (mapping.cobertura === undefined) {
-                warnings.push('Coluna COBERTURA não encontrada; aplicando fallback se possível.');
-                debugLog('⚠️ Coluna COBERTURA não identificada nos cabeçalhos recebidos.');
+            if (mapping.stockMonths === undefined && mapping.cobertura !== undefined) {
+                mapping.stockMonths = mapping.cobertura;
+                warnings.push('Coluna ESTOQUE EM MESES não encontrada; usando COBERTURA da planilha.');
+                debugLog('🔄 stockMonths → cobertura (fallback)');
             }
 
-
-            // 2. FORNECEDOR
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h === 'FORNECEDOR' || h === 'SUPPLIER') {
-                    mapping.supplier = i;
-                    debugLog(`✅ supplier → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            
-            // 3. FAMÍLIA
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h === 'FAMÍLIA' || h === 'FAMILIA' || h === 'FAMILY') {
-                    mapping.family = i;
-                    debugLog(`✅ family → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            
-            // 4. ITEM
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h === 'ITEM' || h === 'PRODUTO' || h === 'PRODUCT') {
-                    mapping.item = i;
-                    debugLog(`✅ item → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            
-            // 5. ESTABELECIMENTOS - Busca muito específica
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                
-                // 1-4 (GUARULHOS)
-                if (h === '1-4' || h === '1_4') {
-                    mapping.stock14 = i;
-                    debugLog(`✅ stock14 (1-4) → [${i}] "${headers[i]}"`);
-                }
-                
-                // 90-13 (ITAJAÍ)  
-                else if (h === '90-13' || h === '90_13') {
-                    mapping.stock9013 = i;
-                    debugLog(`✅ stock9013 (90-13) → [${i}] "${headers[i]}"`);
-                }
-                
-                // 90-15 (GARUVA) - BUSCA MUITO ESPECÍFICA
-                else if (h === '90-15' || h === '90_15') {
-                    mapping.stock9015 = i;
-                    debugLog(`✅ stock9015 (90-15) → [${i}] "${headers[i]}"`);
-                }
-            }
-            
-            // 6. ESTOQUE EM MESES
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h.includes('MESES') || h.includes('ESTOQUE EM MESES') || h === 'STOCKMONTHS') {
-                    mapping.stockMonths = i;
-                    debugLog(`✅ stockMonths → [${i}] "${headers[i]}"`);
-                    break;
-                }
-            }
-            
-            if (mapping.vendas4M === undefined) {
-                // 7. VENDAS 4M (fallback genérico)
-                for (let i = 0; i < upperHeaders.length; i++) {
-                    const h = upperHeaders[i];
-                    if ((h.includes('VENDAS') || h.includes('SALES')) && !h.includes('3M')) {
-                        mapping.vendas4M = i;
-                        debugLog(`✅ vendas4M → [${i}] "${headers[i]}" (fallback genérico)`);
-                        break;
-                    }
-                }
+            if (mapping.cobertura === undefined && mapping.stockMonths !== undefined) {
+                mapping.cobertura = mapping.stockMonths;
+                warnings.push('Coluna COBERTURA não encontrada; usando ESTOQUE EM MESES como referência.');
+                debugLog('🔄 cobertura → stockMonths (fallback)');
             }
 
-            // VERIFICAÇÃO ESPECIAL PARA 90-15
-            debugLog('=== VERIFICAÇÃO ESPECIAL PARA 90-15 ===');
-            let found9015 = false;
-            for (let i = 0; i < headers.length; i++) {
-                const original = headers[i];
-                const upper = upperHeaders[i];
-                debugLog(`Verificando [${i}] "${original}" (upper: "${upper}")`);
-                
-                if (original === '90-15' || upper === '90-15' || original === '90_15' || upper === '90_15') {
-                    mapping.stock9015 = i;
-                    debugLog(`🎯 ENCONTRADO 90-15 → [${i}] "${original}"`);
-                    found9015 = true;
-                    break;
-                }
-            }
-            
-            if (!found9015) {
+            if (mapping.stock9015 === undefined) {
                 warnings.push('CRÍTICO: Coluna 90-15 NÃO ENCONTRADA!');
                 debugLog('🚨 CRÍTICO: Coluna 90-15 NÃO ENCONTRADA na planilha!');
-            }
-
-            // FALLBACK APENAS SE ABSOLUTAMENTE NECESSÁRIO
-            const fallbacks = {
-                code: 0, supplier: 1, family: 2, item: 3,
-                stock14: 5, stock9013: 6, stock9015: 7,
-                stockMonths: 8, vendas4M: 9
-            };
-
-            fallbacks.novembro = (headers.length > 2) ? headers.length - 3 : 0;
-            fallbacks.dezembro = (headers.length > 1) ? headers.length - 2 : 0;
-            fallbacks.cobertura = (headers.length > 0) ? headers.length - 1 : 0;
-
-            for (const [field, fallbackIndex] of Object.entries(fallbacks)) {
-                if (mapping[field] === undefined) {
-                    if (fallbackIndex < headers.length) {
-                        mapping[field] = fallbackIndex;
-                        warnings.push(`${field} usando fallback [${fallbackIndex}] "${headers[fallbackIndex]}"`);
-                        debugLog(`🔄 ${field} → [${fallbackIndex}] "${headers[fallbackIndex]}" (FALLBACK)`);
-                    } else {
-                        mapping[field] = 0;
-                        warnings.push(`${field} usando índice 0 por segurança`);
-                        debugLog(`⚡ ${field} → [0] (SEGURANÇA)`);
-                    }
-                }
-            }
-
-            // RELATÓRIO FINAL
-            debugLog('=== MAPEAMENTO FINAL v1.3.0 ===');
-            for (const [field, index] of Object.entries(mapping)) {
-                const header = headers[index] || 'INVÁLIDO';
-                debugLog(`${field.padEnd(12)} → [${index}] "${header}"`);
-            }
-
-            // VALIDAÇÃO CRÍTICA PARA 90-15
-            if (mapping.stock9015 !== undefined) {
+            } else {
                 const mappedHeader = headers[mapping.stock9015];
                 if (mappedHeader !== '90-15' && mappedHeader !== '90_15') {
                     warnings.push(`ATENÇÃO: stock9015 mapeado para "${mappedHeader}" em vez de "90-15"`);
@@ -3335,7 +3240,29 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
-            // SALVAR INFO DE MAPEAMENTO PARA DEBUG
+            debugLog('=== MAPEAMENTO FINAL v1.3.0 ===');
+            Object.entries(mapping).forEach(function([field, index]) {
+                const header = headers[index] || 'INVÁLIDO';
+                debugLog(`${field.padEnd(12)} → [${index}] "${header}"`);
+            });
+
+            const requiredFields = {
+                code: 'CÓDIGO',
+                supplier: 'FORNECEDOR',
+                family: 'FAMÍLIA',
+                item: 'ITEM',
+                stock14: '1-4',
+                stock9013: '90-13',
+                stock9015: '90-15',
+                vendas4M: 'VENDAS 4M',
+                media3M: 'MÉDIA 3M',
+                stockMonths: 'ESTOQUE EM MESES/COBERTURA'
+            };
+
+            const missingFields = Object.keys(requiredFields).filter(function(field) {
+                return typeof mapping[field] !== 'number';
+            });
+
             lastMappingInfo = {
                 headers: headers.slice(),
                 mapping: Object.assign({}, mapping),
@@ -3344,9 +3271,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             };
 
             debugLog(`=== MAPEAMENTO v1.3.0 CONCLUÍDO - ${warnings.length} avisos ===`);
-            warnings.forEach(warning => debugLog(`⚠️ ${warning}`));
+            warnings.forEach(function(warning) {
+                debugLog(`⚠️ ${warning}`);
+            });
 
-            // Mostrar info de mapeamento se debug estiver ativo
+            if (missingFields.length > 0) {
+                const labels = missingFields.map(function(field) { return requiredFields[field]; });
+                const error = new Error(`Não foi possível identificar as colunas obrigatórias: ${labels.join(', ')}`);
+                error.missingFields = labels;
+                error.mappingInfo = lastMappingInfo;
+                throw error;
+            }
+
             if (mappingDebugMode) {
                 showMappingInfo(lastMappingInfo);
             }
