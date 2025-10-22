@@ -1969,7 +1969,10 @@
                         stock9015: product.stock9015 || 0,
                         stockMonths: product.stockMonths || 0,
                         vendas4M: product.vendas4M || 0,
-                        media3M: product.media3M || 0
+                        media3M: product.media3M || 0,
+                        novembro: parseNumber(product.novembro),
+                        dezembro: parseNumber(product.dezembro),
+                        cobertura: normalizeCoberturaValue(product.cobertura)
                     };
                 });
 
@@ -2388,7 +2391,12 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
 
         function mapProductData(headers, values) {
             const mapping = findColumnMapping(headers);
-            
+
+            const novemberValue = mapping.novembro !== undefined ? values[mapping.novembro] : undefined;
+            const decemberValue = mapping.dezembro !== undefined ? values[mapping.dezembro] : undefined;
+            const rawCobertura = mapping.cobertura !== undefined ? values[mapping.cobertura] : undefined;
+            const coberturaValue = normalizeCoberturaValue(rawCobertura);
+
             return {
                 code: sanitizeText(values[mapping.code] || ''),
                 supplier: sanitizeText(values[mapping.supplier] || ''),
@@ -2399,7 +2407,10 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 stock9015: parseNumber(values[mapping.stock9015] || 0),
                 stockMonths: parseNumber(values[mapping.stockMonths] || 0),
                 vendas4M: parseNumber(values[mapping.vendas4M] || 0),
-                media3M: parseNumber(values[mapping.media3M]) || 0
+                media3M: parseNumber(values[mapping.media3M]) || 0,
+                novembro: parseNumber(novemberValue),
+                dezembro: parseNumber(decemberValue),
+                cobertura: coberturaValue
 
             };
         }
@@ -2517,6 +2528,42 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
+            // 8. NOVEMBRO
+            if (mapping.novembro === undefined) {
+                for (let i = 0; i < upperHeaders.length; i++) {
+                    const h = upperHeaders[i];
+                    if (h.includes('NOVEMBRO') || h.includes('NOVEMBER') || /^NOV(?:\b|\/|-|\s|\d)/.test(h)) {
+                        mapping.novembro = i;
+                        debugLog(`✅ novembro → [${i}] "${headers[i]}"`);
+                        break;
+                    }
+                }
+            }
+
+            // 9. DEZEMBRO
+            if (mapping.dezembro === undefined) {
+                for (let i = 0; i < upperHeaders.length; i++) {
+                    const h = upperHeaders[i];
+                    if (h.includes('DEZEMBRO') || h.includes('DEZEMBER') || h.includes('DECEMBER') || /^DE[Z|C](?:\b|\/|-|\s|\d)/.test(h)) {
+                        mapping.dezembro = i;
+                        debugLog(`✅ dezembro → [${i}] "${headers[i]}"`);
+                        break;
+                    }
+                }
+            }
+
+            // 10. COBERTURA
+            if (mapping.cobertura === undefined) {
+                for (let i = 0; i < upperHeaders.length; i++) {
+                    const h = upperHeaders[i];
+                    if (h.includes('COBERTURA') || h.includes('COVERAGE')) {
+                        mapping.cobertura = i;
+                        debugLog(`✅ cobertura → [${i}] "${headers[i]}"`);
+                        break;
+                    }
+                }
+            }
+
             // VERIFICAÇÃO ESPECIAL PARA 90-15
             debugLog('=== VERIFICAÇÃO ESPECIAL PARA 90-15 ===');
             let found9015 = false;
@@ -2601,11 +2648,36 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
 
         function parseNumber(value) {
             if (!value && value !== 0) return 0;
-            
+
             const cleaned = value.toString().replace(/[^\d.,-]/g, '').replace(',', '.');
             const parsed = parseFloat(cleaned);
-            
+
             return isNaN(parsed) ? 0 : parsed;
+        }
+
+        function normalizeCoberturaValue(rawValue) {
+            if (rawValue === undefined || rawValue === null || rawValue === '') {
+                return 0;
+            }
+
+            if (typeof rawValue === 'number' && !isNaN(rawValue)) {
+                return rawValue;
+            }
+
+            if (typeof rawValue === 'string') {
+                const trimmed = sanitizeText(rawValue);
+                if (!trimmed) {
+                    return 0;
+                }
+
+                if (/[0-9]/.test(trimmed)) {
+                    return parseNumber(trimmed);
+                }
+
+                return trimmed;
+            }
+
+            return 0;
         }
 
         // === FUNÇÕES DE FILTROS ===
@@ -3527,9 +3599,12 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
         function confirmExport() {
             const fileName = document.getElementById('fileName').value || 'estoque_dados';
             const fileFormat = document.getElementById('fileFormat').value;
-            
+
             const exportData = filteredData.map(function(p) {
                 const predictionInfo = getPrediction(p);
+                const novemberValue = Number.isFinite(p.novembro) ? p.novembro : parseNumber(p.novembro);
+                const decemberValue = Number.isFinite(p.dezembro) ? p.dezembro : parseNumber(p.dezembro);
+                const coberturaExport = normalizeCoberturaValue(p.cobertura);
                 return {
                     'CÓDIGO': p.code,
                     'FORNECEDOR': p.supplier,
@@ -3541,6 +3616,9 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                     'TOTAL ESTOQUE': p.stock14 + p.stock9013 + p.stock9015,
                     'VENDAS 4M': (!p.vendas4M || p.vendas4M === 0) ? 'S/ VENDA' : p.vendas4M,
                     'ESTOQUE EM MESES': p.stockMonths,
+                    'NOVEMBRO': novemberValue,
+                    'DEZEMBRO': decemberValue,
+                    'COBERTURA': coberturaExport,
                     'PREVISÃO': predictionInfo ? (predictionInfo.fullText || predictionInfo.label) : '--',
                     'STATUS': getStatusText(p.stockMonths)
                 };
