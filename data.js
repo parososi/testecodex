@@ -1,6 +1,6 @@
-// Dados do Dashboard de Estoque v1.2 - Gerado em 20/10/2025, 10:29:22
+// Dados do Dashboard de Estoque v1.3 - Gerado em 22/10/2025, 19:37:23
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
-console.log('Carregando data.js v1.2...');
+console.log('Carregando data.js v1.3...');
 
 window.stockData = [
   {
@@ -13,7 +13,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.13114754098360656,
     "vendas4M": 1220,
-    "media3M": 406.6666666666667
+    "media3M": 406.6666666666667,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.13114754098360656
   },
   {
     "code": "220.12.7",
@@ -25,7 +28,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 2.583592938733126,
     "vendas4M": 19260,
-    "media3M": 6420
+    "media3M": 6420,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 2.583592938733126
   },
   {
     "code": "225.36.7",
@@ -37,7 +43,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.8586387434554974,
     "vendas4M": 3820,
-    "media3M": 1273.3333333333333
+    "media3M": 1273.3333333333333,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.8586387434554974
   },
   {
     "code": "219.12.7",
@@ -49,7 +58,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 1.5547498187092095,
     "vendas4M": 27580,
-    "media3M": 9193.333333333334
+    "media3M": 9193.333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 1.5547498187092095
   },
   {
     "code": "229.36.7",
@@ -61,7 +73,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.6624203821656051,
     "vendas4M": 3140,
-    "media3M": 1046.6666666666667
+    "media3M": 1046.6666666666667,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.6624203821656051
   },
   {
     "code": "226.36.7",
@@ -73,7 +88,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.019487179487179488,
     "vendas4M": 3900,
-    "media3M": 1300
+    "media3M": 1300,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.019487179487179488
   },
   {
     "code": "228.36.7",
@@ -85,7 +103,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 11260,
-    "media3M": 3753.3333333333335
+    "media3M": 3753.3333333333335,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "233.36.7",
@@ -97,7 +118,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 2220,
-    "media3M": 740
+    "media3M": 740,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "252.35.2",
@@ -109,7 +133,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 1.221371158392435,
     "vendas4M": 52875,
-    "media3M": 17625
+    "media3M": 17625,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 1.221371158392435
   },
   {
     "code": "262.35.2",
@@ -121,7 +148,10 @@ window.stockData = [
     "stock9015": 36500,
     "stockMonths": 2.2519280205655527,
     "vendas4M": 77800,
-    "media3M": 25933.333333333332
+    "media3M": 25933.333333333332,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 2.2519280205655527
   },
   {
     "code": "257.35.2",
@@ -133,7 +163,10 @@ window.stockData = [
     "stock9015": 22650,
     "stockMonths": 10.654746543778803,
     "vendas4M": 10850,
-    "media3M": 3616.6666666666665
+    "media3M": 3616.6666666666665,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 10.654746543778803
   },
   {
     "code": "259.35.2",
@@ -145,7 +178,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 6.6947368421052635,
     "vendas4M": 9500,
-    "media3M": 3166.6666666666665
+    "media3M": 3166.6666666666665,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 6.6947368421052635
   },
   {
     "code": "288.35.2",
@@ -157,7 +193,10 @@ window.stockData = [
     "stock9015": 500,
     "stockMonths": 136,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 136
   },
   {
     "code": "290.35.2",
@@ -169,7 +208,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 600,
-    "media3M": 200
+    "media3M": 200,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "289.35.2",
@@ -181,7 +223,10 @@ window.stockData = [
     "stock9015": 425,
     "stockMonths": 116,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 116
   },
   {
     "code": "291.35.2",
@@ -193,7 +238,10 @@ window.stockData = [
     "stock9015": 300,
     "stockMonths": 44,
     "vendas4M": 50,
-    "media3M": 16.666666666666668
+    "media3M": 16.666666666666668,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 44
   },
   {
     "code": "256.35.2",
@@ -205,7 +253,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.6111111111111112,
     "vendas4M": 5400,
-    "media3M": 1800
+    "media3M": 1800,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.6111111111111112
   },
   {
     "code": "260.35.2",
@@ -217,7 +268,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 4500,
-    "media3M": 1500
+    "media3M": 1500,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "261.35.2",
@@ -229,7 +283,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 1660,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 1660
   },
   {
     "code": "274.35.2",
@@ -241,7 +298,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 5.3,
     "vendas4M": 1000,
-    "media3M": 333.3333333333333
+    "media3M": 333.3333333333333,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 5.3
   },
   {
     "code": "273.35.2",
@@ -253,7 +313,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 10175,
-    "media3M": 3391.6666666666665
+    "media3M": 3391.6666666666665,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "266.35.7",
@@ -265,7 +328,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 1.3405405405405406,
     "vendas4M": 4625,
-    "media3M": 1541.6666666666667
+    "media3M": 1541.6666666666667,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 1.3405405405405406
   },
   {
     "code": "265.35.2",
@@ -277,7 +343,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 180.8,
     "vendas4M": 250,
-    "media3M": 83.33333333333333
+    "media3M": 83.33333333333333,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 180.8
   },
   {
     "code": "264.35.2",
@@ -289,7 +358,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 12000,
-    "media3M": 4000
+    "media3M": 4000,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "272.35.2",
@@ -301,7 +373,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.8583333333333333,
     "vendas4M": 12000,
-    "media3M": 4000
+    "media3M": 4000,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.8583333333333333
   },
   {
     "code": "270.35.7",
@@ -313,7 +388,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.3262411347517731,
     "vendas4M": 7050,
-    "media3M": 2350
+    "media3M": 2350,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.3262411347517731
   },
   {
     "code": "271.35.7",
@@ -325,7 +403,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 13.333333333333334,
     "vendas4M": 300,
-    "media3M": 100
+    "media3M": 100,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 13.333333333333334
   },
   {
     "code": "269.35.2",
@@ -337,7 +418,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 247.33333333333334,
     "vendas4M": 150,
-    "media3M": 50
+    "media3M": 50,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 247.33333333333334
   },
   {
     "code": "268.35.2",
@@ -349,7 +433,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 64,
     "vendas4M": 200,
-    "media3M": 66.66666666666667
+    "media3M": 66.66666666666667,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 64
   },
   {
     "code": "267.35.7",
@@ -361,7 +448,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 775,
-    "media3M": 258.3333333333333
+    "media3M": 258.3333333333333,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "276.35.2",
@@ -373,7 +463,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 284,
     "vendas4M": 50,
-    "media3M": 16.666666666666668
+    "media3M": 16.666666666666668,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 284
   },
   {
     "code": "277.35.2",
@@ -385,7 +478,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 68,
     "vendas4M": 100,
-    "media3M": 33.333333333333336
+    "media3M": 33.333333333333336,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 68
   },
   {
     "code": "278.35.7",
@@ -397,7 +493,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 576,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 576
   },
   {
     "code": "279.35.2",
@@ -409,7 +508,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 140,
     "vendas4M": 50,
-    "media3M": 16.666666666666668
+    "media3M": 16.666666666666668,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 140
   },
   {
     "code": "280.35.7",
@@ -421,7 +523,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 35.333333333333336,
     "vendas4M": 150,
-    "media3M": 50
+    "media3M": 50,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 35.333333333333336
   },
   {
     "code": "281.35.2",
@@ -433,7 +538,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 186.66666666666666,
     "vendas4M": 75,
-    "media3M": 25
+    "media3M": 25,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 186.66666666666666
   },
   {
     "code": "282.35.2",
@@ -445,7 +553,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 184,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 184
   },
   {
     "code": "283.35.2",
@@ -457,7 +568,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 92,
     "vendas4M": 100,
-    "media3M": 33.333333333333336
+    "media3M": 33.333333333333336,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 92
   },
   {
     "code": "287.35.2",
@@ -469,7 +583,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 32.68,
     "vendas4M": 2000,
-    "media3M": 666.6666666666666
+    "media3M": 666.6666666666666,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 32.68
   },
   {
     "code": "284.35.7",
@@ -481,7 +598,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.4606741573033708,
     "vendas4M": 8900,
-    "media3M": 2966.6666666666665
+    "media3M": 2966.6666666666665,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.4606741573033708
   },
   {
     "code": "308.35.2",
@@ -493,7 +613,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 454,
     "vendas4M": 20,
-    "media3M": 6.666666666666667
+    "media3M": 6.666666666666667,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 454
   },
   {
     "code": "309.35.2",
@@ -505,7 +628,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 220,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 220
   },
   {
     "code": "302.35.2",
@@ -517,7 +643,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 258.22222222222223,
     "vendas4M": 45,
-    "media3M": 15
+    "media3M": 15,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 258.22222222222223
   },
   {
     "code": "303.35.7",
@@ -529,7 +658,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 92,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 92
   },
   {
     "code": "305.35.7",
@@ -541,7 +673,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 84,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 84
   },
   {
     "code": "304.35.7",
@@ -553,7 +688,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "306.35.7",
@@ -565,7 +703,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0.48,
     "vendas4M": 125,
-    "media3M": 41.666666666666664
+    "media3M": 41.666666666666664,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0.48
   },
   {
     "code": "307.35.7",
@@ -577,7 +718,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 0,
     "vendas4M": 600,
-    "media3M": 200
+    "media3M": 200,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0
   },
   {
     "code": "293.60.2",
@@ -589,7 +733,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 72,
     "vendas4M": 1800,
-    "media3M": 600
+    "media3M": 600,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 72
   },
   {
     "code": "292.60.2",
@@ -601,7 +748,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 2992,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 2992
   },
   {
     "code": "237.12.3",
@@ -613,7 +763,10 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 6,
     "vendas4M": 38,
-    "media3M": 12.666666666666666
+    "media3M": 12.666666666666666,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 6
   },
   {
     "code": "237.39.2",
@@ -625,16 +778,22 @@ window.stockData = [
     "stock9015": 0,
     "stockMonths": 191.52,
     "vendas4M": 25,
-    "media3M": 8.333333333333334
+    "media3M": 8.333333333333334,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 191.52
   }
 ];
 
 // Metadados
 window.stockMetadata = {
-    lastUpdate: "2025-10-20T13:29:22.110Z",
-    totalProducts: 52,
-    generatedBy: "Dashboard de Estoque v1.2 - Mapeamento Corrigido",
-    version: "1.2.0"
+    "lastUpdate": "2025-10-22T19:37:23.323561",
+    "totalProducts": 52,
+    "generatedBy": "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
+    "version": "1.3.0",
+    "sourceFile": "",
+    "sheetName": "",
+    "source": "data.js"
 };
 
-console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');
+console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');

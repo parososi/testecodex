@@ -701,6 +701,111 @@
             color: #666;
             margin-top: 5px;
         }
+
+        .monthly-summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(31, 68, 140, 0.04), rgba(31, 68, 140, 0.08));
+            border-radius: 12px;
+            border: 1px solid rgba(31, 68, 140, 0.1);
+        }
+
+        .monthly-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .monthly-summary-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F448C;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .monthly-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .monthly-card {
+            flex: 1 1 220px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            box-shadow: 0 2px 12px rgba(31, 68, 140, 0.08);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 120px;
+        }
+
+        .monthly-card:hover {
+            box-shadow: 0 6px 18px rgba(31, 68, 140, 0.15);
+            transform: translateY(-2px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .monthly-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .monthly-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1F448C;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .monthly-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F448C;
+        }
+
+        .monthly-delta {
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(31, 68, 140, 0.08);
+            color: #1F448C;
+            width: fit-content;
+        }
+
+        .monthly-note {
+            font-size: 12px;
+            color: #4d5f94;
+            margin: 0;
+        }
+
+        .monthly-delta.positive {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+
+        .monthly-delta.negative {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+
+        .monthly-delta.neutral {
+            background: rgba(149, 165, 166, 0.15);
+            color: #7f8c8d;
+        }
         
         .modal {
             display: none;
@@ -798,6 +903,57 @@
             border-radius: 5px;
             margin: 10px 0;
             border: 1px solid #ffeaa7;
+        }
+
+        .sheet-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 6px;
+        }
+
+        .sheet-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            background: #f9fbff;
+            font-weight: 600;
+            color: #1F448C;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease, background 0.15s ease;
+        }
+
+        .sheet-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(31, 68, 140, 0.15);
+            border-color: rgba(31, 68, 140, 0.4);
+        }
+
+        .sheet-option.active {
+            border-color: #1F448C;
+            background: rgba(31, 68, 140, 0.12);
+            box-shadow: 0 6px 18px rgba(31, 68, 140, 0.25);
+        }
+
+        .sheet-option small {
+            font-size: 11px;
+            font-weight: 500;
+            color: #4d5f94;
+        }
+
+        .sheet-modal {
+            max-width: 540px;
+        }
+
+        .modal-buttons button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .info-message {
@@ -1005,7 +1161,7 @@
                 <div id="mappingDebug" class="mapping-debug" style="display: none;"></div>
                 <div id="lastUpdateInfo" style="font-size: 12px; color: #666; margin: 10px 0;"></div>
                 <div id="debugInfo" class="debug-info" style="display: none;"></div>
-                <small><strong>v1.2 - Mapeamento Corrigido:</strong> Agora identifica corretamente colunas como TOTAL, ESTOQUE TOTAL, SOMA, etc. As colunas devem conter: CÓDIGO, FORNECEDOR, FAMÍLIA, ITEM, 1-4, 90-13, 90-15, ESTOQUE EM MESES, VENDAS 3M, MÉDIA 3M</small>
+                <small><strong>v1.3 - Importador Inteligente:</strong> Agora identifica automaticamente NOVEMBRO, DEZEMBRO e COBERTURA, além de permitir escolher qual aba importar em planilhas com múltiplos meses.</small>
                 
                 <div class="download-section">
                     <h4>📋 Compartilhar Dados</h4>
@@ -1141,6 +1297,42 @@
             </div>
         </div>
 
+        <div class="monthly-summary" id="monthlySummary">
+            <div class="monthly-summary-header">
+                <div class="monthly-summary-title">
+                    📈 Painel Mensal Importado
+                    <span class="info-icon has-tooltip" tabindex="0" aria-label="Painel mensal importado" data-tooltip="Consolida os números recebidos diretamente das colunas NOVEMBRO, DEZEMBRO e COBERTURA da planilha importada. Os valores são atualizados conforme você aplica filtros no dashboard." data-tooltip-position="top">?</span>
+                </div>
+                <span class="monthly-delta neutral" id="activeSheetLabel">Fonte: dados carregados</span>
+            </div>
+            <div class="monthly-cards">
+                <div class="monthly-card">
+                    <div class="monthly-card-header">
+                        <span class="monthly-label">Novembro</span>
+                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Total de novembro" data-tooltip="Somatório das quantidades informadas na coluna NOVEMBRO da planilha importada, considerando os filtros ativos." data-tooltip-position="top">?</span>
+                    </div>
+                    <div class="monthly-value" id="novemberTotal">0</div>
+                    <p class="monthly-note">Total importado</p>
+                </div>
+                <div class="monthly-card">
+                    <div class="monthly-card-header">
+                        <span class="monthly-label">Dezembro</span>
+                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Total de dezembro" data-tooltip="Somatório das quantidades informadas na coluna DEZEMBRO da planilha importada, considerando os filtros ativos." data-tooltip-position="top">?</span>
+                    </div>
+                    <div class="monthly-value" id="decemberTotal">0</div>
+                    <span class="monthly-delta neutral" id="monthlyDelta">--</span>
+                </div>
+                <div class="monthly-card">
+                    <div class="monthly-card-header">
+                        <span class="monthly-label">Cobertura</span>
+                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura média" data-tooltip="Média dos valores de COBERTURA (em meses) informados na planilha. Este indicador é utilizado como base para os alertas de ruptura." data-tooltip-position="top">?</span>
+                    </div>
+                    <div class="monthly-value" id="coverageAverage">--</div>
+                    <p class="monthly-note">Média em meses</p>
+                </div>
+            </div>
+        </div>
+
         <div class="pareto-section">
             <h3 class="header-label">📊 Análise ABC por Vendas <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise ABC por Vendas" data-tooltip="Organizamos os produtos conforme a fatia que cada um representa das vendas dos últimos meses. Itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C." data-tooltip-position="top">?</span></h3>
             <p class="pareto-description">Calculamos quanto cada item representa sozinho do total vendido nos últimos 3 meses entre todos os produtos com saída. Itens com % Individual igual ou acima de 5% entram na Classe A, entre 1% e 5% ficam na Classe B e abaixo de 1% compõem a Classe C. A regra é recalculada automaticamente conforme você aplica filtros, como família ou fornecedor.</p>
@@ -1167,9 +1359,11 @@
                             <th><span class="header-label">Est. 90-13<span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque 90-13" data-tooltip="Saldo físico disponível no estabelecimento 90-13 (Itajaí).">?</span></span></th>
                             <th><span class="header-label">Est. 90-15<span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque 90-15" data-tooltip="Saldo físico disponível no estabelecimento 90-15 (Garuva).">?</span></span></th>
                             <th><span class="header-label">Total<span class="info-icon has-tooltip" tabindex="0" aria-label="Total em estoque" data-tooltip="Soma do estoque disponível em todos os estabelecimentos selecionados.">?</span></span></th>
-                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas 3 meses" data-tooltip="Quantidade vendida acumulada nos últimos 3 meses para o item.">?</span></span></th>
+                            <th><span class="header-label">Vendas 4M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas 4 meses" data-tooltip="Quantidade vendida acumulada nos últimos 4 meses para o item, conforme informado na planilha." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Média 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Média 3 meses" data-tooltip="Média mensal das vendas dos últimos 3 meses, usada para estimar o consumo.">?</span></span></th>
-                            <th><span class="header-label">Meses<span class="info-icon has-tooltip" tabindex="0" aria-label="Meses de cobertura" data-tooltip="Tempo estimado de cobertura de estoque em meses, considerando o consumo médio.">?</span></span></th>
+                            <th><span class="header-label">Novembro<span class="info-icon has-tooltip" tabindex="0" aria-label="Dados de novembro" data-tooltip="Quantidade informada na coluna NOVEMBRO da planilha importada." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Dezembro<span class="info-icon has-tooltip" tabindex="0" aria-label="Dados de dezembro" data-tooltip="Quantidade informada na coluna DEZEMBRO da planilha importada." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Cobertura (Planilha)<span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura importada" data-tooltip="Valor em meses recebido na coluna COBERTURA. Caso não exista, utiliza o campo ESTOQUE EM MESES." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Previsão<span class="info-icon has-tooltip" tabindex="0" aria-label="Previsão de ruptura" data-tooltip="Resumo da previsão de ruptura calculada para o item.">?</span></span></th>
                             <th><span class="header-label">Status<span class="info-icon has-tooltip" tabindex="0" aria-label="Status" data-tooltip="Classificação do risco atual com base nos meses de cobertura.">?</span></span></th>
                             <th><span class="header-label">Classe ABC<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Classificação calculada pelo % Individual das vendas filtradas: itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C.">?</span></span></th>
@@ -1208,6 +1402,21 @@
         </div>
     </div>
 
+    <div id="sheetSelectionModal" class="modal">
+        <div class="modal-content sheet-modal">
+            <div class="modal-header">
+                <h2>Selecione a aba para importar</h2>
+                <span class="close" onclick="cancelSheetSelection()">&times;</span>
+            </div>
+            <p style="margin-top: 0; margin-bottom: 16px; color: #4d5f94;">Identificamos mais de uma aba na planilha. Escolha qual delas deve alimentar o dashboard.</p>
+            <div id="sheetOptions" class="sheet-options"></div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="cancelSheetSelection()">Cancelar</button>
+                <button id="confirmSheetBtn" onclick="confirmSheetSelection()" disabled>Importar aba selecionada</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Inclusão das bibliotecas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
@@ -1229,6 +1438,12 @@
         let mappingDebugMode = false;
         let lastMappingInfo = null;
         let advancedStockFilter = '';
+        let pendingWorkbook = null;
+        let pendingWorkbookName = '';
+        let selectedSheetName = '';
+        let activeImportDescriptor = 'dados carregados';
+        let lastImportedFileName = '';
+        let lastImportedSheetName = '';
         // Faixas do % individual das vendas usadas para classificar os itens
         const abcIndividualThresholds = Object.freeze({
             classA: 0.05,
@@ -1541,6 +1756,49 @@
             }
 
             return value.toFixed(digits);
+        }
+
+        function formatMonthlyValue(value) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) {
+                return '—';
+            }
+            if (numeric === 0) {
+                return '0';
+            }
+            return numeric.toLocaleString('pt-BR');
+        }
+
+        function getCoverageValue(product) {
+            if (product && Number.isFinite(product.cobertura)) {
+                return product.cobertura;
+            }
+            if (product && Number.isFinite(product.stockMonths)) {
+                return product.stockMonths;
+            }
+            return 0;
+        }
+
+        function formatMonthlyTotal(total) {
+            if (!Number.isFinite(total)) {
+                return '--';
+            }
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 1
+            }).format(total);
+        }
+
+        function normalizeMonthlyValue(value) {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric : 0;
+        }
+
+        function formatPercentage(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            }).format(value);
         }
 
         function escapeTooltip(text) {
@@ -1913,6 +2171,15 @@
                 allProductsData = window.stockData;
                 debugLog(`Dados carregados do data.js: ${allProductsData.length} produtos`);
                 showMessage(`✅ ${allProductsData.length} produtos carregados do data.js`, 'success');
+                if (typeof window.stockMetadata === 'object' && window.stockMetadata !== null) {
+                    activeImportDescriptor = window.stockMetadata.source || 'data.js';
+                    lastImportedFileName = window.stockMetadata.sourceFile || 'data.js';
+                    lastImportedSheetName = window.stockMetadata.sheetName || '';
+                } else {
+                    activeImportDescriptor = 'data.js';
+                    lastImportedFileName = 'data.js';
+                    lastImportedSheetName = '';
+                }
             } else {
                 const storedData = localStorage.getItem('stockData');
                 if (storedData) {
@@ -1920,6 +2187,9 @@
                         allProductsData = JSON.parse(storedData);
                         debugLog(`Dados carregados do localStorage: ${allProductsData.length} produtos`);
                         showMessage(`✅ ${allProductsData.length} produtos carregados do backup local`, 'info');
+                        activeImportDescriptor = 'backup local';
+                        lastImportedFileName = 'localStorage';
+                        lastImportedSheetName = '';
                     } catch (e) {
                         debugLog(`Erro ao parsear dados do localStorage: ${e.message}`, 'error');
                         allProductsData = [];
@@ -1927,6 +2197,9 @@
                 } else {
                     allProductsData = [];
                     debugLog('Nenhum dado encontrado');
+                    activeImportDescriptor = 'dados carregados';
+                    lastImportedFileName = '';
+                    lastImportedSheetName = '';
                 }
             }
 
@@ -1957,7 +2230,7 @@
         function saveDataToFile(data) {
             try {
                 debugLog('Gerando arquivo data.js');
-                
+
                 const processedData = data.map(function(product) {
                     return {
                         code: product.code || '',
@@ -1969,13 +2242,18 @@
                         stock9015: product.stock9015 || 0,
                         stockMonths: product.stockMonths || 0,
                         vendas4M: product.vendas4M || 0,
-                        media3M: product.media3M || 0
+                        media3M: product.media3M || 0,
+                        novembro: product.novembro || 0,
+                        dezembro: product.dezembro || 0,
+                        cobertura: Number.isFinite(product.cobertura)
+                            ? product.cobertura
+                            : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0)
                     };
                 });
 
-                const dataContent = `// Dados do Dashboard de Estoque v1.2 - Gerado em ${new Date().toLocaleString('pt-BR')}
+                const dataContent = `// Dados do Dashboard de Estoque v1.3 - Gerado em ${new Date().toLocaleString('pt-BR')}
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
-console.log('Carregando data.js v1.2...');
+console.log('Carregando data.js v1.3...');
 
 window.stockData = ${JSON.stringify(processedData, null, 2)};
 
@@ -1983,17 +2261,174 @@ window.stockData = ${JSON.stringify(processedData, null, 2)};
 window.stockMetadata = {
     lastUpdate: "${new Date().toISOString()}",
     totalProducts: ${processedData.length},
-    generatedBy: "Dashboard de Estoque v1.2 - Mapeamento Corrigido",
-    version: "1.2.0"
+    generatedBy: "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
+    version: "1.3.0",
+    sourceFile: "${lastImportedFileName || ''}",
+    sheetName: "${lastImportedSheetName || ''}",
+    source: "${activeImportDescriptor || ''}"
 };
 
-console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`;
+console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`;
                 
                 debugLog(`Arquivo gerado: ${dataContent.length} caracteres`);
                 return dataContent;
             } catch (error) {
                 debugLog(`Erro ao gerar arquivo: ${error.message}`, 'error');
                 throw error;
+            }
+        }
+
+        function resetPendingWorkbook() {
+            pendingWorkbook = null;
+            pendingWorkbookName = '';
+            selectedSheetName = '';
+        }
+
+        function openSheetSelectionModal(sheetNames) {
+            const modal = document.getElementById('sheetSelectionModal');
+            const optionsContainer = document.getElementById('sheetOptions');
+            const confirmBtn = document.getElementById('confirmSheetBtn');
+
+            if (!modal || !optionsContainer || !confirmBtn) {
+                debugLog('Modal de seleção de abas não encontrado', 'warn');
+                return;
+            }
+
+            optionsContainer.innerHTML = '';
+            sheetNames.forEach(function(name, index) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'sheet-option';
+
+                const label = document.createElement('span');
+                label.textContent = name;
+                const badge = document.createElement('small');
+                badge.textContent = `Aba ${index + 1}`;
+                option.appendChild(label);
+                option.appendChild(badge);
+
+                option.addEventListener('click', function() {
+                    selectSheetOption(name, option);
+                });
+                optionsContainer.appendChild(option);
+            });
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Importar aba selecionada';
+            modal.style.display = 'block';
+        }
+
+        function closeSheetSelectionModal() {
+            const modal = document.getElementById('sheetSelectionModal');
+            const confirmBtn = document.getElementById('confirmSheetBtn');
+            const options = document.querySelectorAll('#sheetOptions .sheet-option');
+
+            if (modal) {
+                modal.style.display = 'none';
+            }
+
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Importar aba selecionada';
+            }
+
+            options.forEach(function(option) {
+                option.classList.remove('active');
+            });
+        }
+
+        function cancelSheetSelection() {
+            closeSheetSelectionModal();
+            resetPendingWorkbook();
+            showMessage('⚠️ Importação cancelada. Nenhum dado foi alterado.', 'warning');
+        }
+
+        function selectSheetOption(name, element) {
+            selectedSheetName = name;
+            const options = document.querySelectorAll('#sheetOptions .sheet-option');
+            options.forEach(function(option) {
+                option.classList.remove('active');
+            });
+
+            if (element) {
+                element.classList.add('active');
+            }
+
+            const confirmBtn = document.getElementById('confirmSheetBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = `Importar "${name}"`;
+            }
+        }
+
+        function extractWorkbookData(workbook, sheetName) {
+            if (!workbook || !sheetName) {
+                throw new Error('Dados da planilha indisponíveis para processamento.');
+            }
+
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) {
+                throw new Error(`Aba "${sheetName}" não encontrada.`);
+            }
+
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+            return processExcelData(jsonData);
+        }
+
+        function completeImport(data, sourceInfo) {
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error('Nenhum produto válido encontrado na planilha');
+            }
+
+            allProductsData = data;
+            debugLog(`Dados importados: ${data.length} produtos`);
+
+            localStorage.setItem('stockData', JSON.stringify(data));
+            localStorage.setItem('stockDataTimestamp', Date.now().toString());
+
+            const descriptor = sourceInfo && sourceInfo.label ? sourceInfo.label : 'dados importados';
+            activeImportDescriptor = descriptor;
+            lastImportedFileName = sourceInfo && sourceInfo.fileName ? sourceInfo.fileName : '';
+            lastImportedSheetName = sourceInfo && sourceInfo.sheetName ? sourceInfo.sheetName : '';
+
+            showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.`, 'success');
+
+            if (fileSystemSupported && directoryHandle) {
+                debugLog('Tentando salvamento automático após importação');
+                saveDataAutomatically().then(function(success) {
+                    if (success) {
+                        showMessage('✨ Arquivo data.js atualizado automaticamente!', 'success');
+                    }
+                }).catch(function(error) {
+                    debugLog(`Erro no salvamento automático: ${error.message}`, 'error');
+                    showMessage('⚠️ Dados importados, mas erro no salvamento automático. Use "💾 Baixar data.js".', 'warning');
+                });
+            } else if (fileSystemSupported) {
+                showMessage('💡 Dica: Clique em "Configurar Pasta" para ativar salvamento automático!', 'info');
+            }
+
+            initializeDashboard();
+        }
+
+        function confirmSheetSelection() {
+            if (!pendingWorkbook || !selectedSheetName) {
+                showMessage('❌ Selecione uma aba para continuar a importação.', 'error');
+                return;
+            }
+
+            try {
+                const data = extractWorkbookData(pendingWorkbook, selectedSheetName);
+                closeSheetSelectionModal();
+                completeImport(data, {
+                    label: pendingWorkbookName ? `${pendingWorkbookName} · ${selectedSheetName}` : selectedSheetName,
+                    fileName: pendingWorkbookName,
+                    sheetName: selectedSheetName
+                });
+            } catch (error) {
+                debugLog(`Erro ao importar aba selecionada: ${error.message}`, 'error');
+                showMessage(`❌ Erro ao importar aba selecionada: ${error.message}`, 'error');
+            } finally {
+                resetPendingWorkbook();
             }
         }
 
@@ -2009,49 +2444,38 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    let data;
                     const fileName = file.name.toLowerCase();
-                    
+
                     if (fileName.endsWith('.csv')) {
-                        data = processCSV(e.target.result);
+                        const data = processCSV(e.target.result);
+                        completeImport(data, { label: file.name, fileName: file.name });
                     } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
                         const workbook = XLSX.read(e.target.result, {type: 'array'});
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(sheet);
-                        data = processExcelData(jsonData);
+                        const sheetNames = workbook.SheetNames || [];
+
+                        if (sheetNames.length === 0) {
+                            throw new Error('A planilha não contém abas disponíveis.');
+                        }
+
+                        if (sheetNames.length === 1) {
+                            const sheetName = sheetNames[0];
+                            const data = extractWorkbookData(workbook, sheetName);
+                            completeImport(data, {
+                                label: `${file.name} · ${sheetName}`,
+                                fileName: file.name,
+                                sheetName
+                            });
+                        } else {
+                            pendingWorkbook = workbook;
+                            pendingWorkbookName = file.name;
+                            selectedSheetName = '';
+                            openSheetSelectionModal(sheetNames);
+                            showMessage('🔍 Selecione a aba que deseja importar.', 'info');
+                            return;
+                        }
                     } else {
                         throw new Error('Formato de arquivo não suportado');
                     }
-
-                    if (data.length === 0) {
-                        throw new Error('Nenhum produto válido encontrado na planilha');
-                    }
-
-                    allProductsData = data;
-                    debugLog(`Dados importados: ${data.length} produtos`);
-                    
-                    localStorage.setItem('stockData', JSON.stringify(data));
-                    localStorage.setItem('stockDataTimestamp', Date.now().toString());
-                    
-                    showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.`, 'success');
-                    
-                    if (fileSystemSupported && directoryHandle) {
-                        debugLog('Tentando salvamento automático após importação');
-                        saveDataAutomatically().then(function(success) {
-                            if (success) {
-                                showMessage('✨ Arquivo data.js atualizado automaticamente!', 'success');
-                            }
-                        }).catch(function(error) {
-                            debugLog(`Erro no salvamento automático: ${error.message}`, 'error');
-                            showMessage('⚠️ Dados importados, mas erro no salvamento automático. Use "💾 Baixar data.js".', 'warning');
-                        });
-                    } else if (fileSystemSupported) {
-                        showMessage('💡 Dica: Clique em "Configurar Pasta" para ativar salvamento automático!', 'info');
-                    }
-                    
-                    initializeDashboard();
-                    
                 } catch (error) {
                     debugLog(`Erro ao processar arquivo: ${error.message}`, 'error');
                     showMessage(`❌ Erro ao processar arquivo: ${error.message}`, 'error');
@@ -2079,7 +2503,7 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             console.clear();
             
             const report = [];
-            report.push('🔍 DIAGNÓSTICO COMPLETO DO DASHBOARD v1.2');
+            report.push('🔍 DIAGNÓSTICO COMPLETO DO DASHBOARD v1.3');
             report.push('==========================================');
             
             // 1. Verificar dados
@@ -2388,8 +2812,21 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
 
         function mapProductData(headers, values) {
             const mapping = findColumnMapping(headers);
-            
-            return {
+
+            const rawStockMonthsCell = mapping.stockMonths !== undefined ? values[mapping.stockMonths] : null;
+            const rawCoberturaCell = mapping.cobertura !== undefined ? values[mapping.cobertura] : null;
+
+            const parsedStockMonths = parseNumber(rawStockMonthsCell);
+            const parsedCobertura = parseNumber(rawCoberturaCell);
+
+            const hasStockMonths = rawStockMonthsCell !== null && typeof rawStockMonthsCell !== 'undefined' && String(rawStockMonthsCell).trim() !== '';
+            const hasCobertura = rawCoberturaCell !== null && typeof rawCoberturaCell !== 'undefined' && String(rawCoberturaCell).trim() !== '';
+
+            const effectiveCoverage = hasCobertura
+                ? parsedCobertura
+                : (hasStockMonths ? parsedStockMonths : (Number.isFinite(parsedCobertura) ? parsedCobertura : parsedStockMonths));
+
+            const product = {
                 code: sanitizeText(values[mapping.code] || ''),
                 supplier: sanitizeText(values[mapping.supplier] || ''),
                 family: sanitizeText(values[mapping.family] || ''),
@@ -2397,19 +2834,23 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 stock14: parseNumber(values[mapping.stock14] || 0),
                 stock9013: parseNumber(values[mapping.stock9013] || 0),
                 stock9015: parseNumber(values[mapping.stock9015] || 0),
-                stockMonths: parseNumber(values[mapping.stockMonths] || 0),
                 vendas4M: parseNumber(values[mapping.vendas4M] || 0),
                 media3M: parseNumber(values[mapping.media3M]) || 0,
                 novembro: parseNumber(values[mapping.novembro]) || 0,
                 dezembro: parseNumber(values[mapping.dezembro]) || 0,
-                cobertura: parseNumber(values[mapping.cobertura]) || 0
-
+                cobertura: hasCobertura
+                    ? parsedCobertura
+                    : (hasStockMonths ? parsedStockMonths : parsedCobertura)
             };
+
+            product.stockMonths = Number.isFinite(effectiveCoverage) ? effectiveCoverage : 0;
+
+            return product;
         }
 
-        // FUNÇÃO CORRIGIDA v1.2.2 - Mapeamento Específico para sua Planilha
+        // FUNÇÃO ATUALIZADA v1.3.0 - Mapeamento Específico para sua Planilha
         function findColumnMapping(headers) {
-            debugLog('=== MAPEAMENTO v1.2.2 - ANÁLISE ESPECÍFICA ===');
+            debugLog('=== MAPEAMENTO v1.3.0 - ANÁLISE ESPECÍFICA ===');
             debugLog(`Colunas encontradas: ${headers.length}`);
             
             // Log todas as colunas encontradas
@@ -2430,16 +2871,25 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             const warnings = [];
 
             // MAPEAMENTO DIRETO E ESPECÍFICO baseado na sua planilha
-            
+
             // 1. CÓDIGO (primeira coluna)
-           // 7. VENDAS 3M - busca específica para evitar conflito com VENDAS 3M
             for (let i = 0; i < upperHeaders.length; i++) {
-                 const h = upperHeaders[i];
-            if ((h.includes("VENDAS") && h.includes("4M")) || 
-                    (h.includes("SALES") && h.includes("4M")) ||
-                    (h === "VENDAS 4M") || (h === "VENDAS4M")) {
+                const h = upperHeaders[i];
+                if (h === 'CÓDIGO' || h === 'CODIGO' || h === 'CODE') {
+                    mapping.code = i;
+                    debugLog(`✅ code → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+
+            // 7. VENDAS 4M - busca específica para evitar conflito com outras colunas de vendas
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if ((h.includes('VENDAS') && h.includes('4M')) ||
+                    (h.includes('SALES') && h.includes('4M')) ||
+                    (h === 'VENDAS 4M') || (h === 'VENDAS4M')) {
                     mapping.vendas4M = i;
-                    debugLog(`vendas4M: ${i} - ${headers[i]}`);
+                    debugLog(`✅ vendas4M (busca dedicada) → [${i}] "${headers[i]}"`);
                     break;
                 }
             }
@@ -2561,13 +3011,15 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 }
             }
             
-            // 7. VENDAS 3M
-            for (let i = 0; i < upperHeaders.length; i++) {
-                const h = upperHeaders[i];
-                if (h.includes('VENDAS') || h.includes('SALES')) {
-                    mapping.vendas4M = i;
-                    debugLog(`✅ vendas4M → [${i}] "${headers[i]}"`);
-                    break;
+            if (mapping.vendas4M === undefined) {
+                // 7. VENDAS 4M (fallback genérico)
+                for (let i = 0; i < upperHeaders.length; i++) {
+                    const h = upperHeaders[i];
+                    if ((h.includes('VENDAS') || h.includes('SALES')) && !h.includes('3M')) {
+                        mapping.vendas4M = i;
+                        debugLog(`✅ vendas4M → [${i}] "${headers[i]}" (fallback genérico)`);
+                        break;
+                    }
                 }
             }
 
@@ -2618,7 +3070,7 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             }
 
             // RELATÓRIO FINAL
-            debugLog('=== MAPEAMENTO FINAL v1.2.2 ===');
+            debugLog('=== MAPEAMENTO FINAL v1.3.0 ===');
             for (const [field, index] of Object.entries(mapping)) {
                 const header = headers[index] || 'INVÁLIDO';
                 debugLog(`${field.padEnd(12)} → [${index}] "${header}"`);
@@ -2638,10 +3090,10 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                 headers: headers.slice(),
                 mapping: Object.assign({}, mapping),
                 warnings: warnings.slice(),
-                version: '1.2.2'
+                version: '1.3.0'
             };
 
-            debugLog(`=== MAPEAMENTO v1.2.2 CONCLUÍDO - ${warnings.length} avisos ===`);
+            debugLog(`=== MAPEAMENTO v1.3.0 CONCLUÍDO - ${warnings.length} avisos ===`);
             warnings.forEach(warning => debugLog(`⚠️ ${warning}`));
 
             // Mostrar info de mapeamento se debug estiver ativo
@@ -3148,6 +3600,74 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             document.getElementById('totalStockValue').textContent = safeTotalStock.toLocaleString('pt-BR');
             document.getElementById('criticalCount').textContent = criticalCount;
             document.getElementById('totalFamilies').textContent = families;
+            updateMonthlySummaryMetrics();
+        }
+
+        function updateMonthlySummaryMetrics() {
+            const novemberElement = document.getElementById('novemberTotal');
+            const decemberElement = document.getElementById('decemberTotal');
+            const coverageElement = document.getElementById('coverageAverage');
+            const deltaElement = document.getElementById('monthlyDelta');
+            const sheetLabelElement = document.getElementById('activeSheetLabel');
+
+            if (!novemberElement || !decemberElement || !coverageElement) {
+                return;
+            }
+
+            const novemberTotal = filteredData.reduce(function(sum, product) {
+                return sum + normalizeMonthlyValue(product.novembro);
+            }, 0);
+
+            const decemberTotal = filteredData.reduce(function(sum, product) {
+                return sum + normalizeMonthlyValue(product.dezembro);
+            }, 0);
+
+            const coverageValues = filteredData
+                .map(function(product) {
+                    const coverage = getCoverageValue(product);
+                    return Number.isFinite(coverage) ? coverage : null;
+                })
+                .filter(function(value) { return value !== null; });
+
+            novemberElement.textContent = formatMonthlyTotal(novemberTotal);
+            decemberElement.textContent = formatMonthlyTotal(decemberTotal);
+
+            if (sheetLabelElement) {
+                const descriptor = activeImportDescriptor || 'dados carregados';
+                sheetLabelElement.textContent = `Fonte: ${descriptor}`;
+                sheetLabelElement.className = 'monthly-delta neutral';
+            }
+
+            if (deltaElement) {
+                if (novemberTotal === 0 && decemberTotal === 0) {
+                    deltaElement.textContent = '--';
+                    deltaElement.className = 'monthly-delta neutral';
+                } else if (novemberTotal === 0) {
+                    deltaElement.textContent = 'Novo volume';
+                    deltaElement.className = 'monthly-delta positive';
+                } else {
+                    const variation = ((decemberTotal - novemberTotal) / novemberTotal) * 100;
+                    const formattedVariation = `${variation > 0 ? '+' : ''}${formatPercentage(variation)} vs Novembro`;
+
+                    if (variation > 0) {
+                        deltaElement.className = 'monthly-delta positive';
+                    } else if (variation < 0) {
+                        deltaElement.className = 'monthly-delta negative';
+                    } else {
+                        deltaElement.className = 'monthly-delta neutral';
+                    }
+
+                    deltaElement.textContent = formattedVariation;
+                }
+            }
+
+            const coverageAverage = coverageValues.length > 0
+                ? coverageValues.reduce(function(sum, value) { return sum + value; }, 0) / coverageValues.length
+                : null;
+
+            coverageElement.textContent = coverageAverage !== null
+                ? formatStatValue(coverageAverage)
+                : '--';
         }
 
         function updateParetoAnalysis() {
@@ -3231,7 +3751,7 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                             <th><span class="header-label">#<span class="info-icon has-tooltip" tabindex="0" aria-label="Posição no ranking" data-tooltip="Lugar do produto na lista, indo do que mais vende para o que menos vende." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Código<span class="info-icon has-tooltip" tabindex="0" aria-label="Código do produto" data-tooltip="Número usado no sistema para identificar o produto." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Item<span class="info-icon has-tooltip" tabindex="0" aria-label="Descrição do item" data-tooltip="Nome do produto como aparece no cadastro." data-tooltip-position="top">?</span></span></th>
-                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas nos últimos 3 meses" data-tooltip="Total vendido nos últimos 3 meses considerado nesta análise." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Vendas 4M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas nos últimos 4 meses" data-tooltip="Total vendido nos últimos 4 meses considerado nesta análise." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">% Individual<span class="info-icon has-tooltip" tabindex="0" aria-label="Percentual individual" data-tooltip="Mostra quanto o produto representa sozinho do total vendido pelos itens com saída. Com base nele definimos as classes: 5% ou mais → A; entre 1% e 5% → B; abaixo de 1% → C." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Classe<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Definida diretamente pelo % Individual do item: 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e o restante na Classe C." data-tooltip-position="top">?</span></span></th>
                         </tr>
@@ -3257,14 +3777,26 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             filteredData.forEach(function(product) {
                 const row = document.createElement('tr');
                 const totalStock = product.stock14 + product.stock9013 + product.stock9015;
-                const statusClass = getStatusClass(product.stockMonths);
+                const coverageValue = getCoverageValue(product);
+                const normalizedCoverage = Number.isFinite(product.stockMonths)
+                    ? product.stockMonths
+                    : (Number.isFinite(coverageValue) ? coverageValue : 0);
+                const statusClass = getStatusClass(normalizedCoverage);
                 const predictionInfo = getPrediction(product);
                 const predictionCellContent = predictionInfo
                     ? `<span class="tooltip-underline has-tooltip prediction-tooltip" tabindex="0" aria-label="Detalhes da previsão" data-tooltip="${escapeTooltip(predictionInfo.detail || predictionInfo.fullText || '')}">${escapeTooltip(predictionInfo.label || '--')}</span>`
                     : '--';
 
-                const vendas4MDisplay = (!product.vendas4M || product.vendas4M === 0) ? 'S/ VENDA' : product.vendas4M.toLocaleString();
+                const vendas4MDisplay = (!product.vendas4M || product.vendas4M === 0) ? 'S/ VENDA' : Number(product.vendas4M).toLocaleString('pt-BR');
                 const vendas4MClass = (!product.vendas4M || product.vendas4M === 0) ? 'status-warning' : '';
+                const media3MDisplay = Number.isFinite(product.media3M)
+                    ? Math.round(product.media3M).toLocaleString('pt-BR')
+                    : '0';
+                const novemberDisplay = formatMonthlyValue(product.novembro);
+                const decemberDisplay = formatMonthlyValue(product.dezembro);
+                const coverageDisplay = Number.isFinite(coverageValue)
+                    ? formatStatValue(coverageValue)
+                    : formatStatValue(normalizedCoverage);
 
                 const fallbackAbcClass = abcClassificationMap.get(product.code);
                 const rawAbcClass = (typeof product.currentAbcClass === 'string' && product.currentAbcClass)
@@ -3283,15 +3815,17 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
                     <td>${product.supplier}</td>
                     <td>${product.family}</td>
                     <td>${product.item}</td>
-                    <td>${product.stock14.toLocaleString()}</td>
-                    <td>${product.stock9013.toLocaleString()}</td>
-                    <td>${product.stock9015.toLocaleString()}</td>
-                    <td><strong>${totalStock.toLocaleString()}</strong></td>
+                    <td>${Number(product.stock14).toLocaleString('pt-BR')}</td>
+                    <td>${Number(product.stock9013).toLocaleString('pt-BR')}</td>
+                    <td>${Number(product.stock9015).toLocaleString('pt-BR')}</td>
+                    <td><strong>${Number(totalStock).toLocaleString('pt-BR')}</strong></td>
                     <td class="${vendas4MClass}">${vendas4MDisplay}</td>
-                    <td>${Math.round(product.media3M || 0).toLocaleString()}</td>
-                    <td class="status-cell ${statusClass}">${product.stockMonths.toFixed(1)}</td>
+                    <td>${media3MDisplay}</td>
+                    <td>${novemberDisplay}</td>
+                    <td>${decemberDisplay}</td>
+                    <td class="status-cell ${statusClass}">${coverageDisplay}</td>
                     <td class="status-cell prediction-cell ${statusClass}">${predictionCellContent}</td>
-                    <td class="status-cell ${statusClass}">${getStatusText(product.stockMonths)}</td>
+                    <td class="status-cell ${statusClass}">${getStatusText(normalizedCoverage)}</td>
                     <td>${abcCellContent}</td>
 
                 `;
@@ -3588,21 +4122,25 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
             
             const exportData = filteredData.map(function(p) {
                 const predictionInfo = getPrediction(p);
-                return {
-                    'CÓDIGO': p.code,
-                    'FORNECEDOR': p.supplier,
-                    'FAMÍLIA': p.family,
-                    'ITEM': p.item,
-                    'ESTOQUE 1-4': p.stock14,
-                    'ESTOQUE 90-13': p.stock9013,
-                    'ESTOQUE 90-15': p.stock9015,
-                    'TOTAL ESTOQUE': p.stock14 + p.stock9013 + p.stock9015,
-                    'VENDAS 4M': (!p.vendas4M || p.vendas4M === 0) ? 'S/ VENDA' : p.vendas4M,
-                    'ESTOQUE EM MESES': p.stockMonths,
-                    'PREVISÃO': predictionInfo ? (predictionInfo.fullText || predictionInfo.label) : '--',
-                    'STATUS': getStatusText(p.stockMonths)
-                };
-            });
+                    return {
+                        'CÓDIGO': p.code,
+                        'FORNECEDOR': p.supplier,
+                        'FAMÍLIA': p.family,
+                        'ITEM': p.item,
+                        'ESTOQUE 1-4': p.stock14,
+                        'ESTOQUE 90-13': p.stock9013,
+                        'ESTOQUE 90-15': p.stock9015,
+                        'TOTAL ESTOQUE': p.stock14 + p.stock9013 + p.stock9015,
+                        'VENDAS 4M': (!p.vendas4M || p.vendas4M === 0) ? 'S/ VENDA' : p.vendas4M,
+                        'MÉDIA 3M': p.media3M,
+                        'NOVEMBRO': p.novembro,
+                        'DEZEMBRO': p.dezembro,
+                        'COBERTURA (PLANILHA)': getCoverageValue(p),
+                        'ESTOQUE EM MESES': p.stockMonths,
+                        'PREVISÃO': predictionInfo ? (predictionInfo.fullText || predictionInfo.label) : '--',
+                        'STATUS': getStatusText(p.stockMonths)
+                    };
+                });
 
             if (fileFormat === 'csv') {
                 const csv = convertToCSV(exportData);
@@ -3660,8 +4198,12 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
         // Fechar modal ao clicar fora dele
         window.onclick = function(event) {
             const modal = document.getElementById('exportModal');
+            const sheetModal = document.getElementById('sheetSelectionModal');
             if (event.target === modal) {
                 closeExportModal();
+            }
+            if (event.target === sheetModal) {
+                cancelSheetSelection();
             }
         }
 
@@ -3686,7 +4228,7 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
 
         // === INICIALIZAÇÃO ===
         document.addEventListener('DOMContentLoaded', function() {
-            debugLog('=== INICIALIZAÇÃO DO DASHBOARD v1.2 ===');
+            debugLog('=== INICIALIZAÇÃO DO DASHBOARD v1.3 ===');
             debugLog('DOM carregado, iniciando processo...');
 
             try {
@@ -3743,7 +4285,7 @@ console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`
 
         // Log de informações do sistema ao carregar
         console.log(`
-🚀 DASHBOARD DE ESTOQUE v1.2 - PAULO ROBERTO S. S. (@PAROSOSI)
+🚀 DASHBOARD DE ESTOQUE v1.3 - PAULO ROBERTO S. S. (@PAROSOSI)
 ===================================================
 📅 Data: ${new Date().toLocaleString('pt-BR')}
 🌐 Navegador: ${navigator.userAgent}
