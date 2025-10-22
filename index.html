@@ -1,0 +1,3702 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Estoque com Análise Preditiva - Borracha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .has-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            cursor: help;
+        }
+
+        .has-tooltip::before,
+        .has-tooltip::after {
+            content: none !important;
+        }
+
+        .tooltip-bubble {
+            position: absolute;
+            z-index: 99999;
+            background: rgba(31, 68, 140, 0.98);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 10px 24px rgba(16, 39, 89, 0.25);
+            font-size: 12px;
+            line-height: 1.5;
+            max-width: min(320px, calc(100vw - 32px));
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            will-change: transform, opacity;
+        }
+
+        .tooltip-bubble::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: inherit;
+            border-radius: 2px;
+            left: var(--tooltip-arrow-left, 50%);
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .tooltip-bubble[data-position="bottom"]::after {
+            top: 0;
+        }
+
+        .tooltip-bubble[data-position="top"]::after {
+            bottom: 0;
+        }
+
+        .tooltip-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            height: auto;
+            padding: 0 3px;
+            border-radius: 4px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: #2f4a87;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+            margin-left: 4px;
+            box-shadow: none;
+            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .info-icon:hover,
+        .info-icon:focus-visible {
+            color: #1F448C;
+            background-color: rgba(31, 68, 140, 0.12);
+            border-color: rgba(31, 68, 140, 0.2);
+        }
+
+        .info-icon:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(31, 68, 140, 0.18);
+        }
+
+        .tooltip-underline {
+            border-bottom: 1px dashed rgba(31, 68, 140, 0.45);
+        }
+
+        .prediction-tooltip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
+            line-height: 1.4;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-break: break-word;
+            text-align: left;
+        }
+
+        .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        th .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 300px;
+            height: 60px;
+        }
+        
+        .company-logo img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #1F448C;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .search-results {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #1F448C;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        button:hover {
+            background-color: #163666;
+            transform: translateY(-1px);
+        }
+        
+        button.active {
+            background-color: #2196F3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        button.btn-auto-save {
+            background-color: #28a745;
+            position: relative;
+        }
+
+        button.btn-auto-save:hover {
+            background-color: #218838;
+        }
+
+        button.btn-auto-save.ready {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        .btn-download-highlight {
+            background-color: #28a745 !important;
+            box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.3);
+            transform: scale(1.05);
+        }
+        
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            min-width: 180px;
+        }
+        
+        select:focus {
+            border-color: #1F448C;
+            outline: none;
+        }
+        
+        .import-section {
+            background: #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .import-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+        
+        .import-header:hover {
+            background-color: #d1e7fd;
+        }
+        
+        .import-content {
+            padding: 0 15px 15px 15px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        .import-content.expanded {
+            display: block !important;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+        
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .file-input {
+            margin: 10px 0;
+        }
+        
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .analytics-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .prediction-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .prediction-item.clickable {
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .prediction-item.clickable:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .prediction-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid #1F448C;
+        }
+        
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .prediction-label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .prediction-value {
+            color: #1F448C;
+            font-weight: bold;
+        }
+        
+        .prediction-critical {
+            color: #dc3545;
+        }
+        
+        .prediction-warning {
+            color: #ffc107;
+        }
+        
+        .prediction-good {
+            color: #28a745;
+        }
+        
+        .gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .gauge-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .gauge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            border-color: #1F448C;
+        }
+        
+        .gauge-card.selected {
+            border: 2px solid #1F448C;
+            background-color: #f8f9ff;
+            box-shadow: 0 4px 16px rgba(31, 68, 140, 0.3);
+        }
+        
+        .gauge-card.highlighted {
+            border: 2px solid #1F448C;
+            box-shadow: 0 4px 16px rgba(31, 68, 140, 0.3);
+        }
+        
+        .gauge {
+            position: relative;
+            width: 240px;
+            height: 140px;
+            margin: 0 auto;
+        }
+        
+        .gauge-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .gauge-value {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .gauge-label {
+            position: absolute;
+            top: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .products-table {
+            margin-top: 30px;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #tableCount {
+            font-size: 13px;
+            color: #4c5569;
+        }
+
+        .table-container {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            padding: 8px;
+        }
+
+        .table-scroll {
+            max-height: 600px;
+            overflow: auto;
+            border-radius: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-scroll table {
+            min-width: 1100px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            padding: 12px 8px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #ddd;
+            z-index: 5;
+        }
+        
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .status-cell {
+            white-space: nowrap;
+        }
+
+        .prediction-cell {
+            max-width: 220px;
+            white-space: normal;
+        }
+
+        .prediction-cell .prediction-tooltip {
+            width: 100%;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        tr.highlighted {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #1F448C;
+        }
+        
+        .status-critical {
+            background-color: #ffebee !important;
+            color: #c62828;
+            font-weight: bold;
+        }
+        
+        .status-warning {
+            background-color: #fff8e1 !important;
+            color: #f57c00;
+        }
+        
+        .status-good {
+            background-color: #e8f5e8 !important;
+            color: #2e7d32;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 20px;
+        }
+
+        .pareto-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .pareto-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .pareto-description {
+            margin: -5px 0 15px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .pareto-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pareto-table th,
+        .pareto-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .pareto-table th {
+            background: #e3f2fd;
+            color: #1F448C;
+        }
+
+        .pareto-empty {
+            margin: 12px 0 0;
+            color: #666;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .abc-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .abc-chip.abc-a {
+            background-color: #f44336;
+        }
+
+        .abc-chip.abc-b {
+            background-color: #ff9800;
+        }
+
+        .abc-chip.abc-c {
+            background-color: #4caf50;
+        }
+
+        tr.abc-row-a {
+            box-shadow: inset 4px 0 0 #f44336;
+        }
+
+        tr.abc-row-b {
+            box-shadow: inset 4px 0 0 #ff9800;
+        }
+
+        tr.abc-row-c {
+            box-shadow: inset 4px 0 0 #4caf50;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .stat-item.clickable {
+            cursor: pointer;
+        }
+        
+        .stat-item.clickable:hover {
+            background-color: #ffebee;
+            border-color: #f44336;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1F448C;
+        }
+        
+        .stat-value.critical {
+            color: #f44336;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .warning-message {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+
+        .info-message {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #bee5eb;
+        }
+
+        .offline-notice {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .browser-mode-indicator {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .download-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .mapping-debug {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        @keyframes gaugeAnimation {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .gauge-card.animating {
+            animation: gaugeAnimation 0.6s ease-out;
+        }
+
+        @keyframes highlight {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(31, 68, 140, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .highlight-animation {
+            animation: highlight 1s ease-in-out;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .header h1 {
+                min-width: auto;
+                margin-bottom: 10px;
+            }
+            
+            .company-logo {
+                justify-content: center;
+                font-size: 20px;
+            }
+            
+            .search-input {
+                min-width: 200px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .control-group label {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .gauges-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .gauge {
+                width: 200px;
+                height: 120px;
+            }
+            
+            .table-container {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .gauge {
+                width: 180px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard de Estoque - Borracha</h1>
+            <div class="company-logo">
+                <img src="https://usiquimica.com.br/wp-content/uploads/2022/05/usiquimica-logo-horizontal-1.png" alt="USIQUIMICA" />
+            </div>
+        </div>
+        
+        <div class="import-section">
+            <div class="import-header" onclick="toggleImportSection()">
+                <h3>📊 Importar Dados da Planilha</h3>
+                <span class="toggle-icon" id="toggleIcon">▼</span>
+            </div>
+            <div class="import-content" id="importContent">
+                <div class="offline-notice">
+                    <strong>🌐 Modo Offline</strong> - Este dashboard funciona sem servidor! 
+                    Importe suas planilhas e compartilhe os arquivos atualizados com sua equipe.
+                    <div class="browser-mode-indicator" id="browserModeIndicator">
+                        🔍 Detectando modo do navegador...
+                    </div>
+                </div>
+                
+                <div class="file-input">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" />
+                    <button onclick="importData()">Importar Planilha</button>
+                    <button onclick="tryAutoSave()" id="autoSaveBtn" class="btn-auto-save" style="display: none;">Configurar Pasta</button>
+                    <button onclick="reconfigureAutoSave()" id="reconfigBtn" style="display: none; background-color: #6c757d;">🔧 Reconfigurar</button>
+                    <button onclick="openTemplateGenerator()" style="background-color: #28a745;">📋 Template</button>
+                </div>
+                <div id="importMessages"></div>
+                <div id="mappingDebug" class="mapping-debug" style="display: none;"></div>
+                <div id="lastUpdateInfo" style="font-size: 12px; color: #666; margin: 10px 0;"></div>
+                <div id="debugInfo" class="debug-info" style="display: none;"></div>
+                <small><strong>v1.2 - Mapeamento Corrigido:</strong> Agora identifica corretamente colunas como TOTAL, ESTOQUE TOTAL, SOMA, etc. As colunas devem conter: CÓDIGO, FORNECEDOR, FAMÍLIA, ITEM, 1-4, 90-13, 90-15, ESTOQUE EM MESES, VENDAS 3M, MÉDIA 3M</small>
+                
+                <div class="download-section">
+                    <h4>📋 Compartilhar Dados</h4>
+                    <p>Após importar, baixe o arquivo de dados atualizado e compartilhe com sua equipe:</p>
+                    <button onclick="downloadDataFile()" style="background-color: #28a745; font-size: 16px; padding: 10px 20px;">💾 Baixar data.js Atualizado</button>
+                    <button onclick="testAutoSave()" id="testBtn" style="display: none; background-color: #17a2b8; margin-left: 10px;">🧪 Testar</button>
+                    <button onclick="runDiagnostic()" style="background-color: #6c757d; margin-left: 10px;">🔍 Diagnóstico</button>
+                    <button onclick="toggleDebug()" style="background-color: #ffc107; margin-left: 10px;">🐛 Debug</button>
+                    <button onclick="toggleMappingDebug()" style="background-color: #17a2b8; margin-left: 10px;">📋 Mapeamento</button>
+                    <br><br>
+                    <div style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc;">
+                        <strong>🔍 Como compartilhar seus dados:</strong><br>
+                        1. Clique em "💾 Baixar data.js Atualizado" após importar<br>
+                        2. Substitua o arquivo <code>data.js</code> na pasta compartilhada<br>
+                        3. Todos que acessarem o dashboard verão os dados atualizados
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="globalSearch" 
+                    class="search-input" 
+                    placeholder="🔍 Buscar por código ou nome do produto..."
+                />
+                <button class="clear-search" onclick="clearSearch()">🗑️ Limpar</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Filtrar por:</label>
+                <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">Todos</button>
+                <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">Estoque Crítico (&lt;2m)</button>
+                <button onclick="filterLowStock()" class="filter-btn" data-filter="low">Estoque Baixo (2-6m)</button>
+                <button onclick="filterHighStock()" class="filter-btn" data-filter="high">Slow Moving (&gt;6m)</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Família:</label>
+                <select id="familyFilter" onchange="filterByFamily()">
+                    <option value="">Todas as Famílias</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Fornecedor:</label>
+                <select id="supplierFilter" onchange="filterBySupplier()">
+                    <option value="">Todos os Fornecedores</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Estabelecimento:</label>
+                <select id="establishmentFilter" onchange="filterByEstablishment()">
+                    <option value="">Todos os Estabelecimentos</option>
+                    <option value="1-4">1-4 (GUARULHOS)</option>
+                    <option value="90-13">90-13 (ITAJAÍ)</option>
+                    <option value="90-15">90-15 (GARUVA)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Filtro avançado:</label>
+                <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
+                    <option value="">Todos os produtos</option>
+                    <option value="no-stock">Sem estoque</option>
+                    <option value="over50">Estoque &gt; 50 meses</option>
+                    <option value="abc-a">Classe A</option>
+                    <option value="abc-b">Classe B</option>
+                    <option value="abc-c">Classe C</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button onclick="showExportModal()">📤 Exportar</button>
+                <button onclick="updateData()">🔄 Atualizar</button>
+            </div>
+        </div>
+
+        <div class="analytics-section">
+            <h3>🔮 Análise Preditiva</h3>
+            <div class="prediction-card" style="max-width: 600px; margin: 0 auto;">
+                <h4>⚠️ Alertas Preditivos</h4>
+                <div id="predictionAlerts">
+                    <div class="prediction-item clickable" onclick="filterZeroIn30()" title="Clique para filtrar produtos">
+                        <span class="prediction-label">Produtos zerando em <span id="urgentDaysLabel">30</span> dias:</span>
+                        <span class="prediction-value prediction-critical" id="zeroIn30">0</span>
+                    </div>
+                    <div class="prediction-item clickable" onclick="filterZeroIn60()" title="Clique para filtrar produtos">
+                        <span class="prediction-label">Produtos zerando em <span id="warningDaysLabel">60</span> dias:</span>
+                        <span class="prediction-value prediction-warning" id="zeroIn60">0</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="prediction-label">Ponto de reposição ideal:</span>
+                        <span class="prediction-value prediction-good" id="reorderPoint">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h3 class="header-label">Resumo Geral <span class="info-icon has-tooltip" tabindex="0" aria-label="Resumo Geral" data-tooltip="Indicadores principais do estoque considerando os filtros atuais, ajudando a entender a distribuição e risco de ruptura." data-tooltip-position="top">?</span></h3>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label"><span class="label-text">Total de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Total de produtos" data-tooltip="Quantidade total de SKUs únicos visíveis após aplicar filtros de busca e estabelecimento." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgStockMonths">0.0</div>
+                    <div class="stat-label"><span class="label-text">Média de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura em meses considerando todo o estoque disponível dividido pelo consumo médio dos últimos meses." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="medianStock">--</div>
+                    <div class="stat-label"><span class="label-text">Mediana de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Mediana de estoque" data-tooltip="Valor central da distribuição de meses de estoque: metade dos itens possui cobertura acima e metade abaixo desse ponto." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalStockValue">0</div>
+                    <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item clickable" onclick="filterCriticalStock()" title="Clique para ver produtos críticos (<2 meses)">
+                    <div class="stat-value critical" id="criticalCount">0</div>
+                    <div class="stat-label"><span class="label-text">Produtos Críticos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Produtos críticos" data-tooltip="Itens com cobertura inferior a 2 meses. Clique no card para filtrar somente esses produtos." data-tooltip-position="top" onclick="event.stopPropagation();">?</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFamilies">0</div>
+                    <div class="stat-label"><span class="label-text">Famílias de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Famílias de produtos" data-tooltip="Número de famílias distintas representadas na lista atual de produtos." data-tooltip-position="top">?</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pareto-section">
+            <h3 class="header-label">📊 Análise ABC por Vendas <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise ABC por Vendas" data-tooltip="Organizamos os produtos conforme a fatia que cada um representa das vendas dos últimos meses. Itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C." data-tooltip-position="top">?</span></h3>
+            <p class="pareto-description">Calculamos quanto cada item representa sozinho do total vendido nos últimos 3 meses entre todos os produtos com saída. Itens com % Individual igual ou acima de 5% entram na Classe A, entre 1% e 5% ficam na Classe B e abaixo de 1% compõem a Classe C. A regra é recalculada automaticamente conforme você aplica filtros, como família ou fornecedor.</p>
+            <div id="paretoContent"></div>
+        </div>
+        <div class="gauges-container" id="gaugesContainer">
+        </div>
+        
+        <div class="products-table">
+            <div class="table-header">
+                <h3 class="header-label">Detalhes dos Produtos <span class="info-icon has-tooltip" tabindex="0" aria-label="Detalhes dos Produtos" data-tooltip="Tabela com indicadores de estoque, consumo e classificação ABC de cada item após aplicar os filtros ativos." data-tooltip-position="top">?</span></h3>
+                <span id="tableCount">0 produtos exibidos</span>
+            </div>
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th><span class="header-label">Código<span class="info-icon has-tooltip" tabindex="0" aria-label="Código" data-tooltip="Identificador único do item conforme cadastro interno.">?</span></span></th>
+                            <th><span class="header-label">Fornecedor<span class="info-icon has-tooltip" tabindex="0" aria-label="Fornecedor" data-tooltip="Parceiro responsável pelo fornecimento do item.">?</span></span></th>
+                            <th><span class="header-label">Família<span class="info-icon has-tooltip" tabindex="0" aria-label="Família" data-tooltip="Categoria ou linha de produto utilizada para agrupar itens similares.">?</span></span></th>
+                            <th><span class="header-label">Item<span class="info-icon has-tooltip" tabindex="0" aria-label="Item" data-tooltip="Descrição comercial do produto.">?</span></span></th>
+                            <th><span class="header-label">Est. 1-4<span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque 1-4" data-tooltip="Saldo físico disponível no estabelecimento 1-4 (Guarulhos).">?</span></span></th>
+                            <th><span class="header-label">Est. 90-13<span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque 90-13" data-tooltip="Saldo físico disponível no estabelecimento 90-13 (Itajaí).">?</span></span></th>
+                            <th><span class="header-label">Est. 90-15<span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque 90-15" data-tooltip="Saldo físico disponível no estabelecimento 90-15 (Garuva).">?</span></span></th>
+                            <th><span class="header-label">Total<span class="info-icon has-tooltip" tabindex="0" aria-label="Total em estoque" data-tooltip="Soma do estoque disponível em todos os estabelecimentos selecionados.">?</span></span></th>
+                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas 3 meses" data-tooltip="Quantidade vendida acumulada nos últimos 3 meses para o item.">?</span></span></th>
+                            <th><span class="header-label">Média 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Média 3 meses" data-tooltip="Média mensal das vendas dos últimos 3 meses, usada para estimar o consumo.">?</span></span></th>
+                            <th><span class="header-label">Meses<span class="info-icon has-tooltip" tabindex="0" aria-label="Meses de cobertura" data-tooltip="Tempo estimado de cobertura de estoque em meses, considerando o consumo médio.">?</span></span></th>
+                            <th><span class="header-label">Previsão<span class="info-icon has-tooltip" tabindex="0" aria-label="Previsão de ruptura" data-tooltip="Resumo da previsão de ruptura calculada para o item.">?</span></span></th>
+                            <th><span class="header-label">Status<span class="info-icon has-tooltip" tabindex="0" aria-label="Status" data-tooltip="Classificação do risco atual com base nos meses de cobertura.">?</span></span></th>
+                            <th><span class="header-label">Classe ABC<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Classificação calculada pelo % Individual das vendas filtradas: itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C.">?</span></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Exportação -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Exportar Dados</h2>
+                <span class="close" onclick="closeExportModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="fileName">Nome do arquivo:</label>
+                <input type="text" id="fileName" value="estoque_dados" placeholder="Digite o nome do arquivo">
+            </div>
+            <div class="form-group">
+                <label for="fileFormat">Formato:</label>
+                <select id="fileFormat">
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="csv">CSV (.csv)</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeExportModal()">Cancelar</button>
+                <button onclick="confirmExport()">Exportar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inclusão das bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
+    
+    <script>
+        // Variáveis globais
+        let allProductsData = [];
+        let filteredData = [];
+        let currentFilter = 'all';
+        let currentEstablishment = '';
+        let searchTerm = '';
+        let predictionFilter = null;
+        let selectedFamily = null;
+        let selectedSupplier = null;
+        let fileSystemSupported = false;
+        let directoryHandle = null;
+        let criticalFilterActive = false;
+        let debugMode = false;
+        let mappingDebugMode = false;
+        let lastMappingInfo = null;
+        let advancedStockFilter = '';
+        // Faixas do % individual das vendas usadas para classificar os itens
+        const abcIndividualThresholds = Object.freeze({
+            classA: 0.05,
+            classB: 0.01
+        });
+        let abcClassificationMap = new Map();
+        let tooltipElement = null;
+        let activeTooltipTarget = null;
+        let tooltipHideTimeout = null;
+
+        function ensureTooltipElement() {
+            if (!tooltipElement) {
+                tooltipElement = document.createElement('div');
+                tooltipElement.className = 'tooltip-bubble';
+                tooltipElement.setAttribute('role', 'tooltip');
+                tooltipElement.setAttribute('aria-hidden', 'true');
+                tooltipElement.dataset.position = 'bottom';
+                document.body.appendChild(tooltipElement);
+            }
+        }
+
+        function positionTooltip(target) {
+            if (!tooltipElement || !target) {
+                return;
+            }
+
+            const rect = target.getBoundingClientRect();
+            const desiredPosition = target.getAttribute('data-tooltip-position');
+            const prefersTop = desiredPosition !== 'bottom';
+            tooltipElement.style.maxWidth = `min(320px, ${Math.max(200, window.innerWidth - 32)}px)`;
+
+            const tooltipRect = tooltipElement.getBoundingClientRect();
+            const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+            const scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const minTop = scrollY + 8;
+            const maxTop = scrollY + viewportHeight - tooltipRect.height - 8;
+
+            const computeTop = function(position) {
+                const referenceTop = rect.top + scrollY;
+                const referenceBottom = rect.bottom + scrollY;
+                return position === 'top'
+                    ? referenceTop - tooltipRect.height - 10
+                    : referenceBottom + 10;
+            };
+
+            let position = prefersTop ? 'top' : 'bottom';
+            let top = computeTop(position);
+
+            if (top < minTop) {
+                position = 'bottom';
+                top = computeTop(position);
+            }
+
+            if (top > maxTop) {
+                position = 'top';
+                top = computeTop(position);
+            }
+
+            top = Math.min(Math.max(top, minTop), maxTop);
+
+            const centerX = rect.left + scrollX + (rect.width / 2);
+            let left = centerX - (tooltipRect.width / 2);
+            const minLeft = scrollX + 8;
+            const maxLeft = scrollX + viewportWidth - tooltipRect.width - 8;
+            left = Math.min(Math.max(left, minLeft), maxLeft);
+
+            tooltipElement.dataset.position = position;
+            tooltipElement.style.top = `${top}px`;
+            tooltipElement.style.left = `${left}px`;
+
+            const arrowLeft = centerX - left;
+            tooltipElement.style.setProperty('--tooltip-arrow-left', `${Math.min(Math.max(arrowLeft, 12), tooltipRect.width - 12)}px`);
+        }
+
+        function showTooltip(target) {
+            if (!target || !target.getAttribute('data-tooltip')) {
+                return;
+            }
+
+            ensureTooltipElement();
+            tooltipElement.textContent = target.getAttribute('data-tooltip');
+            tooltipElement.setAttribute('aria-hidden', 'false');
+            tooltipElement.classList.add('visible');
+            activeTooltipTarget = target;
+            positionTooltip(target);
+        }
+
+        function hideTooltip() {
+            if (!tooltipElement) {
+                return;
+            }
+
+            tooltipElement.classList.remove('visible');
+            tooltipElement.setAttribute('aria-hidden', 'true');
+            activeTooltipTarget = null;
+        }
+
+        function handleTooltipEnter(event) {
+            clearTimeout(tooltipHideTimeout);
+            showTooltip(event.currentTarget);
+        }
+
+        function handleTooltipLeave() {
+            clearTimeout(tooltipHideTimeout);
+            tooltipHideTimeout = setTimeout(hideTooltip, 80);
+        }
+
+        function handleTooltipFocus(event) {
+            clearTimeout(tooltipHideTimeout);
+            showTooltip(event.currentTarget);
+        }
+
+        function handleTooltipBlur() {
+            clearTimeout(tooltipHideTimeout);
+            hideTooltip();
+        }
+
+        function bindTooltip(target) {
+            if (!target || target.dataset.tooltipBound === 'true') {
+                return;
+            }
+
+            target.dataset.tooltipBound = 'true';
+            target.addEventListener('mouseenter', handleTooltipEnter);
+            target.addEventListener('mouseleave', handleTooltipLeave);
+            target.addEventListener('focus', handleTooltipFocus);
+            target.addEventListener('blur', handleTooltipBlur);
+        }
+
+        function initializeTooltips(root) {
+            const scope = root || document;
+            const elements = scope.querySelectorAll('.has-tooltip');
+            elements.forEach(bindTooltip);
+        }
+
+        window.addEventListener('scroll', function() {
+            if (activeTooltipTarget) {
+                positionTooltip(activeTooltipTarget);
+            }
+        }, true);
+
+        window.addEventListener('resize', function() {
+            if (activeTooltipTarget) {
+                positionTooltip(activeTooltipTarget);
+            }
+        });
+
+        // Função de log para debug
+        function debugLog(message, type) {
+            type = type || 'info';
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            
+            console.log(logMessage);
+            
+            if (debugMode) {
+                const debugDiv = document.getElementById('debugInfo');
+                if (debugDiv) {
+                    debugDiv.innerHTML += logMessage + '<br>';
+                    debugDiv.scrollTop = debugDiv.scrollHeight;
+                }
+            }
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.style.display = debugMode ? 'block' : 'none';
+                if (debugMode) {
+                    debugDiv.innerHTML = '<strong>🐛 DEBUG MODE ATIVADO</strong><br>';
+                    debugLog('Debug mode ativado');
+                }
+            }
+        }
+
+        function toggleMappingDebug() {
+            mappingDebugMode = !mappingDebugMode;
+            const mappingDiv = document.getElementById('mappingDebug');
+            if (mappingDiv) {
+                mappingDiv.style.display = mappingDebugMode ? 'block' : 'none';
+                if (mappingDebugMode && lastMappingInfo) {
+                    showMappingInfo(lastMappingInfo);
+                }
+            }
+        }
+
+        function showMappingInfo(mappingInfo) {
+            const mappingDiv = document.getElementById('mappingDebug');
+            if (!mappingDiv || !mappingDebugMode) return;
+
+            let html = '<strong>📋 INFORMAÇÕES DE MAPEAMENTO DE COLUNAS</strong><br><br>';
+            html += `<strong>Colunas encontradas na planilha:</strong><br>`;
+            mappingInfo.headers.forEach((header, index) => {
+                html += `[${index}] "${header}"<br>`;
+            });
+
+            html += '<br><strong>Mapeamento aplicado:</strong><br>';
+            for (const [field, index] of Object.entries(mappingInfo.mapping)) {
+                const header = mappingInfo.headers[index] || 'ÍNDICE INVÁLIDO';
+                const status = mappingInfo.headers[index] ? '✅' : '❌';
+                html += `${field} → [${index}] "${header}" ${status}<br>`;
+            }
+
+            if (mappingInfo.warnings.length > 0) {
+                html += '<br><strong>⚠️ Avisos:</strong><br>';
+                mappingInfo.warnings.forEach(warning => {
+                    html += `${warning}<br>`;
+                });
+            }
+
+            mappingDiv.innerHTML = html;
+        }
+
+        function getConfigValue(path, fallback) {
+            if (typeof getConfig === 'function') {
+                const value = getConfig(path);
+                if (typeof value !== 'undefined') {
+                    return value;
+                }
+            } else if (window.dashboardConfig) {
+                const keys = path.split('.');
+                let current = window.dashboardConfig;
+                for (const key of keys) {
+                    if (current && typeof current === 'object' && key in current) {
+                        current = current[key];
+                    } else {
+                        current = undefined;
+                        break;
+                    }
+                }
+                if (typeof current !== 'undefined') {
+                    return current;
+                }
+            }
+
+            return fallback;
+        }
+
+        function getPredictionSettings() {
+            const defaults = { urgentDays: 30, warningDays: 60 };
+            const configValues = getConfigValue('predictions', {}) || {};
+            return Object.assign({}, defaults, {
+                urgentDays: typeof configValues.urgentDays === 'number' ? configValues.urgentDays : defaults.urgentDays,
+                warningDays: typeof configValues.warningDays === 'number' ? configValues.warningDays : defaults.warningDays
+            });
+        }
+
+        function getReorderPointValue() {
+            const reorder = getConfigValue('stockLevels.reorderPoint', null);
+            return typeof reorder === 'number' ? reorder : null;
+        }
+
+        function calculateDailyDemand(product) {
+            const monthlyAverage = product.media3M && product.media3M > 0
+                ? product.media3M
+                : (product.vendas4M && product.vendas4M > 0 ? product.vendas4M / 4 : 0);
+
+            if (monthlyAverage > 0) {
+                return monthlyAverage / 30;
+            }
+
+            if (product.stockMonths && product.stockMonths > 0) {
+                const totalStock = (product.stock14 || 0) + (product.stock9013 || 0) + (product.stock9015 || 0);
+                const inferredDaily = totalStock / (product.stockMonths * 30);
+                return isFinite(inferredDaily) && inferredDaily > 0 ? inferredDaily : 0;
+            }
+
+            return 0;
+        }
+
+        function getCoverageInfo(product) {
+            const stockAvailable = getProductStock(product);
+            const dailyDemand = calculateDailyDemand(product);
+
+            if (stockAvailable <= 0) {
+                return {
+                    stockAvailable,
+                    dailyDemand,
+                    daysToDepletion: 0,
+                    hasDemand: dailyDemand > 0,
+                    outOfStock: true
+                };
+            }
+
+            if (dailyDemand <= 0) {
+                return {
+                    stockAvailable,
+                    dailyDemand,
+                    daysToDepletion: null,
+                    hasDemand: false,
+                    outOfStock: false
+                };
+            }
+
+            return {
+                stockAvailable,
+                dailyDemand,
+                daysToDepletion: stockAvailable / dailyDemand,
+                hasDemand: true,
+                outOfStock: false
+            };
+        }
+
+        function formatStatValue(value, digits = 1) {
+            if (value === null || typeof value === 'undefined' || Number.isNaN(value)) {
+                return '--';
+            }
+
+            return value.toFixed(digits);
+        }
+
+        function escapeTooltip(text) {
+            if (text === null || typeof text === 'undefined') {
+                return '';
+            }
+
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function applyPredictionLabels() {
+            const { urgentDays, warningDays } = getPredictionSettings();
+            const urgentLabel = document.getElementById('urgentDaysLabel');
+            const warningLabel = document.getElementById('warningDaysLabel');
+            const reorderElement = document.getElementById('reorderPoint');
+            const reorderPointValue = getReorderPointValue();
+
+            if (urgentLabel) {
+                urgentLabel.textContent = urgentDays;
+            }
+
+            if (warningLabel) {
+                warningLabel.textContent = warningDays;
+            }
+
+            if (reorderElement) {
+                reorderElement.textContent = typeof reorderPointValue === 'number'
+                    ? `${reorderPointValue} meses`
+                    : '--';
+            }
+        }
+
+        // Detectar suporte ao File System Access API
+        function detectBrowserCapabilities() {
+            debugLog('Iniciando detecção de capacidades do navegador');
+            
+            try {
+                const isFileProtocol = location.protocol === 'file:';
+                const isHttps = location.protocol === 'https:';
+                const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                
+                debugLog(`Protocolo atual: ${location.protocol}`);
+                debugLog(`É file://: ${isFileProtocol}`);
+                debugLog(`É HTTPS: ${isHttps}`);
+                debugLog(`É localhost: ${isLocalhost}`);
+                
+                const hasAPI = 'showDirectoryPicker' in window;
+                debugLog(`showDirectoryPicker disponível: ${hasAPI}`);
+                
+                const userAgent = navigator.userAgent;
+                const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Edg');
+                const isEdge = userAgent.includes('Edg');
+                debugLog(`Navegador detectado - Chrome: ${isChrome}, Edge: ${isEdge}`);
+                
+                const isSecureContext = !isFileProtocol && (isHttps || isLocalhost);
+                fileSystemSupported = hasAPI && isSecureContext && (isChrome || isEdge);
+                debugLog(`File System API suportado: ${fileSystemSupported}`);
+                
+                const indicator = document.getElementById('browserModeIndicator');
+                
+                if (!indicator) {
+                    debugLog('Elemento browserModeIndicator não encontrado', 'warn');
+                    return;
+                }
+                
+                if (isFileProtocol) {
+                    indicator.innerHTML = `
+                        <div style="text-align: left;">
+                            🔍 <strong>Modo Arquivo Local</strong> - Salvamento automático não disponível<br>
+                            💡 <strong>Para ativar salvamento automático:</strong><br>
+                            • Use um servidor web local (Live Server, http-server, etc.)<br>
+                            • Ou acesse via https://seu-site.com<br>
+                            • Use o botão "💾 Baixar data.js" para salvar manualmente
+                        </div>
+                    `;
+                    indicator.style.background = '#e7f3ff';
+                    indicator.style.color = '#0066cc';
+                    indicator.style.padding = '12px';
+                    indicator.style.borderLeft = '4px solid #0066cc';
+                    debugLog('Modo file:// detectado - salvamento automático desabilitado');
+                    
+                } else if (fileSystemSupported) {
+                    indicator.innerHTML = '✨ Salvamento automático disponível! (Chrome/Edge + Servidor Web)';
+                    indicator.style.background = '#d4edda';
+                    indicator.style.color = '#155724';
+                    
+                    setTimeout(function() {
+                        const autoSaveBtn = document.getElementById('autoSaveBtn');
+                        const testBtn = document.getElementById('testBtn');
+                        
+                        if (autoSaveBtn) {
+                            autoSaveBtn.style.display = 'inline-block';
+                            autoSaveBtn.classList.add('ready');
+                            debugLog('Botão autoSave mostrado');
+                        }
+                        
+                        if (testBtn) {
+                            testBtn.style.display = 'inline-block';
+                        }
+                    }, 300);
+                } else {
+                    let reason = '';
+                    let solution = '';
+                    
+                    if (!hasAPI) {
+                        reason = 'API não suportada neste navegador';
+                        solution = 'Use Chrome ou Edge atualizado';
+                    } else if (!isSecureContext) {
+                        reason = 'Requer conexão segura (HTTPS ou localhost)';
+                        solution = 'Use um servidor web local ou HTTPS';
+                    } else if (!isChrome && !isEdge) {
+                        reason = 'Navegador não suportado';
+                        solution = 'Use Chrome ou Edge';
+                    }
+                    
+                    indicator.innerHTML = `
+                        <div style="text-align: left;">
+                            ⚠️ <strong>Salvamento automático não disponível</strong><br>
+                            🔍 <strong>Motivo:</strong> ${reason}<br>
+                            💡 <strong>Solução:</strong> ${solution}<br>
+                            🔥 Use o botão "💾 Baixar data.js" para salvar manualmente
+                        </div>
+                    `;
+                    indicator.style.background = '#fff3cd';
+                    indicator.style.color = '#856404';
+                    indicator.style.padding = '12px';
+                    indicator.style.borderLeft = '4px solid #ffc107';
+                    debugLog(`Salvamento automático não disponível: ${reason}`);
+                }
+            } catch (error) {
+                debugLog(`Erro na detecção de capacidades: ${error.message}`, 'error');
+                fileSystemSupported = false;
+            }
+        }
+
+        // Função principal para configurar pasta
+        function tryAutoSave() {
+            debugLog('=== TENTATIVA DE CONFIGURAÇÃO DE PASTA ===');
+            
+            if (location.protocol === 'file:') {
+                const msg = `
+                    ⚠️ Salvamento automático não funciona com arquivos locais (file://)
+                    
+                    💡 Para ativar esta funcionalidade:
+                    • Use um servidor web local (Live Server, Python, etc.)
+                    • Acesse via http://localhost ou https://
+                    
+                    🔥 Por enquanto, use "💾 Baixar data.js" para salvar manualmente
+                `;
+                showMessage(msg, 'warning');
+                debugLog('Tentativa de uso em protocolo file:// - não suportado', 'warn');
+                
+                const downloadBtn = document.querySelector('button[onclick="downloadDataFile()"]');
+                if (downloadBtn) {
+                    downloadBtn.style.animation = 'pulse 2s infinite';
+                    setTimeout(() => {
+                        downloadBtn.style.animation = '';
+                    }, 5000);
+                }
+                return;
+            }
+            
+            if (!fileSystemSupported) {
+                const msg = '❌ Salvamento automático não suportado neste navegador/ambiente.';
+                showMessage(msg, 'error');
+                debugLog(msg, 'error');
+                return;
+            }
+
+            if (allProductsData.length === 0) {
+                const msg = '⚠️ Nenhum dado para salvar. Importe uma planilha primeiro.';
+                showMessage(msg, 'warning');
+                debugLog(msg, 'warn');
+                return;
+            }
+
+            debugLog('Solicitando seleção de pasta ao usuário');
+            
+            window.showDirectoryPicker({
+                mode: 'readwrite',
+                startIn: 'documents'
+            }).then(function(handle) {
+                debugLog('Pasta selecionada com sucesso');
+                directoryHandle = handle;
+                
+                showMessage('✅ Pasta configurada! Salvando arquivo...', 'success');
+                updateUI();
+                
+                return saveDataAutomatically();
+                
+            }).then(function(success) {
+                if (success) {
+                    showMessage('✨ Arquivo data.js salvo automaticamente na pasta selecionada!', 'success');
+                    debugLog('Salvamento automático concluído com sucesso');
+                } else {
+                    showMessage('❌ Erro ao salvar o arquivo. Verifique as permissões.', 'error');
+                    debugLog('Falha no salvamento automático', 'error');
+                }
+            }).catch(function(error) {
+                if (error.name === 'AbortError') {
+                    debugLog('Usuário cancelou a seleção de pasta');
+                    showMessage('❌ Seleção de pasta cancelada pelo usuário.', 'info');
+                } else {
+                    debugLog(`Erro no processo: ${error.message}`, 'error');
+                    showMessage(`❌ Erro: ${error.message}`, 'error');
+                }
+            });
+        }
+
+        function reconfigureAutoSave() {
+            debugLog('Reconfigurando pasta para salvamento automático');
+            directoryHandle = null;
+            tryAutoSave();
+        }
+
+        function saveDataAutomatically() {
+            return new Promise(function(resolve, reject) {
+                debugLog('=== INICIANDO SALVAMENTO AUTOMÁTICO ===');
+                
+                if (!directoryHandle) {
+                    debugLog('directoryHandle não configurado', 'error');
+                    resolve(false);
+                    return;
+                }
+                
+                if (allProductsData.length === 0) {
+                    debugLog('Nenhum dado para salvar', 'error');
+                    resolve(false);
+                    return;
+                }
+
+                try {
+                    debugLog('Gerando conteúdo do arquivo data.js');
+                    const dataContent = saveDataToFile(allProductsData);
+                    debugLog(`Conteúdo gerado: ${dataContent.length} caracteres`);
+                    
+                    debugLog('Verificando permissões de escrita');
+                    directoryHandle.requestPermission({ mode: 'readwrite' }).then(function(permission) {
+                        debugLog(`Permissão obtida: ${permission}`);
+                        
+                        if (permission !== 'granted') {
+                            throw new Error('Permissão de escrita negada');
+                        }
+                        
+                        debugLog('Criando/obtendo arquivo data.js');
+                        return directoryHandle.getFileHandle('data.js', { create: true });
+                        
+                    }).then(function(fileHandle) {
+                        debugLog('Arquivo obtido, criando stream de escrita');
+                        return fileHandle.createWritable();
+                        
+                    }).then(function(writable) {
+                        debugLog('Escrevendo conteúdo no arquivo');
+                        return writable.write(dataContent).then(function() {
+                            debugLog('Fechando arquivo');
+                            return writable.close();
+                        });
+                        
+                    }).then(function() {
+                        debugLog('Arquivo salvo com sucesso!');
+                        
+                        localStorage.setItem('stockDataTimestamp', Date.now().toString());
+                        updateUI();
+                        
+                        resolve(true);
+                        
+                    }).catch(function(error) {
+                        debugLog(`Erro no salvamento: ${error.message}`, 'error');
+                        reject(error);
+                    });
+                    
+                } catch (error) {
+                    debugLog(`Erro na geração do conteúdo: ${error.message}`, 'error');
+                    reject(error);
+                }
+            });
+        }
+
+        function testAutoSave() {
+            debugLog('=== TESTE DE SALVAMENTO ===');
+            
+            if (!fileSystemSupported) {
+                showMessage('❌ Salvamento automático não suportado neste navegador.', 'error');
+                return;
+            }
+            
+            if (!directoryHandle) {
+                showMessage('⚠️ Configure uma pasta primeiro clicando em "Configurar Pasta".', 'warning');
+                return;
+            }
+            
+            if (allProductsData.length === 0) {
+                showMessage('⚠️ Nenhum dado para testar. Importe uma planilha primeiro.', 'warning');
+                return;
+            }
+            
+            saveDataAutomatically().then(function(success) {
+                if (success) {
+                    showMessage('✅ Teste realizado! Arquivo salvo com sucesso.', 'success');
+                } else {
+                    showMessage('❌ Falha no teste de salvamento.', 'error');
+                }
+            }).catch(function(error) {
+                showMessage(`❌ Erro no teste: ${error.message}`, 'error');
+            });
+        }
+
+        function updateUI() {
+            debugLog('Atualizando interface do usuário');
+            
+            try {
+                const lastUpdateDiv = document.getElementById('lastUpdateInfo');
+                if (!lastUpdateDiv) {
+                    debugLog('Elemento lastUpdateInfo não encontrado', 'warn');
+                    return;
+                }
+                
+                let infoText = '';
+                
+                if (typeof window.stockMetadata !== 'undefined' && window.stockMetadata.lastUpdate) {
+                    const date = new Date(window.stockMetadata.lastUpdate);
+                    const formattedDate = date.toLocaleString('pt-BR');
+                    infoText = `📅 Última atualização: ${formattedDate}`;
+                } else {
+                    const storedData = localStorage.getItem('stockDataTimestamp');
+                    if (storedData) {
+                        const date = new Date(parseInt(storedData));
+                        const formattedDate = date.toLocaleString('pt-BR');
+                        infoText = `📅 Última atualização: ${formattedDate}`;
+                    } else {
+                        infoText = '📅 Nenhuma importação realizada ainda';
+                    }
+                }
+                
+                if (fileSystemSupported && directoryHandle) {
+                    const autoSaveBtn = document.getElementById('autoSaveBtn');
+                    const reconfigBtn = document.getElementById('reconfigBtn');
+                    const testBtn = document.getElementById('testBtn');
+                    
+                    if (autoSaveBtn) {
+                        autoSaveBtn.textContent = '✨ Salvar na Pasta';
+                        autoSaveBtn.classList.remove('ready');
+                    }
+                    if (reconfigBtn) reconfigBtn.style.display = 'inline-block';
+                    if (testBtn) testBtn.style.display = 'inline-block';
+                    
+                    infoText += '<br>🗂️ <span style="color: #28a745; font-weight: bold;">Pasta configurada - salvamento automático ativo!</span>';
+                } else if (fileSystemSupported) {
+                    infoText += '<br>⚙️ <span style="color: #1F448C;">Clique em "Configurar Pasta" para ativar salvamento automático</span>';
+                }
+                
+                lastUpdateDiv.innerHTML = infoText;
+                debugLog('Interface atualizada com sucesso');
+                
+            } catch (error) {
+                debugLog(`Erro ao atualizar interface: ${error.message}`, 'error');
+            }
+        }
+
+        // Carregar dados ao inicializar
+        function loadData() {
+            debugLog('=== CARREGANDO DADOS ===');
+            
+            if (typeof window.stockData !== 'undefined' && Array.isArray(window.stockData) && window.stockData.length > 0) {
+                allProductsData = window.stockData;
+                debugLog(`Dados carregados do data.js: ${allProductsData.length} produtos`);
+                showMessage(`✅ ${allProductsData.length} produtos carregados do data.js`, 'success');
+            } else {
+                const storedData = localStorage.getItem('stockData');
+                if (storedData) {
+                    try {
+                        allProductsData = JSON.parse(storedData);
+                        debugLog(`Dados carregados do localStorage: ${allProductsData.length} produtos`);
+                        showMessage(`✅ ${allProductsData.length} produtos carregados do backup local`, 'info');
+                    } catch (e) {
+                        debugLog(`Erro ao parsear dados do localStorage: ${e.message}`, 'error');
+                        allProductsData = [];
+                    }
+                } else {
+                    allProductsData = [];
+                    debugLog('Nenhum dado encontrado');
+                }
+            }
+
+            if (allProductsData.length === 0) {
+                showMessage('⚠️ Nenhum dado encontrado. Importe uma planilha para começar.', 'info');
+            }
+
+            initializeDashboard();
+        }
+
+        function initializeDashboard() {
+            debugLog('Inicializando dashboard');
+            
+            try {
+                populateFamilyFilter();
+                populateSupplierFilter();
+                showAllProducts();
+                updatePredictiveAnalysis();
+                updateUI();
+                
+                debugLog('Dashboard inicializado com sucesso');
+            } catch (error) {
+                debugLog(`Erro ao inicializar dashboard: ${error.message}`, 'error');
+                showMessage('⚠️ Dashboard carregado com problemas. Use o diagnóstico para mais detalhes.', 'warning');
+            }
+        }
+
+        function saveDataToFile(data) {
+            try {
+                debugLog('Gerando arquivo data.js');
+                
+                const processedData = data.map(function(product) {
+                    return {
+                        code: product.code || '',
+                        supplier: product.supplier || '',
+                        family: product.family || '',
+                        item: product.item || '',
+                        stock14: product.stock14 || 0,
+                        stock9013: product.stock9013 || 0,
+                        stock9015: product.stock9015 || 0,
+                        stockMonths: product.stockMonths || 0,
+                        vendas4M: product.vendas4M || 0,
+                        media3M: product.media3M || 0
+                    };
+                });
+
+                const dataContent = `// Dados do Dashboard de Estoque v1.2 - Gerado em ${new Date().toLocaleString('pt-BR')}
+// Substitua este arquivo na pasta compartilhada para atualizar os dados
+console.log('Carregando data.js v1.2...');
+
+window.stockData = ${JSON.stringify(processedData, null, 2)};
+
+// Metadados
+window.stockMetadata = {
+    lastUpdate: "${new Date().toISOString()}",
+    totalProducts: ${processedData.length},
+    generatedBy: "Dashboard de Estoque v1.2 - Mapeamento Corrigido",
+    version: "1.2.0"
+};
+
+console.log('data.js v1.2 carregado com', window.stockData.length, 'produtos');`;
+                
+                debugLog(`Arquivo gerado: ${dataContent.length} caracteres`);
+                return dataContent;
+            } catch (error) {
+                debugLog(`Erro ao gerar arquivo: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function importData() {
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) {
+                showMessage('❌ Por favor, selecione um arquivo primeiro.', 'error');
+                return;
+            }
+
+            debugLog(`Importando arquivo: ${file.name} (${file.size} bytes)`);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    const fileName = file.name.toLowerCase();
+                    
+                    if (fileName.endsWith('.csv')) {
+                        data = processCSV(e.target.result);
+                    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                        const workbook = XLSX.read(e.target.result, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        data = processExcelData(jsonData);
+                    } else {
+                        throw new Error('Formato de arquivo não suportado');
+                    }
+
+                    if (data.length === 0) {
+                        throw new Error('Nenhum produto válido encontrado na planilha');
+                    }
+
+                    allProductsData = data;
+                    debugLog(`Dados importados: ${data.length} produtos`);
+                    
+                    localStorage.setItem('stockData', JSON.stringify(data));
+                    localStorage.setItem('stockDataTimestamp', Date.now().toString());
+                    
+                    showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.`, 'success');
+                    
+                    if (fileSystemSupported && directoryHandle) {
+                        debugLog('Tentando salvamento automático após importação');
+                        saveDataAutomatically().then(function(success) {
+                            if (success) {
+                                showMessage('✨ Arquivo data.js atualizado automaticamente!', 'success');
+                            }
+                        }).catch(function(error) {
+                            debugLog(`Erro no salvamento automático: ${error.message}`, 'error');
+                            showMessage('⚠️ Dados importados, mas erro no salvamento automático. Use "💾 Baixar data.js".', 'warning');
+                        });
+                    } else if (fileSystemSupported) {
+                        showMessage('💡 Dica: Clique em "Configurar Pasta" para ativar salvamento automático!', 'info');
+                    }
+                    
+                    initializeDashboard();
+                    
+                } catch (error) {
+                    debugLog(`Erro ao processar arquivo: ${error.message}`, 'error');
+                    showMessage(`❌ Erro ao processar arquivo: ${error.message}`, 'error');
+                }
+            };
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function openTemplateGenerator() {
+            try {
+                window.open('gerador_template.html', '_blank');
+            } catch (error) {
+                debugLog(`Erro ao abrir gerador de template: ${error.message}`, 'error');
+                showMessage('❌ Erro ao abrir gerador de template', 'error');
+            }
+        }
+
+        function runDiagnostic() {
+            debugLog('=== EXECUTANDO DIAGNÓSTICO COMPLETO ===');
+            console.clear();
+            
+            const report = [];
+            report.push('🔍 DIAGNÓSTICO COMPLETO DO DASHBOARD v1.2');
+            report.push('==========================================');
+            
+            // 1. Verificar dados
+            report.push('\n📊 DADOS:');
+            report.push(`- window.stockData existe: ${typeof window.stockData !== 'undefined'}`);
+            report.push(`- É array: ${Array.isArray(window.stockData)}`);
+            report.push(`- Quantidade: ${window.stockData ? window.stockData.length : 0}`);
+            report.push(`- allProductsData: ${allProductsData ? allProductsData.length : 'undefined'}`);
+            
+            // 2. Verificar elementos DOM
+            report.push('\n🎯 ELEMENTOS DOM:');
+            const elementos = ['importContent', 'toggleIcon', 'browserModeIndicator', 'autoSaveBtn', 'testBtn', 'lastUpdateInfo', 'excelFile', 'mappingDebug'];
+            elementos.forEach(function(id) {
+                const el = document.getElementById(id);
+                const exists = !!el;
+                const visible = el ? el.offsetHeight > 0 : false;
+                report.push(`- ${id}: ${exists ? '✅' : '❌'} ${exists ? (visible ? '(visível)' : '(oculto)') : ''}`);
+            });
+            
+            // 3. Verificar capacidades do navegador
+            report.push('\n🌐 NAVEGADOR:');
+            report.push(`- UserAgent: ${navigator.userAgent}`);
+            report.push(`- Protocolo: ${location.protocol}`);
+            report.push(`- Hostname: ${location.hostname}`);
+            report.push(`- URL completa: ${location.href}`);
+            report.push(`- showDirectoryPicker: ${'showDirectoryPicker' in window ? '✅' : '❌'}`);
+            report.push(`- fileSystemSupported: ${fileSystemSupported ? '✅' : '❌'}`);
+            report.push(`- directoryHandle: ${directoryHandle ? '✅ Configurado' : '❌ Não configurado'}`);
+            
+            // 4. Verificar localStorage
+            report.push('\n💾 ARMAZENAMENTO LOCAL:');
+            const storedData = localStorage.getItem('stockData');
+            const storedTimestamp = localStorage.getItem('stockDataTimestamp');
+            report.push(`- Dados salvos: ${storedData ? 'Sim' : 'Não'}`);
+            report.push(`- Timestamp: ${storedTimestamp ? new Date(parseInt(storedTimestamp)).toLocaleString('pt-BR') : 'Não'}`);
+            
+            // 5. Verificar mapeamento (novo)
+            report.push('\n📋 MAPEAMENTO:');
+            if (lastMappingInfo) {
+                report.push('- Último mapeamento executado: ✅');
+                report.push(`- Colunas detectadas: ${lastMappingInfo.headers.length}`);
+                report.push(`- Avisos de mapeamento: ${lastMappingInfo.warnings.length}`);
+                if (lastMappingInfo.warnings.length > 0) {
+                    lastMappingInfo.warnings.forEach(warning => {
+                        report.push(`  ⚠️ ${warning}`);
+                    });
+                }
+            } else {
+                report.push('- Nenhum mapeamento executado ainda');
+            }
+            
+            // 6. Verificar funcionalidades
+            report.push('\n⚙️ FUNCIONALIDADES:');
+            report.push(`- Import section expanded: ${document.getElementById('importContent')?.classList.contains('expanded') ? 'Sim' : 'Não'}`);
+            report.push(`- Debug mode: ${debugMode ? 'Ativo' : 'Inativo'}`);
+            report.push(`- Mapping debug mode: ${mappingDebugMode ? 'Ativo' : 'Inativo'}`);
+            
+            if (location.protocol === 'file:') {
+                report.push('\n🚀 INSTRUÇÕES PARA SALVAMENTO AUTOMÁTICO:');
+                report.push('Você está usando protocolo file://, que não suporta File System API.');
+                report.push('Para ativar salvamento automático, use um servidor web local:');
+                report.push('');
+                report.push('MÉTODO 1 - Python (já instalado no Windows):');
+                report.push('1. Abra o Prompt de Comando na pasta do projeto');
+                report.push('2. Execute: python -m http.server 8000');
+                report.push('3. Acesse: http://localhost:8000');
+                report.push('');
+                report.push('MÉTODO 2 - Live Server (VS Code):');
+                report.push('1. Instale a extensão "Live Server" no VS Code');
+                report.push('2. Clique direito no index.html → "Open with Live Server"');
+                report.push('3. Acesse: http://localhost:5500');
+            }
+            
+            report.push('\n🎯 DIAGNÓSTICO CONCLUÍDO!');
+            
+            // Mostrar relatório
+            const fullReport = report.join('\n');
+            console.log(fullReport);
+            
+            if (debugMode) {
+                const debugDiv = document.getElementById('debugInfo');
+                if (debugDiv) {
+                    debugDiv.innerHTML = '<pre>' + fullReport + '</pre>';
+                }
+            }
+            
+            showMessage('🔍 Diagnóstico executado! Verifique o console (F12) para detalhes completos.', 'info');
+        }
+
+        function toggleImportSection() {
+            const content = document.getElementById('importContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (!content || !icon) {
+                debugLog('Elementos de importação não encontrados', 'error');
+                return;
+            }
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+                icon.textContent = '▼';
+                debugLog('Seção de importação fechada');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');  
+                icon.textContent = '▲';
+                debugLog('Seção de importação aberta');
+            }
+        }
+
+        function downloadDataFile() {
+            if (allProductsData.length === 0) {
+                showMessage('❌ Nenhum dado para salvar. Importe uma planilha primeiro.', 'error');
+                return;
+            }
+
+            const dataContent = saveDataToFile(allProductsData);
+            const blob = new Blob([dataContent], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage('💾 Arquivo data.js baixado! Substitua o arquivo na pasta compartilhada.', 'success');
+            debugLog('Arquivo data.js baixado via download manual');
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('importMessages');
+            const messageClass = {
+                'success': 'success-message',
+                'error': 'error-message',
+                'warning': 'warning-message',
+                'info': 'info-message'
+            }[type] || 'info-message';
+            
+            messagesDiv.innerHTML = `<div class="${messageClass}">${message}</div>`;
+            
+            setTimeout(function() {
+                messagesDiv.innerHTML = '';
+            }, 8000);
+        }
+
+        // === FUNÇÕES DE BUSCA E FILTROS ===
+        function performGlobalSearch() {
+            const searchInput = document.getElementById('globalSearch');
+            searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                document.getElementById('searchResults').innerHTML = '';
+                applyAllFilters();
+                removeHighlights();
+                return;
+            }
+
+            resetAllFilters();
+
+            const searchResults = allProductsData.filter(function(product) {
+                return product.code.toLowerCase().includes(searchTerm) ||
+                    product.item.toLowerCase().includes(searchTerm) ||
+                    product.supplier.toLowerCase().includes(searchTerm) ||
+                    product.family.toLowerCase().includes(searchTerm);
+            });
+
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = `🔍 <strong>${searchResults.length}</strong> produtos encontrados para: "<em>${searchTerm}</em>"`;
+
+            applyAllFilters();
+            highlightSearchResults();
+        }
+
+        function resetAllFilters() {
+            currentFilter = 'all';
+            predictionFilter = null;
+            selectedFamily = null;
+            selectedSupplier = null;
+            currentEstablishment = '';
+            criticalFilterActive = false;
+            advancedStockFilter = '';
+
+            document.getElementById('familyFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('establishmentFilter').value = '';
+            const advancedDropdown = document.getElementById('advancedStockFilter');
+            if (advancedDropdown) {
+                advancedDropdown.value = '';
+            }
+
+            updateActiveButton('all');
+            
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+        }
+
+        function clearSearch() {
+            resetAllFilters();
+            document.getElementById('globalSearch').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            searchTerm = '';
+            applyAllFilters();
+            removeHighlights();
+        }
+
+        function highlightSearchResults() {
+            const gaugeCards = document.querySelectorAll('.gauge-card');
+            gaugeCards.forEach(function(card) {
+                const title = card.querySelector('.gauge-title').textContent.toLowerCase();
+                if (searchTerm && title.includes(searchTerm)) {
+                    card.classList.add('highlighted');
+                } else {
+                    card.classList.remove('highlighted');
+                }
+            });
+
+            const tableRows = document.querySelectorAll('#productsTableBody tr');
+            tableRows.forEach(function(row) {
+                const rowText = row.textContent.toLowerCase();
+                if (searchTerm && rowText.includes(searchTerm)) {
+                    row.classList.add('highlighted');
+                    row.classList.add('highlight-animation');
+                } else {
+                    row.classList.remove('highlighted');
+                }
+            });
+        }
+
+        function removeHighlights() {
+            const highlighted = document.querySelectorAll('.highlighted');
+            highlighted.forEach(function(el) {
+                el.classList.remove('highlighted');
+            });
+            const animations = document.querySelectorAll('.highlight-animation');
+            animations.forEach(function(el) {
+                el.classList.remove('highlight-animation');
+            });
+        }
+
+        // === FUNÇÕES DE DADOS - VERSÃO CORRIGIDA ===
+        function processCSV(csvText) {
+            const lines = csvText.split('\n');
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(function(h) {
+                return h.trim().replace(/"/g, '');
+            });
+            const products = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = parseCSVLine(line);
+                if (values.length < headers.length) continue;
+
+                const product = mapProductData(headers, values);
+                if (product.code) {
+                    products.push(product);
+                }
+            }
+
+            return products;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        function processExcelData(jsonData) {
+            const products = [];
+            
+            for (const row of jsonData) {
+                const product = mapProductData(Object.keys(row), Object.values(row));
+                if (product.code) {
+                    products.push(product);
+                }
+            }
+            
+            return products;
+        }
+
+        function mapProductData(headers, values) {
+            const mapping = findColumnMapping(headers);
+            
+            return {
+                code: sanitizeText(values[mapping.code] || ''),
+                supplier: sanitizeText(values[mapping.supplier] || ''),
+                family: sanitizeText(values[mapping.family] || ''),
+                item: sanitizeText(values[mapping.item] || ''),
+                stock14: parseNumber(values[mapping.stock14] || 0),
+                stock9013: parseNumber(values[mapping.stock9013] || 0),
+                stock9015: parseNumber(values[mapping.stock9015] || 0),
+                stockMonths: parseNumber(values[mapping.stockMonths] || 0),
+                vendas4M: parseNumber(values[mapping.vendas4M] || 0),
+                media3M: parseNumber(values[mapping.media3M]) || 0
+
+            };
+        }
+
+        // FUNÇÃO CORRIGIDA v1.2.2 - Mapeamento Específico para sua Planilha
+        function findColumnMapping(headers) {
+            debugLog('=== MAPEAMENTO v1.2.2 - ANÁLISE ESPECÍFICA ===');
+            debugLog(`Colunas encontradas: ${headers.length}`);
+            
+            // Log todas as colunas encontradas
+            headers.forEach((h, index) => {
+                debugLog(`[${index}] "${h}"`);
+            });
+            
+            const upperHeaders = headers.map(h => (h || '').toString().toUpperCase().trim());
+            const mapping = {};
+            const warnings = [];
+
+            // MAPEAMENTO DIRETO E ESPECÍFICO baseado na sua planilha
+            
+            // 1. CÓDIGO (primeira coluna)
+           // 7. VENDAS 3M - busca específica para evitar conflito com VENDAS 3M
+            for (let i = 0; i < upperHeaders.length; i++) {
+                 const h = upperHeaders[i];
+            if ((h.includes("VENDAS") && h.includes("4M")) || 
+                    (h.includes("SALES") && h.includes("4M")) ||
+                    (h === "VENDAS 4M") || (h === "VENDAS4M")) {
+                    mapping.vendas4M = i;
+                    debugLog(`vendas4M: ${i} - ${headers[i]}`);
+                    break;
+                }
+            }
+
+            // 8. MÉDIA 3M - novo mapeamento específico
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h === "MÉDIA 3M" || h === "MEDIA 3M" || h === "MEDIA3M" || h === "MÉDIA3M") {
+                    mapping.media3M = i;
+                    debugLog(`media3M: ${i} - ${headers[i]}`);
+                    break;
+                }
+            }   
+
+            
+            // 2. FORNECEDOR
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h === 'FORNECEDOR' || h === 'SUPPLIER') {
+                    mapping.supplier = i;
+                    debugLog(`✅ supplier → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            
+            // 3. FAMÍLIA
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h === 'FAMÍLIA' || h === 'FAMILIA' || h === 'FAMILY') {
+                    mapping.family = i;
+                    debugLog(`✅ family → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            
+            // 4. ITEM
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h === 'ITEM' || h === 'PRODUTO' || h === 'PRODUCT') {
+                    mapping.item = i;
+                    debugLog(`✅ item → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            
+            // 5. ESTABELECIMENTOS - Busca muito específica
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                
+                // 1-4 (GUARULHOS)
+                if (h === '1-4' || h === '1_4') {
+                    mapping.stock14 = i;
+                    debugLog(`✅ stock14 (1-4) → [${i}] "${headers[i]}"`);
+                }
+                
+                // 90-13 (ITAJAÍ)  
+                else if (h === '90-13' || h === '90_13') {
+                    mapping.stock9013 = i;
+                    debugLog(`✅ stock9013 (90-13) → [${i}] "${headers[i]}"`);
+                }
+                
+                // 90-15 (GARUVA) - BUSCA MUITO ESPECÍFICA
+                else if (h === '90-15' || h === '90_15') {
+                    mapping.stock9015 = i;
+                    debugLog(`✅ stock9015 (90-15) → [${i}] "${headers[i]}"`);
+                }
+            }
+            
+            // 6. ESTOQUE EM MESES
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h.includes('MESES') || h.includes('ESTOQUE EM MESES') || h === 'STOCKMONTHS') {
+                    mapping.stockMonths = i;
+                    debugLog(`✅ stockMonths → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+            
+            // 7. VENDAS 3M
+            for (let i = 0; i < upperHeaders.length; i++) {
+                const h = upperHeaders[i];
+                if (h.includes('VENDAS') || h.includes('SALES')) {
+                    mapping.vendas4M = i;
+                    debugLog(`✅ vendas4M → [${i}] "${headers[i]}"`);
+                    break;
+                }
+            }
+
+            // VERIFICAÇÃO ESPECIAL PARA 90-15
+            debugLog('=== VERIFICAÇÃO ESPECIAL PARA 90-15 ===');
+            let found9015 = false;
+            for (let i = 0; i < headers.length; i++) {
+                const original = headers[i];
+                const upper = upperHeaders[i];
+                debugLog(`Verificando [${i}] "${original}" (upper: "${upper}")`);
+                
+                if (original === '90-15' || upper === '90-15' || original === '90_15' || upper === '90_15') {
+                    mapping.stock9015 = i;
+                    debugLog(`🎯 ENCONTRADO 90-15 → [${i}] "${original}"`);
+                    found9015 = true;
+                    break;
+                }
+            }
+            
+            if (!found9015) {
+                warnings.push('CRÍTICO: Coluna 90-15 NÃO ENCONTRADA!');
+                debugLog('🚨 CRÍTICO: Coluna 90-15 NÃO ENCONTRADA na planilha!');
+            }
+
+            // FALLBACK APENAS SE ABSOLUTAMENTE NECESSÁRIO
+            const fallbacks = {
+                code: 0, supplier: 1, family: 2, item: 3,
+                stock14: 5, stock9013: 6, stock9015: 7, 
+                stockMonths: 8, vendas4M: 9
+            };
+
+            for (const [field, fallbackIndex] of Object.entries(fallbacks)) {
+                if (mapping[field] === undefined) {
+                    if (fallbackIndex < headers.length) {
+                        mapping[field] = fallbackIndex;
+                        warnings.push(`${field} usando fallback [${fallbackIndex}] "${headers[fallbackIndex]}"`);
+                        debugLog(`🔄 ${field} → [${fallbackIndex}] "${headers[fallbackIndex]}" (FALLBACK)`);
+                    } else {
+                        mapping[field] = 0;
+                        warnings.push(`${field} usando índice 0 por segurança`);
+                        debugLog(`⚡ ${field} → [0] (SEGURANÇA)`);
+                    }
+                }
+            }
+
+            // RELATÓRIO FINAL
+            debugLog('=== MAPEAMENTO FINAL v1.2.2 ===');
+            for (const [field, index] of Object.entries(mapping)) {
+                const header = headers[index] || 'INVÁLIDO';
+                debugLog(`${field.padEnd(12)} → [${index}] "${header}"`);
+            }
+
+            // VALIDAÇÃO CRÍTICA PARA 90-15
+            if (mapping.stock9015 !== undefined) {
+                const mappedHeader = headers[mapping.stock9015];
+                if (mappedHeader !== '90-15' && mappedHeader !== '90_15') {
+                    warnings.push(`ATENÇÃO: stock9015 mapeado para "${mappedHeader}" em vez de "90-15"`);
+                    debugLog(`⚠️ stock9015 mapeado para "${mappedHeader}" - pode estar incorreto`);
+                }
+            }
+
+            // SALVAR INFO DE MAPEAMENTO PARA DEBUG
+            lastMappingInfo = {
+                headers: headers.slice(),
+                mapping: Object.assign({}, mapping),
+                warnings: warnings.slice(),
+                version: '1.2.2'
+            };
+
+            debugLog(`=== MAPEAMENTO v1.2.2 CONCLUÍDO - ${warnings.length} avisos ===`);
+            warnings.forEach(warning => debugLog(`⚠️ ${warning}`));
+
+            // Mostrar info de mapeamento se debug estiver ativo
+            if (mappingDebugMode) {
+                showMappingInfo(lastMappingInfo);
+            }
+
+            return mapping;
+        }
+
+        function sanitizeText(text) {
+            if (!text) return '';
+            return text.toString().trim().replace(/"/g, '');
+        }
+
+        function parseNumber(value) {
+            if (!value && value !== 0) return 0;
+            
+            const cleaned = value.toString().replace(/[^\d.,-]/g, '').replace(',', '.');
+            const parsed = parseFloat(cleaned);
+            
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
+        // === FUNÇÕES DE FILTROS ===
+        function resetOver50AdvancedFilter() {
+            if (advancedStockFilter === 'over50') {
+                advancedStockFilter = '';
+                const advancedDropdown = document.getElementById('advancedStockFilter');
+                if (advancedDropdown) {
+                    advancedDropdown.value = '';
+                }
+            }
+        }
+
+        function populateFamilyFilter() {
+            const families = [...new Set(allProductsData.map(function(p) {
+                return p.family;
+            }))].sort();
+            const select = document.getElementById('familyFilter');
+            select.innerHTML = '<option value="">Todas as Famílias</option>';
+            families.forEach(function(family) {
+                const option = document.createElement('option');
+                option.value = family;
+                option.textContent = family;
+                select.appendChild(option);
+            });
+        }
+
+        function populateSupplierFilter() {
+            const suppliers = [...new Set(allProductsData.map(function(p) {
+                return p.supplier;
+            }))].sort();
+            const select = document.getElementById('supplierFilter');
+            select.innerHTML = '<option value="">Todos os Fornecedores</option>';
+            suppliers.forEach(function(supplier) {
+                const option = document.createElement('option');
+                option.value = supplier;
+                option.textContent = supplier;
+                select.appendChild(option);
+            });
+        }
+
+        function showAllProducts() {
+            currentFilter = 'all';
+            predictionFilter = null;
+            selectedFamily = null;
+            selectedSupplier = null;
+            criticalFilterActive = false;
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            document.getElementById('familyFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('establishmentFilter').value = '';
+            document.getElementById('advancedStockFilter').value = '';
+            advancedStockFilter = '';
+            updateActiveButton('all');
+            applyAllFilters();
+        }
+
+        function filterCriticalStock() {
+            if (criticalFilterActive) {
+                criticalFilterActive = false;
+                currentFilter = 'all';
+                updateActiveButton('all');
+                applyAllFilters();
+            } else {
+                criticalFilterActive = true;
+                currentFilter = 'critical';
+                predictionFilter = null;
+                resetOver50AdvancedFilter();
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                updateActiveButton('critical');
+                applyAllFilters();
+            }
+        }
+
+        function filterLowStock() {
+            currentFilter = 'low';
+            predictionFilter = null;
+            criticalFilterActive = false;
+            resetOver50AdvancedFilter();
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            updateActiveButton('low');
+            applyAllFilters();
+        }
+
+        function filterHighStock() {
+            currentFilter = 'high';
+            predictionFilter = null;
+            criticalFilterActive = false;
+            resetOver50AdvancedFilter();
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            updateActiveButton('high');
+            applyAllFilters();
+        }
+
+        function filterByFamily() {
+            const familyDropdown = document.getElementById('familyFilter');
+            selectedFamily = familyDropdown.value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterBySupplier() {
+            const supplierDropdown = document.getElementById('supplierFilter');
+            selectedSupplier = supplierDropdown.value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterByEstablishment() {
+            currentEstablishment = document.getElementById('establishmentFilter').value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterByAdvancedStock() {
+            const advancedDropdown = document.getElementById('advancedStockFilter');
+            advancedStockFilter = advancedDropdown ? advancedDropdown.value : '';
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterByGauge(family) {
+            if (selectedFamily === family) {
+                selectedFamily = null;
+                document.getElementById('familyFilter').value = '';
+                showAllProducts();
+            } else {
+                selectedFamily = family;
+                document.getElementById('familyFilter').value = family;
+                filterByFamily();
+            }
+        }
+
+        function filterZeroIn30() {
+            const item30 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn30()"]');
+            
+            if (predictionFilter === 'zero30') {
+                predictionFilter = null;
+                item30.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                
+                predictionFilter = 'zero30';
+                criticalFilterActive = false;
+                item30.classList.add('active');
+                currentFilter = 'prediction30';
+                updateActiveButton(null);
+                
+                applyAllFilters();
+            }
+        }
+
+        function filterZeroIn60() {
+            const item60 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn60()"]');
+
+            if (predictionFilter === 'zero60') {
+                predictionFilter = null;
+                item60.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+
+                predictionFilter = 'zero60';
+                criticalFilterActive = false;
+                item60.classList.add('active');
+                currentFilter = 'prediction60';
+                updateActiveButton(null);
+
+                applyAllFilters();
+            }
+        }
+
+        function assignAbcClassification(dataSet) {
+            const classificationMap = new Map();
+
+            if (!Array.isArray(dataSet) || dataSet.length === 0) {
+                abcClassificationMap = classificationMap;
+                if (Array.isArray(dataSet)) {
+                    dataSet.forEach(function(product) {
+                        product.currentAbcClass = '—';
+                        product.individualSalesShare = 0;
+                        product.cumulativeSalesShare = 0;
+                    });
+                }
+                return classificationMap;
+            }
+
+            const sortedData = dataSet.slice().sort(function(a, b) {
+                return (b.vendas4M || 0) - (a.vendas4M || 0);
+            });
+
+            const totalSales = sortedData.reduce(function(sum, product) {
+                const sales = Math.max(product.vendas4M || 0, 0);
+                return sales > 0 ? sum + sales : sum;
+            }, 0);
+
+            if (totalSales === 0) {
+                sortedData.forEach(function(product) {
+                    classificationMap.set(product.code, '—');
+                    product.currentAbcClass = '—';
+                    product.individualSalesShare = 0;
+                    product.cumulativeSalesShare = 0;
+                });
+                abcClassificationMap = classificationMap;
+                return classificationMap;
+            }
+
+            let hasClassA = false;
+            let hasClassB = false;
+
+            sortedData.forEach(function(product) {
+                const sales = Math.max(product.vendas4M || 0, 0);
+                const individualShare = totalSales === 0 ? 0 : sales / totalSales;
+                product.individualSalesShare = individualShare;
+                product.cumulativeSalesShare = individualShare;
+
+                let classification = 'C';
+                if (individualShare >= abcIndividualThresholds.classA) {
+                    classification = 'A';
+                    hasClassA = true;
+                } else if (individualShare >= abcIndividualThresholds.classB) {
+                    classification = 'B';
+                    hasClassB = true;
+                }
+
+                classificationMap.set(product.code, classification);
+            });
+
+            if (!hasClassA && sortedData.length > 0) {
+                const topProduct = sortedData[0];
+                classificationMap.set(topProduct.code, 'A');
+            }
+
+            if (!hasClassB && sortedData.length > 1) {
+                let candidate = sortedData.find(function(product) {
+                    return classificationMap.get(product.code) !== 'A' && (product.vendas4M || 0) > 0;
+                });
+                if (!candidate) {
+                    candidate = sortedData.find(function(product) {
+                        return classificationMap.get(product.code) !== 'A';
+                    });
+                }
+                if (candidate) {
+                    classificationMap.set(candidate.code, 'B');
+                }
+            }
+
+            dataSet.forEach(function(product) {
+                const classification = classificationMap.get(product.code) || '—';
+                product.currentAbcClass = classification;
+                if (!classificationMap.has(product.code)) {
+                    classificationMap.set(product.code, classification);
+                }
+            });
+
+            abcClassificationMap = classificationMap;
+            return classificationMap;
+        }
+
+        function applyAllFilters() {
+            let baseData = allProductsData.slice();
+            const { urgentDays, warningDays } = getPredictionSettings();
+
+            if (predictionFilter === 'zero30') {
+                baseData = baseData.filter(function(p) {
+                    const coverage = getCoverageInfo(p);
+                    if (coverage.outOfStock) {
+                        return true;
+                    }
+                    if (coverage.daysToDepletion === null) {
+                        return false;
+                    }
+                    return coverage.daysToDepletion <= urgentDays;
+                });
+            } else if (predictionFilter === 'zero60') {
+                baseData = baseData.filter(function(p) {
+                    const coverage = getCoverageInfo(p);
+                    if (coverage.outOfStock) {
+                        return false;
+                    }
+                    if (coverage.daysToDepletion === null) {
+                        return false;
+                    }
+                    return coverage.daysToDepletion > urgentDays && coverage.daysToDepletion <= warningDays;
+                });
+            }
+
+            if (searchTerm) {
+                baseData = baseData.filter(function(product) {
+                    return product.code.toLowerCase().includes(searchTerm) ||
+                        product.item.toLowerCase().includes(searchTerm) ||
+                        product.supplier.toLowerCase().includes(searchTerm) ||
+                        product.family.toLowerCase().includes(searchTerm);
+                });
+            }
+
+            if (!predictionFilter) {
+                switch(currentFilter) {
+                    case 'critical':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths < 2;
+                        });
+                        break;
+                    case 'low':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths >= 2 && p.stockMonths < 6;
+                        });
+                        break;
+                    case 'high':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths >= 6;
+                        });
+                        break;
+                }
+            }
+
+            if (selectedFamily) {
+                baseData = baseData.filter(function(product) {
+                    return product.family === selectedFamily;
+                });
+            }
+
+            if (selectedSupplier) {
+                baseData = baseData.filter(function(product) {
+                    return product.supplier === selectedSupplier;
+                });
+            }
+
+            if (currentEstablishment) {
+                baseData = baseData.filter(function(product) {
+                    const stock = getProductStock(product);
+                    if (advancedStockFilter === 'no-stock') {
+                        return stock <= 0;
+                    }
+                    return stock > 0;
+                });
+            }
+
+            assignAbcClassification(baseData);
+
+            if (advancedStockFilter && advancedStockFilter.startsWith('abc-')) {
+                const desiredClass = advancedStockFilter.slice(4).toUpperCase();
+                baseData = baseData.filter(function(product) {
+                    return (product.currentAbcClass || '—') === desiredClass;
+                });
+            } else if (advancedStockFilter === 'no-stock') {
+                baseData = baseData.filter(function(product) {
+                    return getProductStock(product) <= 0;
+                });
+            } else if (advancedStockFilter === 'over50') {
+                baseData = baseData.filter(function(product) {
+                    const coverage = getCoverageInfo(product);
+                    if (coverage.daysToDepletion !== null) {
+                        return (coverage.daysToDepletion / 30) > 50;
+                    }
+                    return product.stockMonths > 50;
+                });
+            }
+
+            filteredData = baseData;
+            updateParetoAnalysis();
+            updateTable();
+            updateSummary();
+            updateGauges();
+            updatePredictiveAnalysis();
+        }
+
+        function updateActiveButton(filter) {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (filter && btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // === FUNÇÕES DE ANÁLISE ===
+        function updatePredictiveAnalysis() {
+            applyPredictionLabels();
+
+            const { urgentDays, warningDays } = getPredictionSettings();
+            let urgentCount = 0;
+            let warningCount = 0;
+
+            filteredData.forEach(function(product) {
+                const coverage = getCoverageInfo(product);
+
+                if (coverage.outOfStock) {
+                    urgentCount++;
+                    return;
+                }
+
+                if (coverage.daysToDepletion === null) {
+                    return;
+                }
+
+                if (coverage.daysToDepletion <= urgentDays) {
+                    urgentCount++;
+                } else if (coverage.daysToDepletion <= warningDays) {
+                    warningCount++;
+                }
+            });
+
+            const zeroIn30Element = document.getElementById('zeroIn30');
+            const zeroIn60Element = document.getElementById('zeroIn60');
+
+            if (zeroIn30Element) {
+                zeroIn30Element.textContent = urgentCount;
+                zeroIn30Element.className = urgentCount > 0
+                    ? 'prediction-value prediction-critical'
+                    : 'prediction-value prediction-good';
+            }
+
+            if (zeroIn60Element) {
+                zeroIn60Element.textContent = warningCount;
+                zeroIn60Element.className = warningCount > 0
+                    ? 'prediction-value prediction-warning'
+                    : 'prediction-value prediction-good';
+            }
+        }
+        function updateSummary() {
+            const total = filteredData.length;
+            const monthsValues = filteredData
+                .map(function(p) { return typeof p.stockMonths === 'number' ? p.stockMonths : null; })
+                .filter(function(value) { return value !== null && !Number.isNaN(value); })
+                .sort(function(a, b) { return a - b; });
+
+            const sumMonths = monthsValues.reduce(function(sum, value) {
+                return sum + value;
+            }, 0);
+
+            const avgStock = monthsValues.length > 0 ? sumMonths / monthsValues.length : 0;
+            const criticalCount = filteredData.filter(function(p) {
+                return p.stockMonths < 2;
+            }).length;
+            const families = new Set(filteredData.map(function(p) {
+                return p.family;
+            })).size;
+
+            function percentile(arr, fraction) {
+                if (arr.length === 0) return null;
+                const position = (arr.length - 1) * fraction;
+                const base = Math.floor(position);
+                const rest = position - base;
+                const baseValue = arr[base];
+                const nextValue = arr[base + 1];
+                if (typeof nextValue === 'undefined') {
+                    return baseValue;
+                }
+                return baseValue + rest * (nextValue - baseValue);
+            }
+
+            const median = percentile(monthsValues, 0.5);
+            const totalStock = filteredData.reduce(function(sum, product) {
+                return sum + getProductStock(product);
+            }, 0);
+            const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
+
+            document.getElementById('totalProducts').textContent = total;
+            document.getElementById('avgStockMonths').textContent = monthsValues.length > 0 ? formatStatValue(avgStock) : '--';
+            document.getElementById('medianStock').textContent = median !== null ? formatStatValue(median) : '--';
+            document.getElementById('totalStockValue').textContent = safeTotalStock.toLocaleString('pt-BR');
+            document.getElementById('criticalCount').textContent = criticalCount;
+            document.getElementById('totalFamilies').textContent = families;
+        }
+
+        function updateParetoAnalysis() {
+            const container = document.getElementById('paretoContent');
+            if (!container) {
+                return;
+            }
+
+            if (!Array.isArray(filteredData) || filteredData.length === 0) {
+                container.innerHTML = '<p class="pareto-empty">Nenhum produto para análise.</p>';
+                return;
+            }
+
+            const sortedData = filteredData.slice().sort(function(a, b) {
+                return (b.vendas4M || 0) - (a.vendas4M || 0);
+            });
+            const totalSales = sortedData.reduce(function(sum, product) {
+                const sales = Math.max(product.vendas4M || 0, 0);
+                return sales > 0 ? sum + sales : sum;
+            }, 0);
+
+            if (totalSales === 0) {
+                container.innerHTML = '<p class="pareto-empty">Sem dados de vendas para calcular a análise ABC.</p>';
+                return;
+            }
+
+            const displayLimit = 10;
+            const rows = [];
+            const normalizeShare = function(value) {
+                if (!Number.isFinite(value)) {
+                    return 0;
+                }
+                if (value < 0) {
+                    return 0;
+                }
+                if (value > 1) {
+                    return 1;
+                }
+                return value;
+            };
+
+            sortedData.forEach(function(product, index) {
+                const sales = Math.max(product.vendas4M || 0, 0);
+                const hasStoredShare = typeof product.individualSalesShare === 'number' && Number.isFinite(product.individualSalesShare);
+                const fallbackShare = totalSales === 0 ? 0 : sales / totalSales;
+                const individualShare = hasStoredShare
+                    ? normalizeShare(product.individualSalesShare)
+                    : normalizeShare(fallbackShare);
+
+                if (!hasStoredShare) {
+                    product.individualSalesShare = individualShare;
+                }
+
+                const rawClass = (typeof product.currentAbcClass === 'string' && product.currentAbcClass)
+                    ? product.currentAbcClass.toUpperCase()
+                    : '—';
+                const isValidClass = rawClass === 'A' || rawClass === 'B' || rawClass === 'C';
+                const classification = isValidClass ? rawClass : '—';
+                const classificationCell = isValidClass
+                    ? `<span class="abc-chip abc-${classification.toLowerCase()}">${classification}</span>`
+                    : '—';
+
+                if (index < displayLimit) {
+                    rows.push(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${product.code}</td>
+                            <td>${product.item}</td>
+                            <td>${(product.vendas4M || 0).toLocaleString()}</td>
+                            <td>${(individualShare * 100).toFixed(1)}%</td>
+                            <td>${classificationCell}</td>
+                        </tr>
+                    `);
+                }
+            });
+
+            const tableHtml = `
+                <table class="pareto-table">
+                    <thead>
+                        <tr>
+                            <th><span class="header-label">#<span class="info-icon has-tooltip" tabindex="0" aria-label="Posição no ranking" data-tooltip="Lugar do produto na lista, indo do que mais vende para o que menos vende." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Código<span class="info-icon has-tooltip" tabindex="0" aria-label="Código do produto" data-tooltip="Número usado no sistema para identificar o produto." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Item<span class="info-icon has-tooltip" tabindex="0" aria-label="Descrição do item" data-tooltip="Nome do produto como aparece no cadastro." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas nos últimos 3 meses" data-tooltip="Total vendido nos últimos 3 meses considerado nesta análise." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">% Individual<span class="info-icon has-tooltip" tabindex="0" aria-label="Percentual individual" data-tooltip="Mostra quanto o produto representa sozinho do total vendido pelos itens com saída. Com base nele definimos as classes: 5% ou mais → A; entre 1% e 5% → B; abaixo de 1% → C." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Classe<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Definida diretamente pelo % Individual do item: 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e o restante na Classe C." data-tooltip-position="top">?</span></span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.join('')}
+                    </tbody>
+                </table>
+            `;
+
+            const footer = sortedData.length > displayLimit
+                ? `<p class="pareto-empty">Exibindo top ${displayLimit} de ${sortedData.length} produtos.</p>`
+                : '';
+
+            container.innerHTML = tableHtml + footer;
+            initializeTooltips(container);
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('productsTableBody');
+            tableBody.innerHTML = '';
+
+            filteredData.forEach(function(product) {
+                const row = document.createElement('tr');
+                const totalStock = product.stock14 + product.stock9013 + product.stock9015;
+                const statusClass = getStatusClass(product.stockMonths);
+                const predictionInfo = getPrediction(product);
+                const predictionCellContent = predictionInfo
+                    ? `<span class="tooltip-underline has-tooltip prediction-tooltip" tabindex="0" aria-label="Detalhes da previsão" data-tooltip="${escapeTooltip(predictionInfo.detail || predictionInfo.fullText || '')}">${escapeTooltip(predictionInfo.label || '--')}</span>`
+                    : '--';
+
+                const vendas4MDisplay = (!product.vendas4M || product.vendas4M === 0) ? 'S/ VENDA' : product.vendas4M.toLocaleString();
+                const vendas4MClass = (!product.vendas4M || product.vendas4M === 0) ? 'status-warning' : '';
+
+                const fallbackAbcClass = abcClassificationMap.get(product.code);
+                const rawAbcClass = (typeof product.currentAbcClass === 'string' && product.currentAbcClass)
+                    ? product.currentAbcClass
+                    : fallbackAbcClass;
+                const normalizedAbcClass = (typeof rawAbcClass === 'string' && rawAbcClass)
+                    ? rawAbcClass.toUpperCase()
+                    : '—';
+                const isValidAbcClass = normalizedAbcClass === 'A' || normalizedAbcClass === 'B' || normalizedAbcClass === 'C';
+                const abcCellContent = isValidAbcClass
+                    ? `<span class="abc-chip abc-${normalizedAbcClass.toLowerCase()}">${normalizedAbcClass}</span>`
+                    : '—';
+
+                row.innerHTML = `
+                    <td>${product.code}</td>
+                    <td>${product.supplier}</td>
+                    <td>${product.family}</td>
+                    <td>${product.item}</td>
+                    <td>${product.stock14.toLocaleString()}</td>
+                    <td>${product.stock9013.toLocaleString()}</td>
+                    <td>${product.stock9015.toLocaleString()}</td>
+                    <td><strong>${totalStock.toLocaleString()}</strong></td>
+                    <td class="${vendas4MClass}">${vendas4MDisplay}</td>
+                    <td>${Math.round(product.media3M || 0).toLocaleString()}</td>
+                    <td class="status-cell ${statusClass}">${product.stockMonths.toFixed(1)}</td>
+                    <td class="status-cell prediction-cell ${statusClass}">${predictionCellContent}</td>
+                    <td class="status-cell ${statusClass}">${getStatusText(product.stockMonths)}</td>
+                    <td>${abcCellContent}</td>
+
+                `;
+
+                if (normalizedAbcClass === 'A') {
+                    row.classList.add('abc-row-a');
+                } else if (normalizedAbcClass === 'B') {
+                    row.classList.add('abc-row-b');
+                } else if (normalizedAbcClass === 'C') {
+                    row.classList.add('abc-row-c');
+                }
+
+                row.dataset.abcClass = normalizedAbcClass;
+
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('tableCount').textContent = `${filteredData.length} produtos exibidos`;
+            
+            if (searchTerm) {
+                highlightSearchResults();
+            }
+
+            initializeTooltips(tableBody);
+        }
+
+        function normalizeStockValue(value) {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric : 0;
+        }
+
+        function getProductStock(product) {
+            const stock14 = normalizeStockValue(product.stock14);
+            const stock9013 = normalizeStockValue(product.stock9013);
+            const stock9015 = normalizeStockValue(product.stock9015);
+
+            switch(currentEstablishment) {
+                case '1-4': return stock14;
+                case '90-13': return stock9013;
+                case '90-15': return stock9015;
+                default: return stock14 + stock9013 + stock9015;
+            }
+        }
+
+        function getPrediction(product) {
+            const coverage = getCoverageInfo(product);
+            const { urgentDays, warningDays } = getPredictionSettings();
+
+            if (coverage.outOfStock) {
+                return {
+                    label: 'S/ Estoque',
+                    detail: 'Ruptura imediata — produto sem unidades disponíveis no estoque atual.',
+                    fullText: 'Sem estoque — ruptura imediata'
+                };
+            }
+
+            if (!coverage.hasDemand || coverage.daysToDepletion === null) {
+                return {
+                    label: 'Sem demanda recente',
+                    detail: 'Sem consumo registrado nos últimos meses, por isso não é possível estimar a data de ruptura.',
+                    fullText: 'Sem demanda recente — cobertura indefinida'
+                };
+            }
+
+            const hasStockMonths = Number.isFinite(product.stockMonths);
+            const monthsCoverage = hasStockMonths ? product.stockMonths : (coverage.daysToDepletion / 30);
+            const formattedMonths = monthsCoverage !== null ? formatStatValue(monthsCoverage) : '--';
+            const daysToDepletion = Math.max(1, Math.round(hasStockMonths ? product.stockMonths * 30 : coverage.daysToDepletion));
+            const estimatedDate = new Date(Date.now() + daysToDepletion * 86400000);
+            const formattedDate = estimatedDate.toLocaleDateString('pt-BR');
+            const monthsText = monthsCoverage !== null ? `${formattedMonths} meses` : 'cobertura indefinida';
+            const baseDetail = `Ruptura estimada para ${formattedDate} (cobertura aproximada de ${monthsText}).`;
+
+            if (daysToDepletion <= urgentDays) {
+                const label = `Em ${daysToDepletion} dias`;
+                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${daysToDepletion} dias).`;
+                return {
+                    label,
+                    detail: `${baseDetail} Recomendado acionar reposição imediata.`,
+                    fullText
+                };
+            }
+
+            if (daysToDepletion <= warningDays) {
+                const label = `Em ${daysToDepletion} dias`;
+                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${daysToDepletion} dias).`;
+                return {
+                    label,
+                    detail: `${baseDetail} Planeje reposição para evitar ruptura no curto prazo.`,
+                    fullText
+                };
+            }
+
+            const stableLabel = `${formattedMonths} meses`;
+            const fullText = `Ruptura estimada em ${formattedDate} (cobertura aproximada de ${monthsText}).`;
+            return {
+                label: stableLabel,
+                detail: `${baseDetail} Estoque confortável considerando o ritmo de consumo atual.`,
+                fullText
+            };
+        }
+
+        function getStatusClass(months) {
+            if (months < 2) return 'status-critical';
+            if (months < 6) return 'status-warning';
+            return 'status-good';
+        }
+
+        function getStatusText(months) {
+            if (months < 2) return 'Crítico';
+            if (months < 6) return 'Atenção';
+            return 'Bom';
+        }
+
+        // === FUNÇÕES DE GAUGES ===
+        function updateGauges() {
+            const families = [...new Set(filteredData.map(function(p) {
+                return p.family;
+            }))].sort();
+            const container = document.getElementById('gaugesContainer');
+            container.innerHTML = '';
+
+            families.forEach(function(family, index) {
+                const familyProducts = getFamilyFilteredProducts(family);
+                if (familyProducts.length === 0) return;
+                
+                const avgStock = calculateAverageStock(familyProducts);
+                const criticalCount = familyProducts.filter(function(p) {
+                    const hasStock = currentEstablishment ? 
+                        getProductStock(p) > 0 : 
+                        (p.stock14 + p.stock9013 + p.stock9015) > 0;
+                    return hasStock && p.stockMonths < 2;
+                }).length;
+
+                const card = document.createElement('div');
+                card.className = 'gauge-card';
+                
+                if (selectedFamily === family) {
+                    card.classList.add('selected');
+                }
+                
+                const shouldHighlight = searchTerm && family.toLowerCase().includes(searchTerm);
+                if (shouldHighlight) {
+                    card.classList.add('highlighted');
+                }
+
+                card.onclick = function() {
+                    filterByGauge(family);
+                };
+                card.style.cursor = 'pointer';
+                card.title = `Clique para filtrar produtos da família ${family}`;
+
+                card.innerHTML = `
+                    <div class="gauge-title">${family}</div>
+                    <div class="gauge">
+                        <canvas id="gauge${index}" width="240" height="140"></canvas>
+                        <div class="gauge-value">${avgStock.toFixed(1)}</div>
+                        <div class="gauge-label">meses</div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                        ${familyProducts.length} produtos | ${criticalCount} críticos
+                    </div>
+                `;
+                container.appendChild(card);
+
+                setTimeout(function() {
+                    card.classList.add('animating');
+                }, index * 100);
+
+                drawGauge(`gauge${index}`, avgStock, family, index * 200);
+            });
+        }
+
+        function getFamilyFilteredProducts(family) {
+            return filteredData.filter(function(product) {
+                return product.family === family;
+            });
+        }
+
+        function calculateAverageStock(products) {
+            if (products.length === 0) return 0;
+            return products.reduce(function(sum, p) {
+                return sum + p.stockMonths;
+            }, 0) / products.length;
+        }
+
+        function drawGauge(canvasId, value, title, delay) {
+            delay = delay || 0;
+            setTimeout(function() {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height - 25;
+                const radius = 90;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, Math.PI, 0);
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.stroke();
+
+                let color;
+                if (value < 3) {
+                    color = '#f44336';
+                } else if (value < 6) {
+                    color = '#ff9800';
+                } else {
+                    color = '#4caf50';
+                }
+
+                const maxValue = 12;
+                const targetAngle = Math.min(value / maxValue, 1) * Math.PI;
+                let currentAngle = 0;
+                const animationDuration = 1000;
+                const startTime = Date.now();
+
+                function animate() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    currentAngle = targetAngle * progress;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, Math.PI, 0);
+                    ctx.lineWidth = 20;
+                    ctx.strokeStyle = '#e0e0e0';
+                    ctx.stroke();
+
+                    if (currentAngle > 0) {
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + currentAngle);
+                        ctx.lineWidth = 20;
+                        ctx.strokeStyle = color;
+                        ctx.stroke();
+                    }
+
+                    drawGaugeMarks(ctx, centerX, centerY, radius);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+
+                animate();
+            }, delay);
+        }
+
+        function drawGaugeMarks(ctx, centerX, centerY, radius) {
+            for (let i = 0; i <= 12; i += 3) {
+                const markAngle = Math.PI + (i / 12) * Math.PI;
+                const x1 = centerX + Math.cos(markAngle) * (radius - 30);
+                const y1 = centerY + Math.sin(markAngle) * (radius - 30);
+                const x2 = centerX + Math.cos(markAngle) * (radius - 10);
+                const y2 = centerY + Math.sin(markAngle) * (radius - 10);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#333';
+                ctx.stroke();
+
+                if (i % 6 === 0) {
+                    const textX = centerX + Math.cos(markAngle) * (radius - 45);
+                    const textY = centerY + Math.sin(markAngle) * (radius - 45);
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(i.toString(), textX, textY + 5);
+                }
+            }
+        }
+
+        // === FUNÇÕES DE EXPORTAÇÃO ===
+        function showExportModal() {
+            const modal = document.getElementById('exportModal');
+            const currentDate = new Date().toISOString().split('T')[0];
+            document.getElementById('fileName').value = `estoque_preditivo_${currentDate}`;
+            modal.style.display = 'block';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function confirmExport() {
+            const fileName = document.getElementById('fileName').value || 'estoque_dados';
+            const fileFormat = document.getElementById('fileFormat').value;
+            
+            const exportData = filteredData.map(function(p) {
+                const predictionInfo = getPrediction(p);
+                return {
+                    'CÓDIGO': p.code,
+                    'FORNECEDOR': p.supplier,
+                    'FAMÍLIA': p.family,
+                    'ITEM': p.item,
+                    'ESTOQUE 1-4': p.stock14,
+                    'ESTOQUE 90-13': p.stock9013,
+                    'ESTOQUE 90-15': p.stock9015,
+                    'TOTAL ESTOQUE': p.stock14 + p.stock9013 + p.stock9015,
+                    'VENDAS 4M': (!p.vendas4M || p.vendas4M === 0) ? 'S/ VENDA' : p.vendas4M,
+                    'ESTOQUE EM MESES': p.stockMonths,
+                    'PREVISÃO': predictionInfo ? (predictionInfo.fullText || predictionInfo.label) : '--',
+                    'STATUS': getStatusText(p.stockMonths)
+                };
+            });
+
+            if (fileFormat === 'csv') {
+                const csv = convertToCSV(exportData);
+                downloadFile(csv, `${fileName}.csv`, 'text/csv');
+            } else {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Estoque');
+                XLSX.writeFile(wb, `${fileName}.xlsx`);
+            }
+            
+            closeExportModal();
+        }
+
+        function convertToCSV(data) {
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(',')
+            ].concat(data.map(function(row) {
+                return headers.map(function(header) {
+                    return `"${row[header]}"`;
+                }).join(',');
+            })).join('\n');
+            return csvContent;
+        }
+
+        function downloadFile(content, fileName, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function updateData() {
+            resetAllFilters();
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            const resultsDiv = document.getElementById('searchResults');
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+            }
+            searchTerm = '';
+            applyAllFilters();
+            loadData();
+            showMessage('✅ Dashboard atualizado!', 'success');
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('exportModal');
+            if (event.target === modal) {
+                closeExportModal();
+            }
+        }
+
+        // Carregar arquivo de dados externo
+        function loadExternalDataScript() {
+            debugLog('Carregando data.js externo...');
+            
+            const script = document.createElement('script');
+            script.src = 'data.js';
+            script.onerror = function() {
+                debugLog('Arquivo data.js não encontrado, usando localStorage ou dados vazios');
+                loadData();
+            };
+            script.onload = function() {
+                debugLog('Arquivo data.js carregado com sucesso');
+                setTimeout(function() {
+                    loadData();
+                }, 100);
+            };
+            document.head.appendChild(script);
+        }
+
+        // === INICIALIZAÇÃO ===
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('=== INICIALIZAÇÃO DO DASHBOARD v1.2 ===');
+            debugLog('DOM carregado, iniciando processo...');
+
+            try {
+                initializeTooltips();
+                // Primeiro detectar capacidades do navegador
+                detectBrowserCapabilities();
+                applyPredictionLabels();
+
+                // Depois carregar dados
+                loadExternalDataScript();
+                
+                // Configurações iniciais após carregar
+                setTimeout(function() {
+                    updateUI();
+                    
+                    // Se não há dados, abrir automaticamente a seção de importação
+                    if (allProductsData.length === 0) {
+                        debugLog('Nenhum dado encontrado, seção de importação já está aberta');
+                    }
+                }, 1500);
+                
+            } catch (error) {
+                debugLog(`Erro na inicialização: ${error.message}`, 'error');
+                // Fallback: tentar carregar dados mesmo com erro
+                try {
+                    loadData();
+                } catch (e) {
+                    debugLog(`Erro no fallback: ${e.message}`, 'error');
+                    showMessage('❌ Erro ao inicializar dashboard. Use o diagnóstico para mais detalhes.', 'error');
+                }
+            }
+        });
+
+        // Adicionar event listeners para inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput) {
+                // Throttle para melhor performance
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(performGlobalSearch, 300);
+                });
+            }
+        });
+
+        // Detectar mudanças no localStorage (para sincronização entre abas)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'stockData') {
+                debugLog('Detectada mudança nos dados do localStorage');
+                loadData();
+            }
+        });
+
+        // Log de informações do sistema ao carregar
+        console.log(`
+🚀 DASHBOARD DE ESTOQUE v1.2 - PAULO ROBERTO S. S. (@PAROSOSI)
+===================================================
+📅 Data: ${new Date().toLocaleString('pt-BR')}
+🌐 Navegador: ${navigator.userAgent}
+🔍 URL: ${window.location.href}
+🔑 Protocolo: ${window.location.protocol}
+💻 Tela: ${screen.width}x${screen.height}
+📱 Viewport: ${window.innerWidth}x${window.innerHeight}
+🔧 Debug: Use toggleDebug() para ativar logs detalhados
+📋 Mapeamento: Use toggleMappingDebug() para ver mapeamento de colunas
+===================================================
+        `);
+    </script>
+</body>
+</html>
