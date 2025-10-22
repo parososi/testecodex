@@ -681,111 +681,6 @@
             margin-top: 5px;
         }
 
-        .monthly-summary {
-            margin-top: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(31, 68, 140, 0.04), rgba(31, 68, 140, 0.08));
-            border-radius: 12px;
-            border: 1px solid rgba(31, 68, 140, 0.1);
-        }
-
-        .monthly-summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            gap: 12px;
-        }
-
-        .monthly-summary-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1F448C;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .monthly-cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .monthly-card {
-            flex: 1 1 220px;
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid rgba(31, 68, 140, 0.12);
-            box-shadow: 0 2px 12px rgba(31, 68, 140, 0.08);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-height: 120px;
-        }
-
-        .monthly-card:hover {
-            box-shadow: 0 6px 18px rgba(31, 68, 140, 0.15);
-            transform: translateY(-2px);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .monthly-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .monthly-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #1F448C;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .monthly-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1F448C;
-        }
-
-        .monthly-delta {
-            font-size: 12px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: rgba(31, 68, 140, 0.08);
-            color: #1F448C;
-            width: fit-content;
-        }
-
-        .monthly-note {
-            font-size: 12px;
-            color: #4d5f94;
-            margin: 0;
-        }
-
-        .monthly-delta.positive {
-            background: rgba(46, 204, 113, 0.15);
-            color: #2ecc71;
-        }
-
-        .monthly-delta.negative {
-            background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
-        }
-
-        .monthly-delta.neutral {
-            background: rgba(149, 165, 166, 0.15);
-            color: #7f8c8d;
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -806,23 +701,176 @@
             max-width: 500px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
-        
+
+        #historyModal .modal-content {
+            margin: 40px auto;
+            max-width: 960px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
+        .history-modal-header {
+            margin-bottom: 12px;
+        }
+
         .close {
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
             color: #999;
         }
-        
+
         .close:hover {
             color: #333;
+        }
+
+        .history-modal-body {
+            padding: 0 12px 24px;
+        }
+
+        .history-modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-header h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #1f448c;
+        }
+
+        .history-header p {
+            margin: 4px 0;
+            color: #4d5f94;
+        }
+
+        .history-overview {
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(31, 68, 140, 0.08);
+        }
+
+        .history-section-title {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            color: #1f2a44;
+        }
+
+        .history-metric-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .history-metric-list li {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 6px 0;
+            border-bottom: 1px solid #eef2fb;
+            font-size: 14px;
+        }
+
+        .history-metric-list li:last-child {
+            border-bottom: none;
+        }
+
+        .history-metric-label {
+            font-weight: 600;
+            color: #2f3e6d;
+        }
+
+        .history-metric-value {
+            font-weight: 600;
+            color: #1f448c;
+            white-space: nowrap;
+        }
+
+        .history-month-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .history-month-table th,
+        .history-month-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e6ecfb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .history-month-table th {
+            background: #f0f4ff;
+            color: #1f2a44;
+        }
+
+        .history-month-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-entry {
+            background: #ffffff;
+            border: 1px solid #dce3f5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(31, 68, 140, 0.08);
+        }
+
+        .history-entry:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-entry h4 {
+            margin: 0 0 12px 0;
+            color: #1f448c;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .history-summary,
+        .history-months {
+            min-width: 0;
+        }
+
+        .history-summary h5,
+        .history-months h5 {
+            margin: 0 0 12px 0;
+            font-size: 15px;
+            color: #2f3e6d;
+        }
+
+        .history-empty {
+            margin: 16px 0;
+            color: #4d5f94;
         }
         
         .form-group {
@@ -1213,14 +1261,6 @@
                     <div class="stat-label"><span class="label-text">Média de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura em meses considerando todo o estoque disponível dividido pelo consumo médio dos últimos meses." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="medianStock">--</div>
-                    <div class="stat-label"><span class="label-text">Mediana de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Mediana de estoque" data-tooltip="Valor central da distribuição de meses de estoque: metade dos itens possui cobertura acima e metade abaixo desse ponto." data-tooltip-position="top">?</span></div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="importCoverageAverage">--</div>
-                    <div class="stat-label"><span class="label-text">Cobertura (Planilha)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura da planilha" data-tooltip="Média dos meses de cobertura informados diretamente na planilha importada. Se o campo não existir para alguns itens, mostramos o valor estimado ou '--'." data-tooltip-position="top">?</span></div>
-                </div>
-                <div class="stat-item">
                     <div class="stat-value" id="totalStockValue">0</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
                 </div>
@@ -1231,42 +1271,6 @@
                 <div class="stat-item">
                     <div class="stat-value" id="totalFamilies">0</div>
                     <div class="stat-label"><span class="label-text">Famílias de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Famílias de produtos" data-tooltip="Número de famílias distintas representadas na lista atual de produtos." data-tooltip-position="top">?</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="monthly-summary" id="monthlySummary">
-            <div class="monthly-summary-header">
-                <div class="monthly-summary-title">
-                    📈 Painel Mensal Importado
-                    <span class="info-icon has-tooltip" tabindex="0" aria-label="Painel mensal importado" data-tooltip="Consolida os números recebidos diretamente das colunas NOVEMBRO, DEZEMBRO e COBERTURA da planilha importada. Os valores são atualizados conforme você aplica filtros no dashboard." data-tooltip-position="top">?</span>
-                </div>
-                <span class="monthly-delta neutral" id="activeSheetLabel">Fonte: dados carregados</span>
-            </div>
-            <div class="monthly-cards">
-                <div class="monthly-card">
-                    <div class="monthly-card-header">
-                        <span class="monthly-label">Novembro</span>
-                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Total de novembro" data-tooltip="Somatório das quantidades informadas na coluna NOVEMBRO da planilha importada, considerando os filtros ativos." data-tooltip-position="top">?</span>
-                    </div>
-                    <div class="monthly-value" id="novemberTotal">0</div>
-                    <p class="monthly-note">Total importado</p>
-                </div>
-                <div class="monthly-card">
-                    <div class="monthly-card-header">
-                        <span class="monthly-label">Dezembro</span>
-                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Total de dezembro" data-tooltip="Somatório das quantidades informadas na coluna DEZEMBRO da planilha importada, considerando os filtros ativos." data-tooltip-position="top">?</span>
-                    </div>
-                    <div class="monthly-value" id="decemberTotal">0</div>
-                    <span class="monthly-delta neutral" id="monthlyDelta">--</span>
-                </div>
-                <div class="monthly-card">
-                    <div class="monthly-card-header">
-                        <span class="monthly-label">Cobertura</span>
-                        <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura média" data-tooltip="Média dos valores de COBERTURA (em meses) informados na planilha. Este indicador é utilizado como base para os alertas de ruptura." data-tooltip-position="top">?</span>
-                    </div>
-                    <div class="monthly-value" id="coverageAverage">--</div>
-                    <p class="monthly-note">Média em meses</p>
                 </div>
             </div>
         </div>
@@ -1334,6 +1338,17 @@
                 <button class="btn-secondary" onclick="closeExportModal()">Cancelar</button>
                 <button onclick="confirmExport()">Exportar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Histórico do Produto -->
+    <div id="historyModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal-content history-modal-container">
+            <div class="modal-header history-modal-header">
+                <h2 id="historyModalTitle">Histórico do Produto</h2>
+                <span class="close" role="button" tabindex="0" aria-label="Fechar histórico" onclick="closeHistoryModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeHistoryModal();}">&times;</span>
+            </div>
+            <div class="history-modal-body" id="historyModalContent"></div>
         </div>
     </div>
 
@@ -1950,7 +1965,18 @@
                 return '--';
             }
 
-            return value.toFixed(digits);
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits
+            }).format(value);
+        }
+
+        function formatIntegerValue(value) {
+            if (!Number.isFinite(value)) {
+                return '0';
+            }
+
+            return Math.round(value).toLocaleString('pt-BR');
         }
 
         function getCoverageValue(product) {
@@ -1961,28 +1987,6 @@
                 return product.stockMonths;
             }
             return 0;
-        }
-
-        function formatMonthlyTotal(total) {
-            if (!Number.isFinite(total)) {
-                return '--';
-            }
-            return new Intl.NumberFormat('pt-BR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 1
-            }).format(total);
-        }
-
-        function normalizeMonthlyValue(value) {
-            const numeric = Number(value);
-            return Number.isFinite(numeric) ? numeric : 0;
-        }
-
-        function formatPercentage(value) {
-            return new Intl.NumberFormat('pt-BR', {
-                minimumFractionDigits: 1,
-                maximumFractionDigits: 1
-            }).format(value);
         }
 
         function escapeTooltip(text) {
@@ -3296,12 +3300,54 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function parseNumber(value) {
-            if (!value && value !== 0) return 0;
-            
-            const cleaned = value.toString().replace(/[^\d.,-]/g, '').replace(',', '.');
-            const parsed = parseFloat(cleaned);
-            
-            return isNaN(parsed) ? 0 : parsed;
+            if (value === null || typeof value === 'undefined') {
+                return 0;
+            }
+
+            const stringValue = value.toString().trim();
+            if (stringValue === '') {
+                return 0;
+            }
+
+            const sanitized = stringValue.replace(/\s+/g, '');
+            const digitsOnly = sanitized.replace(/[^0-9.,-]/g, '');
+            if (digitsOnly === '' || digitsOnly === '-' || digitsOnly === ',' || digitsOnly === '.') {
+                return 0;
+            }
+
+            const hasComma = digitsOnly.includes(',');
+            const hasDot = digitsOnly.includes('.');
+            let normalized = digitsOnly;
+
+            const brazilianThousandPattern = /^-?\d{1,3}(\.\d{3})+(,\d+)?$/;
+            const americanThousandPattern = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/;
+
+            if (brazilianThousandPattern.test(digitsOnly)) {
+                normalized = digitsOnly.replace(/\./g, '').replace(',', '.');
+            } else if (americanThousandPattern.test(digitsOnly)) {
+                normalized = digitsOnly.replace(/,/g, '');
+            } else if (hasComma && hasDot) {
+                if (digitsOnly.lastIndexOf(',') > digitsOnly.lastIndexOf('.')) {
+                    normalized = digitsOnly.replace(/\./g, '').replace(',', '.');
+                } else {
+                    normalized = digitsOnly.replace(/,/g, '');
+                }
+            } else if (hasComma) {
+                normalized = digitsOnly.replace(/\./g, '').replace(',', '.');
+            } else if (hasDot) {
+                const dotCount = (digitsOnly.match(/\./g) || []).length;
+                if (dotCount > 1) {
+                    normalized = digitsOnly.replace(/\./g, '');
+                } else {
+                    const decimalPart = digitsOnly.split('.')[1] || '';
+                    if (decimalPart.length === 3 && digitsOnly.length > 4) {
+                        normalized = digitsOnly.replace(/\./g, '');
+                    }
+                }
+            }
+
+            const parsed = parseFloat(normalized);
+            return Number.isFinite(parsed) ? parsed : 0;
         }
 
         // === FUNÇÕES DE FILTROS ===
@@ -3760,122 +3806,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const families = new Set(filteredData.map(function(p) {
                 return p.family;
             })).size;
-
-            function percentile(arr, fraction) {
-                if (arr.length === 0) return null;
-                const position = (arr.length - 1) * fraction;
-                const base = Math.floor(position);
-                const rest = position - base;
-                const baseValue = arr[base];
-                const nextValue = arr[base + 1];
-                if (typeof nextValue === 'undefined') {
-                    return baseValue;
-                }
-                return baseValue + rest * (nextValue - baseValue);
-            }
-
-            const median = percentile(monthsValues, 0.5);
             const totalStock = filteredData.reduce(function(sum, product) {
                 return sum + getProductStock(product);
             }, 0);
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
-            const importedCoverageValues = filteredData
-                .map(function(product) {
-                    if (Number.isFinite(product.cobertura)) {
-                        return product.cobertura;
-                    }
-                    if (Number.isFinite(product.stockMonths)) {
-                        return product.stockMonths;
-                    }
-                    return null;
-                })
-                .filter(function(value) { return value !== null; });
-
-            const importedCoverageAverage = importedCoverageValues.length > 0
-                ? importedCoverageValues.reduce(function(sum, value) { return sum + value; }, 0) / importedCoverageValues.length
-                : null;
-
             document.getElementById('totalProducts').textContent = total;
             document.getElementById('avgStockMonths').textContent = monthsValues.length > 0 ? formatStatValue(avgStock) : '--';
-            document.getElementById('medianStock').textContent = median !== null ? formatStatValue(median) : '--';
-            document.getElementById('totalStockValue').textContent = safeTotalStock.toLocaleString('pt-BR');
+            document.getElementById('totalStockValue').textContent = formatIntegerValue(safeTotalStock);
             document.getElementById('criticalCount').textContent = criticalCount;
             document.getElementById('totalFamilies').textContent = families;
-            const importCoverageElement = document.getElementById('importCoverageAverage');
-            if (importCoverageElement) {
-                importCoverageElement.textContent = importedCoverageAverage !== null
-                    ? formatStatValue(importedCoverageAverage)
-                    : '--';
-            }
-            updateMonthlySummaryMetrics();
-        }
-
-        function updateMonthlySummaryMetrics() {
-            const novemberElement = document.getElementById('novemberTotal');
-            const decemberElement = document.getElementById('decemberTotal');
-            const coverageElement = document.getElementById('coverageAverage');
-            const deltaElement = document.getElementById('monthlyDelta');
-            const sheetLabelElement = document.getElementById('activeSheetLabel');
-
-            if (!novemberElement || !decemberElement || !coverageElement) {
-                return;
-            }
-
-            const novemberTotal = filteredData.reduce(function(sum, product) {
-                return sum + normalizeMonthlyValue(product.novembro);
-            }, 0);
-
-            const decemberTotal = filteredData.reduce(function(sum, product) {
-                return sum + normalizeMonthlyValue(product.dezembro);
-            }, 0);
-
-            const coverageValues = filteredData
-                .map(function(product) {
-                    const coverage = getCoverageValue(product);
-                    return Number.isFinite(coverage) ? coverage : null;
-                })
-                .filter(function(value) { return value !== null; });
-
-            novemberElement.textContent = formatMonthlyTotal(novemberTotal);
-            decemberElement.textContent = formatMonthlyTotal(decemberTotal);
-
-            if (sheetLabelElement) {
-                const descriptor = activeImportDescriptor || 'dados carregados';
-                sheetLabelElement.textContent = `Fonte: ${descriptor}`;
-                sheetLabelElement.className = 'monthly-delta neutral';
-            }
-
-            if (deltaElement) {
-                if (novemberTotal === 0 && decemberTotal === 0) {
-                    deltaElement.textContent = '--';
-                    deltaElement.className = 'monthly-delta neutral';
-                } else if (novemberTotal === 0) {
-                    deltaElement.textContent = 'Novo volume';
-                    deltaElement.className = 'monthly-delta positive';
-                } else {
-                    const variation = ((decemberTotal - novemberTotal) / novemberTotal) * 100;
-                    const formattedVariation = `${variation > 0 ? '+' : ''}${formatPercentage(variation)} vs Novembro`;
-
-                    if (variation > 0) {
-                        deltaElement.className = 'monthly-delta positive';
-                    } else if (variation < 0) {
-                        deltaElement.className = 'monthly-delta negative';
-                    } else {
-                        deltaElement.className = 'monthly-delta neutral';
-                    }
-
-                    deltaElement.textContent = formattedVariation;
-                }
-            }
-
-            const coverageAverage = coverageValues.length > 0
-                ? coverageValues.reduce(function(sum, value) { return sum + value; }, 0) / coverageValues.length
-                : null;
-
-            coverageElement.textContent = coverageAverage !== null
-                ? formatStatValue(coverageAverage)
-                : '--';
         }
 
         function updateParetoAnalysis() {
@@ -4114,9 +4054,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return;
             }
 
-            const historyWindow = window.open('', '_blank');
-            if (!historyWindow) {
-                showMessage('❌ Não foi possível abrir os detalhes. Permita pop-ups e tente novamente.', 'error');
+            const modal = document.getElementById('historyModal');
+            const contentContainer = document.getElementById('historyModalContent');
+            const modalTitle = document.getElementById('historyModalTitle');
+
+            if (!modal || !contentContainer || !modalTitle) {
+                showMessage('❌ Não foi possível exibir o histórico neste momento.', 'error');
                 return;
             }
 
@@ -4164,7 +4107,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 { label: 'Média 3M', value: productTotals.media3M },
                 { label: 'Cobertura (meses)', value: productTotals.cobertura, decimals: 2 }
             ].map(function(metric) {
-                return `<li><span class="metric-label">${metric.label}</span><span class="metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
+                return `<li><span class="history-metric-label">${metric.label}</span><span class="history-metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
             }).join('');
 
             const historySections = historyEntries.length > 0
@@ -4185,7 +4128,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         { label: 'Média 3M', value: totals.media3M },
                         { label: 'Cobertura (meses)', value: totals.cobertura, decimals: 2 }
                     ].map(function(metric) {
-                        return `<li><span class="metric-label">${metric.label}</span><span class="metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
+                        return `<li><span class="history-metric-label">${metric.label}</span><span class="history-metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
                     }).join('');
 
                     return `
@@ -4194,14 +4137,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                             <div class="history-grid">
                                 <div class="history-summary">
                                     <h5>Resumo do período</h5>
-                                    <ul class="metric-list">${totalsMetrics}</ul>
+                                    <ul class="history-metric-list">${totalsMetrics}</ul>
                                 </div>
                                 <div class="history-months">
                                     <h5>Valores informados</h5>
-                                    <table class="month-table">
-                                        <thead>
-                                            <tr><th>Mês</th><th>Valor</th></tr>
-                                        </thead>
+                                    <table class="history-month-table">
+                                        <thead><tr><th>Mês</th><th>Valor</th></tr></thead>
                                         <tbody>${monthsRows}</tbody>
                                     </table>
                                 </div>
@@ -4217,149 +4158,77 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const familyDisplay = escapeTooltip(product.family || '—');
             const latestSheet = escapeTooltip(product.latestSheet || lastImportedSheetName || '—');
 
-            const content = `<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Histórico do Produto ${codeDisplay}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background-color: #f5f7fb;
-            color: #1f2a44;
-        }
-        header {
-            margin-bottom: 24px;
-        }
-        header h1 {
-            margin: 0 0 8px 0;
-            font-size: 24px;
-        }
-        header p {
-            margin: 4px 0;
-            color: #4d5f94;
-        }
-        .overview {
-            background: #ffffff;
-            border: 1px solid #dce3f5;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-        .section-title {
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-size: 20px;
-        }
-        .metric-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .metric-list li {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #eef2fb;
-            font-size: 14px;
-        }
-        .metric-list li:last-child {
-            border-bottom: none;
-        }
-        .metric-label {
-            font-weight: 600;
-            color: #2f3e6d;
-        }
-        .metric-value {
-            font-weight: 600;
-            color: #1f448c;
-        }
-        .month-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #ffffff;
-            border: 1px solid #dce3f5;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .month-table th,
-        .month-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e6ecfb;
-            text-align: left;
-            font-size: 14px;
-        }
-        .month-table th {
-            background: #f0f4ff;
-            color: #1f2a44;
-        }
-        .month-table tr:last-child td {
-            border-bottom: none;
-        }
-        .history-entry {
-            background: #ffffff;
-            border: 1px solid #dce3f5;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(31, 68, 140, 0.08);
-        }
-        .history-entry h4 {
-            margin-top: 0;
-            color: #1f448c;
-        }
-        .history-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-        }
-        .history-summary,
-        .history-months {
-            min-width: 0;
-        }
-        .history-summary h5,
-        .history-months h5 {
-            margin: 0 0 12px 0;
-            font-size: 16px;
-            color: #2f3e6d;
-        }
-        .empty-history {
-            margin: 16px 0;
-            color: #4d5f94;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Histórico do Produto</h1>
-        <p><strong>${codeDisplay}</strong> — ${itemDisplay}</p>
-        <p>Fornecedor: ${supplierDisplay} • Família: ${familyDisplay}</p>
-        <p>Última origem importada: ${latestSheet}</p>
-    </header>
-    <section class="overview">
-        <h2 class="section-title">Resumo atual</h2>
-        <ul class="metric-list">${overviewMetrics}</ul>
-    </section>
-    <section class="overview">
-        <h2 class="section-title">Valores por mês</h2>
-        <table class="month-table">
-            <thead><tr><th>Mês</th><th>Valor</th></tr></thead>
-            <tbody>${monthlyRows}</tbody>
-        </table>
-    </section>
-    <section>
-        <h2 class="section-title">Histórico de importações</h2>
-        ${historySections}
-    </section>
-</body>
-</html>`;
+            const historyHtml = `
+                <div class="history-modal-content">
+                    <div class="history-header">
+                        <h1>Histórico do Produto</h1>
+                        <p><strong>${codeDisplay}</strong> — ${itemDisplay}</p>
+                        <p>Fornecedor: ${supplierDisplay} • Família: ${familyDisplay}</p>
+                        <p>Última origem importada: ${latestSheet}</p>
+                    </div>
+                    <section class="history-overview">
+                        <h2 class="history-section-title">Resumo atual</h2>
+                        <ul class="history-metric-list">${overviewMetrics}</ul>
+                    </section>
+                    <section class="history-overview">
+                        <h2 class="history-section-title">Valores por mês</h2>
+                        <table class="history-month-table">
+                            <thead><tr><th>Mês</th><th>Valor</th></tr></thead>
+                            <tbody>${monthlyRows}</tbody>
+                        </table>
+                    </section>
+                    <section class="history-overview">
+                        <h2 class="history-section-title">Histórico de importações</h2>
+                        ${historySections}
+                    </section>
+                </div>
+            `;
 
-            historyWindow.document.write(content);
-            historyWindow.document.close();
-            historyWindow.focus();
+            modalTitle.textContent = `Histórico do Produto · ${codeDisplay}`;
+            contentContainer.innerHTML = historyHtml;
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+
+            const closeButton = modal.querySelector('.close');
+            if (closeButton) {
+                closeButton.focus();
+            }
         }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            if (!modal) {
+                return;
+            }
+
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+
+            const contentContainer = document.getElementById('historyModalContent');
+            if (contentContainer) {
+                contentContainer.innerHTML = '';
+            }
+        }
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('historyModal');
+            if (modal && event.target === modal) {
+                closeHistoryModal();
+            }
+        });
+
+        window.addEventListener('keydown', function(event) {
+            if (event.key !== 'Escape') {
+                return;
+            }
+
+            const modal = document.getElementById('historyModal');
+            if (modal && modal.style.display === 'block') {
+                closeHistoryModal();
+            }
+        });
 
         function normalizeStockValue(value) {
             const numeric = Number(value);
