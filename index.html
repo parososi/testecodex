@@ -706,7 +706,11 @@
             margin: 40px auto;
             max-width: 960px;
             max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            border-radius: 24px;
+            overflow: hidden;
+            padding: 0;
         }
 
         body.modal-open {
@@ -721,7 +725,9 @@
         }
 
         .history-modal-header {
-            margin-bottom: 12px;
+            margin: 0;
+            padding: 24px 32px 12px;
+            border-bottom: 1px solid #e4e9f7;
         }
 
         .close {
@@ -736,14 +742,22 @@
         }
 
         .history-modal-body {
-            padding: 0 24px 32px;
+            padding: 0 32px 32px;
             background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .history-modal-content {
             display: flex;
             flex-direction: column;
             gap: 24px;
+            --history-header-gradient: linear-gradient(135deg, #1d396e 0%, #2d4174 55%, #113b96 100%);
+            --history-header-text: #ffffff;
+            --history-header-subtext: rgba(255, 255, 255, 0.85);
+            --history-family-chip-bg: rgba(255, 255, 255, 0.16);
+            --history-family-chip-text: #ffffff;
         }
 
         .history-header {
@@ -752,9 +766,9 @@
             gap: 18px;
             padding: 28px;
             border-radius: 20px;
-            background: linear-gradient(135deg, #1d396e 0%, #2d4174 55%, #113b96 100%);
+            background: var(--history-header-gradient);
             box-shadow: 0 18px 42px rgba(31, 68, 140, 0.25);
-            color: #ffffff;
+            color: var(--history-header-text);
         }
 
         .history-title {
@@ -766,13 +780,13 @@
         .history-header h1 {
             margin: 0;
             font-size: 28px;
-            color: #ffffff;
+            color: var(--history-header-text);
             letter-spacing: 0.2px;
         }
 
         .history-header p {
             margin: 0;
-            color: rgba(255, 255, 255, 0.85);
+            color: var(--history-header-subtext);
             font-size: 15px;
         }
 
@@ -800,10 +814,15 @@
             padding: 6px 12px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
+            color: var(--history-header-text);
             font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.3px;
+        }
+
+        .history-chip.family-chip {
+            background: var(--history-family-chip-bg);
+            color: var(--history-family-chip-text);
         }
 
         .history-overview {
@@ -1260,8 +1279,12 @@
                 font-size: 20px;
             }
 
+            .history-modal-header {
+                padding: 20px 20px 10px;
+            }
+
             .history-modal-body {
-                padding: 0 16px 28px;
+                padding: 0 20px 24px;
             }
 
             .history-header {
@@ -1553,6 +1576,24 @@
         let activeImportDescriptor = 'dados carregados';
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
+
+        const familyAccentPalette = Object.freeze([
+            '#FF6F61',
+            '#2EC5B6',
+            '#F2994A',
+            '#9B51E0',
+            '#56CCF2',
+            '#27AE60',
+            '#F2C94C',
+            '#BB6BD9',
+            '#EB5757',
+            '#2D9CDB'
+        ]);
+        const familyAccentAssignments = new Map();
+        const familyAccentOverrides = new Map([
+            ['borracha silicone', '#FF6F61'],
+            ['borracha de silicone', '#FF6F61']
+        ]);
         // Faixas do % individual das vendas usadas para classificar os itens
         const abcIndividualThresholds = Object.freeze({
             classA: 0.05,
@@ -1608,6 +1649,108 @@
             }
 
             return null;
+        }
+
+        function normalizeFamilyKey(family) {
+            return (family || '').toString().trim().toLowerCase();
+        }
+
+        function sanitizeHexColor(color) {
+            if (typeof color !== 'string') {
+                return null;
+            }
+
+            const trimmed = color.trim();
+            if (!trimmed) {
+                return null;
+            }
+
+            const hex = trimmed.replace(/^#/, '');
+            if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(hex)) {
+                return null;
+            }
+
+            const normalized = hex.length === 3
+                ? hex.split('').map(function(char) { return char + char; }).join('')
+                : hex.toLowerCase();
+
+            return `#${normalized}`;
+        }
+
+        function componentToHex(value) {
+            const clamped = Math.min(255, Math.max(0, Math.round(value)));
+            return clamped.toString(16).padStart(2, '0');
+        }
+
+        function shiftHexColor(color, amount) {
+            const base = sanitizeHexColor(color);
+            if (!base) {
+                return null;
+            }
+
+            const normalized = base.slice(1);
+            const r = parseInt(normalized.slice(0, 2), 16);
+            const g = parseInt(normalized.slice(2, 4), 16);
+            const b = parseInt(normalized.slice(4, 6), 16);
+            const delta = Math.round(255 * amount);
+
+            const newR = componentToHex(r + delta);
+            const newG = componentToHex(g + delta);
+            const newB = componentToHex(b + delta);
+
+            return `#${newR}${newG}${newB}`;
+        }
+
+        function getReadableTextColor(color) {
+            const base = sanitizeHexColor(color);
+            if (!base) {
+                return '#ffffff';
+            }
+
+            const r = parseInt(base.slice(1, 3), 16);
+            const g = parseInt(base.slice(3, 5), 16);
+            const b = parseInt(base.slice(5, 7), 16);
+            const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+            return yiq >= 160 ? '#1f2933' : '#ffffff';
+        }
+
+        function buildFamilyAccent(baseColor) {
+            const sanitizedBase = sanitizeHexColor(baseColor) || '#1d396e';
+            const mid = shiftHexColor(sanitizedBase, -0.12) || sanitizedBase;
+            const dark = shiftHexColor(sanitizedBase, -0.24) || mid;
+            const chipBackground = shiftHexColor(sanitizedBase, 0.18) || sanitizedBase;
+            const textColor = getReadableTextColor(sanitizedBase);
+            const subTextColor = textColor === '#ffffff'
+                ? 'rgba(255, 255, 255, 0.85)'
+                : 'rgba(31, 41, 51, 0.72)';
+
+            return {
+                gradient: `linear-gradient(135deg, ${sanitizedBase} 0%, ${mid} 55%, ${dark} 100%)`,
+                text: textColor,
+                subText: subTextColor,
+                chipBackground,
+                chipText: getReadableTextColor(chipBackground)
+            };
+        }
+
+        function getFamilyAccent(family) {
+            const key = normalizeFamilyKey(family);
+            if (!key) {
+                return null;
+            }
+
+            if (familyAccentAssignments.has(key)) {
+                return familyAccentAssignments.get(key);
+            }
+
+            const overrideColor = familyAccentOverrides.get(key);
+            const paletteIndex = familyAccentAssignments.size % familyAccentPalette.length;
+            const baseColor = overrideColor || familyAccentPalette[paletteIndex] || '#1d396e';
+            const accent = buildFamilyAccent(baseColor);
+            familyAccentAssignments.set(key, accent);
+
+            return accent;
         }
 
         function isMonthHeader(header) {
@@ -4308,9 +4451,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const itemInteractive = hasCode
                     ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${itemText}</button>`
                     : itemText;
-                const coverageTagText = (coverageSourceLabel || '').trim().toLowerCase() === 'planilha'
+                const rawCoverageTagLabel = (coverageSourceLabel || '').trim();
+                const normalizedCoverageTagLabel = rawCoverageTagLabel.toLowerCase();
+                const coverageTagText = (normalizedCoverageTagLabel === 'planilha' || normalizedCoverageTagLabel === 'dados importados')
                     ? ''
-                    : coverageSourceLabel;
+                    : rawCoverageTagLabel;
                 const coverageTagHtml = coverageTagText
                     ? `<span class="coverage-tag ${coverageSourceClass}"${coverageSourceTitle}>${coverageTagText}</span>`
                     : '';
@@ -4446,9 +4591,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const coverageSourceParts = [coverageMeta.label, coverageMeta.detail].filter(Boolean);
             const coverageSourceDescription = coverageMeta.key === 'none'
                 ? coverageMeta.detail
-                : (coverageSourceParts.length > 0
-                    ? `Origem dos dados: ${coverageSourceParts.join(' · ')}`
-                    : '');
+                : ((coverageMeta.key === 'cobertura' || coverageMeta.key === 'stockMonths')
+                    ? ''
+                    : (coverageSourceParts.length > 0
+                        ? `Origem dos dados: ${coverageSourceParts.join(' · ')}`
+                        : ''));
             const coverageUnitHtml = hasCoverageInfo && coverageDisplay.unitLabel
                 ? `<span class="history-coverage-unit">${coverageDisplay.unitLabel}</span>`
                 : '';
@@ -4505,8 +4652,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const entryCoverageParts = [entryCoverageMeta.label, entryCoverageMeta.detail].filter(Boolean);
                     const entryCoverageDescription = entryCoverageMeta.key === 'none'
                         ? 'Cobertura não informada para este período.'
-                        : `Origem dos dados: ${entryCoverageParts.join(' · ')}`;
-                    const entryCoverageNote = `<p class="history-coverage-meta">${escapeTooltip(entryCoverageDescription)}</p>`;
+                        : ((entryCoverageMeta.key === 'cobertura' || entryCoverageMeta.key === 'stockMonths')
+                            ? ''
+                            : `Origem dos dados: ${entryCoverageParts.join(' · ')}`);
+                    const entryCoverageNote = entryCoverageDescription
+                        ? `<p class="history-coverage-meta">${escapeTooltip(entryCoverageDescription)}</p>`
+                        : '';
 
                     return `
                         <article class="history-entry">
@@ -4534,9 +4685,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const itemDisplay = escapeTooltip(product.item || '—');
             const supplierDisplay = escapeTooltip(product.supplier || '—');
             const familyDisplay = escapeTooltip(product.family || '—');
+            const familyAccent = getFamilyAccent(product.family);
+            const historyStyleAttributes = familyAccent
+                ? ` style="--history-header-gradient: ${familyAccent.gradient}; --history-header-text: ${familyAccent.text}; --history-header-subtext: ${familyAccent.subText}; --history-family-chip-bg: ${familyAccent.chipBackground}; --history-family-chip-text: ${familyAccent.chipText};"`
+                : '';
 
             const historyHtml = `
-                <div class="history-modal-content">
+                <div class="history-modal-content"${historyStyleAttributes}>
                     <header class="history-header">
                         <div class="history-title">
                             <span class="history-code">${codeDisplay}</span>
@@ -4545,7 +4700,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         </div>
                         <div class="history-meta">
                             <span class="history-chip">Fornecedor: ${supplierDisplay}</span>
-                            <span class="history-chip">Família: ${familyDisplay}</span>
+                            <span class="history-chip family-chip">Família: ${familyDisplay}</span>
                         </div>
                     </header>
                     ${coverageSectionHtml}
