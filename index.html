@@ -2404,26 +2404,89 @@
                 };
             }
 
-            if (value >= 1) {
-                const normalized = Math.round(value * 100) / 100;
-                const hasDecimal = Math.abs(normalized - Math.trunc(normalized)) > 0;
-                const digits = hasDecimal ? 1 : 0;
-                const formattedMonths = new Intl.NumberFormat('pt-BR', {
-                    minimumFractionDigits: digits,
-                    maximumFractionDigits: digits
-                }).format(normalized);
+            if (value === 0) {
                 return {
-                    displayValue: formattedMonths,
-                    unitLabel: normalized >= 2 ? 'meses' : 'mês',
+                    displayValue: '0',
+                    unitLabel: 'meses',
                     unitType: 'months'
                 };
             }
 
-            const days = Math.round(value * 100);
+            const months = value;
+            const totalDays = months * 30;
+            const absDays = Math.abs(totalDays);
+
+            const formatNumber = function(number, maxFractionDigits) {
+                if (!Number.isFinite(number)) {
+                    return '--';
+                }
+
+                const absNumber = Math.abs(number);
+                let digits;
+                if (absNumber >= 100) {
+                    digits = 0;
+                } else if (absNumber >= 10) {
+                    digits = Math.min(maxFractionDigits, 1);
+                } else {
+                    digits = maxFractionDigits;
+                }
+
+                const factor = Math.pow(10, digits);
+                const rounded = factor > 0 ? Math.round(number * factor) / factor : Math.round(number);
+                const hasFraction = Math.abs(rounded - Math.round(rounded)) > 1e-6;
+                const fractionDigits = hasFraction ? digits : 0;
+
+                return new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: fractionDigits,
+                    maximumFractionDigits: fractionDigits
+                }).format(rounded);
+            };
+
+            const isApproximatelyOne = function(number) {
+                return Math.abs(Math.abs(number) - 1) < 1e-6;
+            };
+
+            if (absDays >= 365) {
+                const years = months / 12;
+                return {
+                    displayValue: formatNumber(years, 1),
+                    unitLabel: Math.abs(years) >= 2 ? 'anos' : 'ano',
+                    unitType: 'years'
+                };
+            }
+
+            if (absDays >= 30) {
+                return {
+                    displayValue: formatNumber(months, 1),
+                    unitLabel: Math.abs(months) >= 2 ? 'meses' : 'mês',
+                    unitType: 'months'
+                };
+            }
+
+            if (absDays >= 1) {
+                return {
+                    displayValue: formatNumber(totalDays, 1),
+                    unitLabel: isApproximatelyOne(totalDays) ? 'dia' : 'dias',
+                    unitType: 'days'
+                };
+            }
+
+            const totalHours = totalDays * 24;
+            const absHours = Math.abs(totalHours);
+
+            if (absHours >= 1) {
+                return {
+                    displayValue: formatNumber(totalHours, 1),
+                    unitLabel: isApproximatelyOne(totalHours) ? 'hora' : 'horas',
+                    unitType: 'hours'
+                };
+            }
+
+            const totalMinutes = Math.round(totalHours * 60);
             return {
-                displayValue: days.toLocaleString('pt-BR'),
-                unitLabel: days === 1 ? 'dia' : 'dias',
-                unitType: 'days'
+                displayValue: new Intl.NumberFormat('pt-BR').format(totalMinutes),
+                unitLabel: Math.abs(totalMinutes) === 1 ? 'minuto' : 'minutos',
+                unitType: 'minutes'
             };
         }
 
