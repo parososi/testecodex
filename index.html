@@ -778,53 +778,68 @@
         }
 
         .history-coverage-info {
-            background: #f2f6ff;
-            border: 1px solid #d7e1ff;
-            border-radius: 12px;
-            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #d4dcf3;
+            border-radius: 16px;
+            padding: 22px 24px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 18px;
+            box-shadow: 0 14px 28px rgba(31, 68, 140, 0.08);
         }
 
         .history-coverage-main {
             display: flex;
             flex-wrap: wrap;
-            align-items: baseline;
-            gap: 12px;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .history-coverage-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .history-coverage-title {
-            font-size: 13px;
-            letter-spacing: 0.05em;
+            font-size: 12px;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #1f448c;
+            color: #5d6fa3;
             font-weight: 700;
         }
 
         .history-coverage-value {
-            font-size: 28px;
+            font-size: 36px;
             font-weight: 700;
-            color: #1f448c;
+            color: #1f2a44;
             line-height: 1;
         }
 
+        .history-coverage-value-group {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
         .history-coverage-unit {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
-            color: #1f448c;
+            color: #5d6fa3;
+            text-transform: lowercase;
         }
 
         .history-coverage-status {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            text-transform: none;
+            letter-spacing: 0;
         }
 
         .history-coverage-status.status-neutral {
@@ -833,8 +848,9 @@
         }
 
         .history-coverage-meta {
-            font-size: 12px;
-            color: #4d5f94;
+            font-size: 13px;
+            color: #6b7ba6;
+            line-height: 1.6;
             margin: 0;
         }
 
@@ -865,6 +881,17 @@
 
         .history-metric-list li:last-child {
             border-bottom: none;
+        }
+
+        .history-metric-coverage {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #d4dcf3;
+        }
+
+        .history-metric-coverage .history-metric-value {
+            font-weight: 700;
+            color: #1f2a44;
         }
 
         .history-metric-label {
@@ -2064,6 +2091,38 @@
             }
 
             return Math.round(value).toLocaleString('pt-BR');
+        }
+
+        function formatCoverageDisplay(value) {
+            if (!Number.isFinite(value)) {
+                return {
+                    displayValue: '--',
+                    unitLabel: '',
+                    unitType: null
+                };
+            }
+
+            if (value >= 1) {
+                const normalized = Math.round(value * 100) / 100;
+                const hasDecimal = Math.abs(normalized - Math.trunc(normalized)) > 0;
+                const digits = hasDecimal ? 1 : 0;
+                const formattedMonths = new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
+                }).format(normalized);
+                return {
+                    displayValue: formattedMonths,
+                    unitLabel: normalized >= 2 ? 'meses' : 'mês',
+                    unitType: 'months'
+                };
+            }
+
+            const days = Math.round(value * 100);
+            return {
+                displayValue: days.toLocaleString('pt-BR'),
+                unitLabel: days === 1 ? 'dia' : 'dias',
+                unitType: 'days'
+            };
         }
 
         function resolveCoverageSource(product) {
@@ -4266,23 +4325,32 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const coverageMeta = getCoverageSourceMetadata(product);
             const currentCoverageValue = getCoverageValue(product);
             const hasCoverageInfo = coverageMeta.key !== 'none' && Number.isFinite(currentCoverageValue);
-            const coverageValueDisplay = hasCoverageInfo ? formatStatValue(currentCoverageValue, 2) : '--';
+            const coverageDisplay = hasCoverageInfo
+                ? formatCoverageDisplay(currentCoverageValue)
+                : { displayValue: '--', unitLabel: '', unitType: null };
+            const coverageValueDisplay = coverageDisplay.displayValue;
             const coverageStatusClass = hasCoverageInfo ? getStatusClass(currentCoverageValue) : 'status-neutral';
             const coverageStatusText = hasCoverageInfo ? getStatusText(currentCoverageValue) : 'Sem dados suficientes';
             const coverageSourceDescription = coverageMeta.key === 'none'
                 ? coverageMeta.detail
                 : `Origem: ${coverageMeta.label} · ${coverageMeta.detail}`;
-            const coverageUnitHtml = hasCoverageInfo ? '<span class="history-coverage-unit">meses</span>' : '';
+            const coverageUnitHtml = hasCoverageInfo && coverageDisplay.unitLabel
+                ? `<span class="history-coverage-unit">${coverageDisplay.unitLabel}</span>`
+                : '';
             const coverageSectionHtml = `
                 <section class="history-overview history-coverage">
                     <div class="history-coverage-info">
                         <div class="history-coverage-main">
-                            <span class="history-coverage-title">Cobertura atual</span>
-                            <span class="history-coverage-value">${coverageValueDisplay}</span>
-                            ${coverageUnitHtml}
-                            <span class="history-coverage-status ${coverageStatusClass}">${coverageStatusText}</span>
+                            <div class="history-coverage-heading">
+                                <span class="history-coverage-title">Cobertura atual</span>
+                                <span class="history-coverage-status ${coverageStatusClass}">${coverageStatusText}</span>
+                            </div>
+                            <div class="history-coverage-value-group">
+                                <span class="history-coverage-value">${coverageValueDisplay}</span>
+                                ${coverageUnitHtml}
+                            </div>
                         </div>
-                        <div class="history-coverage-meta">${escapeTooltip(coverageSourceDescription)}</div>
+                        <p class="history-coverage-meta">${escapeTooltip(coverageSourceDescription)}</p>
                     </div>
                 </section>
             `;
@@ -4296,17 +4364,21 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         }).join('')
                         : '<tr><td colspan="2">Sem valores informados.</td></tr>';
                     const totals = entry.totals || {};
-                    const totalsMetrics = [
+                    const totalsMetricsList = [
                         { label: 'Estoque 1-4', value: totals.stock14 },
                         { label: 'Estoque 90-13', value: totals.stock9013 },
                         { label: 'Estoque 90-15', value: totals.stock9015 },
                         { label: 'Estoque Total', value: totals.totalStock },
                         { label: 'Vendas 4M', value: totals.vendas4M },
-                        { label: 'Média 3M', value: totals.media3M },
-                        { label: 'Cobertura (meses)', value: totals.cobertura, decimals: 2 }
-                    ].map(function(metric) {
+                        { label: 'Média 3M', value: totals.media3M }
+                    ];
+                    const totalsMetrics = totalsMetricsList.map(function(metric) {
                         return `<li><span class="history-metric-label">${metric.label}</span><span class="history-metric-value">${formatMetric(metric.value, metric.decimals)}</span></li>`;
                     }).join('');
+                    const coverageMetricDisplay = Number.isFinite(totals.cobertura)
+                        ? formatCoverageDisplay(totals.cobertura)
+                        : null;
+                    const coverageMetricHtml = `<li class="history-metric-coverage"><span class="history-metric-label">Cobertura</span><span class="history-metric-value">${coverageMetricDisplay && coverageMetricDisplay.unitLabel ? `${coverageMetricDisplay.displayValue} ${coverageMetricDisplay.unitLabel}` : '--'}</span></li>`;
                     const entryCoverageMeta = getCoverageSourceMetadata({
                         coverageSource: entry.coverageSource,
                         stockMonths: totals.cobertura,
@@ -4323,7 +4395,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                             <div class="history-grid">
                                 <div class="history-summary">
                                     <h5>Resumo do período</h5>
-                                    <ul class="history-metric-list">${totalsMetrics}</ul>
+                                    <ul class="history-metric-list">${totalsMetrics}${coverageMetricHtml}</ul>
                                     ${entryCoverageNote}
                                 </div>
                                 <div class="history-months">
