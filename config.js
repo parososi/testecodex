@@ -24,13 +24,13 @@
             '#27AE60',
             '#F2C94C',
             '#BB6BD9',
-            '#EB5757',
+            '#1a7d73',
             '#2D9CDB'
         ],
         overrides: {
             'Borracha Silicone': '#282f99',
             'Borracha de Silicone': '#282f99',
-            'ADITIVO BORRACHA': '#1a7d73'
+            'Aditivo borracha': '#1a7d73'
         },
         fallback: '#1d396e'
     }, window.DASHBOARD_CONFIG.familyColors || {});
