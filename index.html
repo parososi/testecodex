@@ -1360,6 +1360,10 @@
                     <div class="stat-label"><span class="label-text">Média de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura em meses considerando todo o estoque disponível dividido pelo consumo médio dos últimos meses." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
+                    <div class="stat-value" id="totalCoverage">--</div>
+                    <div class="stat-label"><span class="label-text">Cobertura Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura total" data-tooltip="Soma da cobertura (em meses) informada na planilha para os itens filtrados." data-tooltip-position="top">?</span></div>
+                </div>
+                <div class="stat-item">
                     <div class="stat-value" id="totalStockValue">0</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
                 </div>
@@ -1732,11 +1736,14 @@
                 product.importHistory = [];
             }
 
-            if (!product.coverageSource) {
-                if (Number.isFinite(product.stockMonths)) {
-                    product.coverageSource = 'stockMonths';
-                } else if (Number.isFinite(product.cobertura)) {
+            const hasCobertura = Number.isFinite(product.cobertura);
+            const hasStockMonths = Number.isFinite(product.stockMonths);
+
+            if (!product.coverageSource || product.coverageSource === 'stockMonths' || product.coverageSource === 'cobertura') {
+                if (hasCobertura) {
                     product.coverageSource = 'cobertura';
+                } else if (hasStockMonths) {
+                    product.coverageSource = 'stockMonths';
                 } else {
                     product.coverageSource = 'none';
                 }
@@ -2134,15 +2141,27 @@
                 if (product.coverageSource === 'estimated') {
                     return 'calculated';
                 }
+                if (product.coverageSource === 'cobertura' && Number.isFinite(product.cobertura)) {
+                    return 'cobertura';
+                }
+                if (product.coverageSource === 'stockMonths' && Number.isFinite(product.stockMonths)) {
+                    return 'stockMonths';
+                }
+                if (Number.isFinite(product.cobertura)) {
+                    return 'cobertura';
+                }
+                if (Number.isFinite(product.stockMonths)) {
+                    return 'stockMonths';
+                }
                 return product.coverageSource;
-            }
-
-            if (Number.isFinite(product.stockMonths)) {
-                return 'stockMonths';
             }
 
             if (Number.isFinite(product.cobertura)) {
                 return 'cobertura';
+            }
+
+            if (Number.isFinite(product.stockMonths)) {
+                return 'stockMonths';
             }
 
             return 'none';
@@ -2154,19 +2173,27 @@
             }
 
             const source = resolveCoverageSource(product);
-            if (source === 'none') {
-                return null;
+            switch (source) {
+                case 'cobertura':
+                    return Number.isFinite(product.cobertura) ? product.cobertura : null;
+                case 'stockMonths':
+                    return Number.isFinite(product.stockMonths) ? product.stockMonths : null;
+                case 'calculated': {
+                    const coverageInfo = getCoverageInfo(product);
+                    if (coverageInfo && Number.isFinite(coverageInfo.daysToDepletion)) {
+                        return coverageInfo.daysToDepletion / 30;
+                    }
+                    return null;
+                }
+                default:
+                    if (Number.isFinite(product.cobertura)) {
+                        return product.cobertura;
+                    }
+                    if (Number.isFinite(product.stockMonths)) {
+                        return product.stockMonths;
+                    }
+                    return null;
             }
-
-            if (Number.isFinite(product.stockMonths)) {
-                return product.stockMonths;
-            }
-
-            if (Number.isFinite(product.cobertura)) {
-                return product.cobertura;
-            }
-
-            return null;
         }
 
         function getCoverageSourceMetadata(product) {
@@ -4025,18 +4052,22 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
         function updateSummary() {
             const total = filteredData.length;
-            const monthsValues = filteredData
-                .map(function(p) { return typeof p.stockMonths === 'number' ? p.stockMonths : null; })
-                .filter(function(value) { return value !== null && !Number.isNaN(value); })
+            const coverageValues = filteredData
+                .map(function(p) {
+                    const coverage = getCoverageValue(p);
+                    return Number.isFinite(coverage) ? coverage : null;
+                })
+                .filter(function(value) { return value !== null; })
                 .sort(function(a, b) { return a - b; });
 
-            const sumMonths = monthsValues.reduce(function(sum, value) {
+            const totalCoverage = coverageValues.reduce(function(sum, value) {
                 return sum + value;
             }, 0);
 
-            const avgStock = monthsValues.length > 0 ? sumMonths / monthsValues.length : 0;
+            const avgStock = coverageValues.length > 0 ? totalCoverage / coverageValues.length : 0;
             const criticalCount = filteredData.filter(function(p) {
-                return p.stockMonths < 2;
+                const coverage = getCoverageValue(p);
+                return Number.isFinite(coverage) && coverage < 2;
             }).length;
             const families = new Set(filteredData.map(function(p) {
                 return p.family;
@@ -4047,7 +4078,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
             document.getElementById('totalProducts').textContent = total;
-            document.getElementById('avgStockMonths').textContent = monthsValues.length > 0 ? formatStatValue(avgStock) : '--';
+            document.getElementById('avgStockMonths').textContent = coverageValues.length > 0 ? formatStatValue(avgStock) : '--';
+            document.getElementById('totalCoverage').textContent = coverageValues.length > 0 ? formatStatValue(totalCoverage) : '--';
             document.getElementById('totalStockValue').textContent = formatIntegerValue(safeTotalStock);
             document.getElementById('criticalCount').textContent = criticalCount;
             document.getElementById('totalFamilies').textContent = families;
