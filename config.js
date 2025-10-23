@@ -28,8 +28,9 @@
             '#2D9CDB'
         ],
         overrides: {
-            'Borracha Silicone': '#232a8c',
-            'Borracha de Silicone': '#232a8c'
+            'Borracha Silicone': '#282f99',
+            'Borracha de Silicone': '#282f99',
+            'ADITIVO BORRACHA': '#1a7d73'
         },
         fallback: '#1d396e'
     }, window.DASHBOARD_CONFIG.familyColors || {});
