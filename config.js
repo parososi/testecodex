@@ -32,7 +32,9 @@
             'Borracha de Silicone': '#282f99',
             'ADITIVO BORRACHA': '#1a7d73',
             'BORRACHA EVA': '#c9662c',
-            'BORRACHA EPDM': '#8d22a8',
+            'BORRACHA EPDM': '#81179c',
+            'EPM': '#0d7a3b',
+            'ACELERADOR': '#f7d365',
             'ADITIVO EVA': '#3b87ad'
         },
         fallback: '#1d396e'
