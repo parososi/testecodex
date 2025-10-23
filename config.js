@@ -37,6 +37,7 @@
             'ACELERADOR': '#f7d365',
             'CARGAS BORRACHA': '#ab1b1b',
             'NEGRO DE FUMO': '#4a4a4a',
+            'FLUIDO': '#70852e',
             'ADITIVO EVA': '#3b87ad'
         },
         fallback: '#1d396e'
