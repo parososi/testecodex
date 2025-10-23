@@ -35,6 +35,7 @@
             'BORRACHA EPDM': '#81179c',
             'EPM': '#0d7a3b',
             'ACELERADOR': '#f7d365',
+            'CARGAS BORRACHA': '#ab1b1b',
             'ADITIVO EVA': '#3b87ad'
         },
         fallback: '#1d396e'
