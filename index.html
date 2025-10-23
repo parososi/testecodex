@@ -736,38 +736,82 @@
         }
 
         .history-modal-body {
-            padding: 0 12px 24px;
+            padding: 0 24px 32px;
+            background: linear-gradient(180deg, #f7f9ff 0%, #eef2fb 100%);
         }
 
         .history-modal-content {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
         .history-header {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 18px;
+            padding: 28px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1f448c 0%, #3d67d1 55%, #5c8bf0 100%);
+            box-shadow: 0 18px 42px rgba(31, 68, 140, 0.25);
+            color: #ffffff;
+        }
+
+        .history-title {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .history-header h1 {
             margin: 0;
-            font-size: 26px;
-            color: #1f448c;
+            font-size: 28px;
+            color: #ffffff;
+            letter-spacing: 0.2px;
         }
 
         .history-header p {
-            margin: 4px 0;
-            color: #4d5f94;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+        }
+
+        .history-code {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .history-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .history-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
         .history-overview {
             background: #ffffff;
             border: 1px solid #dce3f5;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(31, 68, 140, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(31, 68, 140, 0.12);
         }
 
         .history-overview.history-coverage {
@@ -834,12 +878,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
-            border-radius: 10px;
+            padding: 6px 14px;
+            border-radius: 999px;
             font-size: 13px;
             font-weight: 600;
             text-transform: none;
-            letter-spacing: 0;
+            letter-spacing: 0.2px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
         }
 
         .history-coverage-status.status-neutral {
@@ -874,7 +919,7 @@
             display: flex;
             justify-content: space-between;
             gap: 16px;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #eef2fb;
             font-size: 14px;
         }
@@ -934,19 +979,30 @@
         .history-entry {
             background: #ffffff;
             border: 1px solid #dce3f5;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 6px rgba(31, 68, 140, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 18px 40px rgba(31, 68, 140, 0.12);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .history-entry:last-child {
             margin-bottom: 0;
         }
 
+        .history-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 48px rgba(31, 68, 140, 0.18);
+        }
+
         .history-entry h4 {
             margin: 0 0 12px 0;
             color: #1f448c;
+        }
+
+        .history-subtitle {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.75);
         }
 
         .history-grid {
@@ -1034,6 +1090,12 @@
         .modal-buttons button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .code-value {
+            color: #1f2a44;
+            font-weight: 600;
+            letter-spacing: 0.2px;
         }
 
         .link-button {
@@ -1197,7 +1259,19 @@
             .stat-value {
                 font-size: 20px;
             }
-            
+
+            .history-modal-body {
+                padding: 0 16px 28px;
+            }
+
+            .history-header {
+                padding: 24px;
+            }
+
+            .history-meta {
+                gap: 8px;
+            }
+
             .gauges-container {
                 grid-template-columns: 1fr;
                 gap: 15px;
@@ -2214,22 +2288,22 @@
                 case 'stockMonths':
                     return {
                         key: 'stockMonths',
-                        label: 'Planilha',
-                        detail: 'Estoque em meses (planilha)',
+                        label: 'Dados importados',
+                        detail: 'Estoque em meses fornecido no arquivo',
                         className: 'from-import'
                     };
                 case 'cobertura':
                     return {
                         key: 'cobertura',
-                        label: 'Planilha',
-                        detail: 'Cobertura (planilha)',
+                        label: 'Dados importados',
+                        detail: 'Cobertura fornecida no arquivo',
                         className: 'from-import'
                     };
                 case 'calculated':
                     return {
                         key: 'calculated',
-                        label: 'Estimado',
-                        detail: 'Cobertura estimada automaticamente.',
+                        label: 'Estimativa automática',
+                        detail: 'Projeção baseada no consumo e no estoque atual',
                         className: 'from-estimate'
                     };
                 default:
@@ -4226,7 +4300,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const safeCodeAttr = escapeTooltip(codeValue);
                 const codeDisplay = hasCode ? escapeTooltip(codeValue) : '—';
                 const codeCellContent = hasCode
-                    ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${codeDisplay}</button>`
+                    ? `<span class="code-value">${codeDisplay}</span>`
                     : '—';
                 const safeSupplier = escapeTooltip(product.supplier || '—');
                 const safeFamily = escapeTooltip(product.family || '—');
@@ -4234,11 +4308,17 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const itemInteractive = hasCode
                     ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${itemText}</button>`
                     : itemText;
+                const coverageTagText = (coverageSourceLabel || '').trim().toLowerCase() === 'planilha'
+                    ? ''
+                    : coverageSourceLabel;
+                const coverageTagHtml = coverageTagText
+                    ? `<span class="coverage-tag ${coverageSourceClass}"${coverageSourceTitle}>${coverageTagText}</span>`
+                    : '';
                 const itemCellContent = `
                     <div class="item-name">${itemInteractive}</div>
                     <div class="item-coverage">
                         Cobertura: <strong>${coverageValueDisplay}</strong>
-                        <span class="coverage-tag ${coverageSourceClass}"${coverageSourceTitle}>${coverageSourceLabel}</span>
+                        ${coverageTagHtml}
                     </div>
                 `.trim();
 
@@ -4363,11 +4443,17 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const coverageValueDisplay = coverageDisplay.displayValue;
             const coverageStatusClass = hasCoverageInfo ? getStatusClass(currentCoverageValue) : 'status-neutral';
             const coverageStatusText = hasCoverageInfo ? getStatusText(currentCoverageValue) : 'Sem dados suficientes';
+            const coverageSourceParts = [coverageMeta.label, coverageMeta.detail].filter(Boolean);
             const coverageSourceDescription = coverageMeta.key === 'none'
                 ? coverageMeta.detail
-                : `Origem: ${coverageMeta.label} · ${coverageMeta.detail}`;
+                : (coverageSourceParts.length > 0
+                    ? `Origem dos dados: ${coverageSourceParts.join(' · ')}`
+                    : '');
             const coverageUnitHtml = hasCoverageInfo && coverageDisplay.unitLabel
                 ? `<span class="history-coverage-unit">${coverageDisplay.unitLabel}</span>`
+                : '';
+            const coverageSourceNote = coverageSourceDescription
+                ? `<p class="history-coverage-meta">${escapeTooltip(coverageSourceDescription)}</p>`
                 : '';
             const coverageSectionHtml = `
                 <section class="history-overview history-coverage">
@@ -4382,7 +4468,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                 ${coverageUnitHtml}
                             </div>
                         </div>
-                        <p class="history-coverage-meta">${escapeTooltip(coverageSourceDescription)}</p>
+                        ${coverageSourceNote}
                     </div>
                 </section>
             `;
@@ -4416,9 +4502,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         stockMonths: totals.cobertura,
                         cobertura: totals.cobertura
                     });
+                    const entryCoverageParts = [entryCoverageMeta.label, entryCoverageMeta.detail].filter(Boolean);
                     const entryCoverageDescription = entryCoverageMeta.key === 'none'
                         ? 'Cobertura não informada para este período.'
-                        : `Origem da cobertura: ${entryCoverageMeta.label} · ${entryCoverageMeta.detail}`;
+                        : `Origem dos dados: ${entryCoverageParts.join(' · ')}`;
                     const entryCoverageNote = `<p class="history-coverage-meta">${escapeTooltip(entryCoverageDescription)}</p>`;
 
                     return `
@@ -4447,16 +4534,20 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const itemDisplay = escapeTooltip(product.item || '—');
             const supplierDisplay = escapeTooltip(product.supplier || '—');
             const familyDisplay = escapeTooltip(product.family || '—');
-            const latestSheet = escapeTooltip(product.latestSheet || lastImportedSheetName || '—');
 
             const historyHtml = `
                 <div class="history-modal-content">
-                    <div class="history-header">
-                        <h1>Histórico do Produto</h1>
-                        <p><strong>${codeDisplay}</strong> — ${itemDisplay}</p>
-                        <p>Fornecedor: ${supplierDisplay} • Família: ${familyDisplay}</p>
-                        <p>Última origem importada: ${latestSheet}</p>
-                    </div>
+                    <header class="history-header">
+                        <div class="history-title">
+                            <span class="history-code">${codeDisplay}</span>
+                            <h1>${itemDisplay}</h1>
+                            <p class="history-subtitle">Histórico e evolução dos dados importados para o produto.</p>
+                        </div>
+                        <div class="history-meta">
+                            <span class="history-chip">Fornecedor: ${supplierDisplay}</span>
+                            <span class="history-chip">Família: ${familyDisplay}</span>
+                        </div>
+                    </header>
                     ${coverageSectionHtml}
                     <section class="history-overview">
                         <h2 class="history-section-title">Valores por mês</h2>
