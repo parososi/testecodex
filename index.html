@@ -1577,7 +1577,7 @@
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
 
-        const familyAccentPalette = Object.freeze([
+        const defaultFamilyAccentPalette = Object.freeze([
             '#FF6F61',
             '#2EC5B6',
             '#F2994A',
@@ -1589,11 +1589,15 @@
             '#EB5757',
             '#2D9CDB'
         ]);
-        const familyAccentAssignments = new Map();
-        const familyAccentOverrides = new Map([
+        const defaultFamilyAccentOverrides = Object.freeze([
             ['borracha silicone', '#FF6F61'],
             ['borracha de silicone', '#FF6F61']
         ]);
+        const familyAccentAssignments = new Map();
+        const familyAccentConfiguration = initializeFamilyAccentConfig();
+        const familyAccentPalette = familyAccentConfiguration.palette;
+        const familyAccentOverrides = familyAccentConfiguration.overrides;
+        const familyAccentFallback = familyAccentConfiguration.fallback;
         // Faixas do % individual das vendas usadas para classificar os itens
         const abcIndividualThresholds = Object.freeze({
             classA: 0.05,
@@ -1716,7 +1720,7 @@
         }
 
         function buildFamilyAccent(baseColor) {
-            const sanitizedBase = sanitizeHexColor(baseColor) || '#1d396e';
+            const sanitizedBase = sanitizeHexColor(baseColor) || familyAccentFallback;
             const mid = shiftHexColor(sanitizedBase, -0.12) || sanitizedBase;
             const dark = shiftHexColor(sanitizedBase, -0.24) || mid;
             const chipBackground = shiftHexColor(sanitizedBase, 0.18) || sanitizedBase;
@@ -1746,11 +1750,85 @@
 
             const overrideColor = familyAccentOverrides.get(key);
             const paletteIndex = familyAccentAssignments.size % familyAccentPalette.length;
-            const baseColor = overrideColor || familyAccentPalette[paletteIndex] || '#1d396e';
+            const baseColor = overrideColor || familyAccentPalette[paletteIndex] || familyAccentFallback;
             const accent = buildFamilyAccent(baseColor);
             familyAccentAssignments.set(key, accent);
 
             return accent;
+        }
+
+        function initializeFamilyAccentConfig() {
+            const fallbackDefault = '#1d396e';
+            let fallbackColor = sanitizeHexColor(fallbackDefault) || '#1d396e';
+
+            const sanitizedDefaultPalette = defaultFamilyAccentPalette
+                .map(sanitizeHexColor)
+                .filter(Boolean);
+
+            const overrides = new Map();
+            defaultFamilyAccentOverrides.forEach(function(entry) {
+                if (!Array.isArray(entry) || entry.length < 2) {
+                    return;
+                }
+
+                const familyName = entry[0];
+                const color = sanitizeHexColor(entry[1]);
+                const normalizedName = normalizeFamilyKey(familyName);
+
+                if (normalizedName && color) {
+                    overrides.set(normalizedName, color);
+                }
+            });
+
+            const globalConfig = (typeof window !== 'undefined' && window.DASHBOARD_CONFIG && typeof window.DASHBOARD_CONFIG === 'object')
+                ? window.DASHBOARD_CONFIG.familyColors
+                : null;
+
+            let palette = sanitizedDefaultPalette.slice();
+
+            if (globalConfig && typeof globalConfig === 'object') {
+                if (Array.isArray(globalConfig.palette)) {
+                    const sanitizedUserPalette = globalConfig.palette
+                        .map(sanitizeHexColor)
+                        .filter(Boolean);
+
+                    if (sanitizedUserPalette.length > 0) {
+                        palette = sanitizedUserPalette;
+                    }
+                }
+
+                if (globalConfig.overrides && typeof globalConfig.overrides === 'object') {
+                    Object.keys(globalConfig.overrides).forEach(function(familyName) {
+                        const normalizedName = normalizeFamilyKey(familyName);
+                        const color = sanitizeHexColor(globalConfig.overrides[familyName]);
+
+                        if (normalizedName && color) {
+                            overrides.set(normalizedName, color);
+                        }
+                    });
+                }
+
+                if (globalConfig.fallback) {
+                    const sanitizedFallback = sanitizeHexColor(globalConfig.fallback);
+                    if (sanitizedFallback) {
+                        fallbackColor = sanitizedFallback;
+                    }
+                }
+            }
+
+            if (!Array.isArray(palette) || palette.length === 0) {
+                palette = sanitizedDefaultPalette.length > 0 ? sanitizedDefaultPalette : [fallbackColor];
+            }
+
+            if (palette.length === 0) {
+                palette = [fallbackColor];
+            }
+
+            return {
+                palette: Object.freeze(palette.slice()),
+                overrides,
+                fallback: fallbackColor
+            };
         }
 
         function isMonthHeader(header) {
@@ -4643,7 +4721,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const coverageMetricDisplay = Number.isFinite(totals.cobertura)
                         ? formatCoverageDisplay(totals.cobertura)
                         : null;
-                    const coverageMetricHtml = `<li class="history-metric-coverage"><span class="history-metric-label">Cobertura</span><span class="history-metric-value">${coverageMetricDisplay && coverageMetricDisplay.unitLabel ? `${coverageMetricDisplay.displayValue} ${coverageMetricDisplay.unitLabel}` : '--'}</span></li>`;
+                    const coverageMetricHtml = `<li class="history-metric-coverage"><span class="history-metric-label">Estoque em meses</span><span class="history-metric-value">${coverageMetricDisplay && coverageMetricDisplay.unitLabel ? `${coverageMetricDisplay.displayValue} ${coverageMetricDisplay.unitLabel}` : '--'}</span></li>`;
                     const entryCoverageMeta = getCoverageSourceMetadata({
                         coverageSource: entry.coverageSource,
                         stockMonths: totals.cobertura,
@@ -4651,7 +4729,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     });
                     const entryCoverageParts = [entryCoverageMeta.label, entryCoverageMeta.detail].filter(Boolean);
                     const entryCoverageDescription = entryCoverageMeta.key === 'none'
-                        ? 'Cobertura não informada para este período.'
+                        ? 'Estoque em meses não informado para este período.'
                         : ((entryCoverageMeta.key === 'cobertura' || entryCoverageMeta.key === 'stockMonths')
                             ? ''
                             : `Origem dos dados: ${entryCoverageParts.join(' · ')}`);
