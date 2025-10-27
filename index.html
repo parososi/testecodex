@@ -219,6 +219,10 @@
             gap: 12px;
         }
 
+        .search-results.is-hidden {
+            display: none;
+        }
+
         .search-summary {
             background: #eef3ff;
             border: 1px solid rgba(31, 68, 140, 0.18);
@@ -719,8 +723,9 @@
 
         .prediction-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            align-items: stretch;
         }
 
         .prediction-card {
@@ -855,40 +860,6 @@
             align-items: stretch;
         }
 
-        .prediction-clear {
-            margin-left: auto;
-            display: none;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 18px;
-            border-radius: 999px;
-            background-color: #1F448C;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 13px;
-            box-shadow: 0 6px 16px rgba(31, 68, 140, 0.2);
-        }
-
-        .prediction-clear:hover {
-            background-color: #163666;
-        }
-
-        .prediction-clear.visible {
-            display: inline-flex;
-        }
-
-        .prediction-settings-btn {
-            border-radius: 999px;
-            padding: 10px 20px;
-            font-weight: 600;
-            background-color: #1F448C;
-            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.18);
-        }
-
-        .prediction-settings-btn:hover {
-            background-color: #163666;
-        }
-
         .prediction-item {
             display: inline-flex;
             align-items: center;
@@ -948,6 +919,7 @@
             background: #f6f8ff;
             cursor: not-allowed;
             box-shadow: none;
+            pointer-events: none;
         }
 
         .prediction-item.is-empty:hover {
@@ -1045,6 +1017,7 @@
             color: #1F448C;
             text-decoration: none;
             background: transparent;
+            background-color: transparent;
             border: none;
             padding: 0;
             cursor: pointer;
@@ -1053,12 +1026,49 @@
         .highlight-action:hover,
         .highlight-action:focus-visible {
             color: #16356a;
+            background-color: transparent;
         }
 
         .highlight-action:focus-visible {
             outline: none;
             box-shadow: 0 0 0 2px rgba(31, 68, 140, 0.2);
             border-radius: 999px;
+        }
+
+        .floating-reset-button {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 999px;
+            border: none;
+            background: #1F448C;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 16px 32px rgba(31, 68, 140, 0.22);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .floating-reset-button.visible {
+            display: inline-flex;
+        }
+
+        .floating-reset-button:hover,
+        .floating-reset-button:focus-visible {
+            background: #16356a;
+            transform: translateY(-2px);
+            box-shadow: 0 20px 38px rgba(22, 53, 106, 0.28);
+        }
+
+        .floating-reset-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.24);
         }
 
         .timeline-board {
@@ -2228,13 +2238,12 @@
 
         <div class="search-section">
             <div class="search-container">
-                <input 
-                    type="text" 
-                    id="globalSearch" 
-                    class="search-input" 
+                <input
+                    type="text"
+                    id="globalSearch"
+                    class="search-input"
                     placeholder="🔍 Buscar por código ou nome do produto..."
                 />
-                <button class="clear-search" onclick="clearSearch()">🗑️ Limpar</button>
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -2302,7 +2311,6 @@
                     <h3 class="header-label">🔮 Análise Preditiva <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise preditiva" data-tooltip="Resumo visual dos riscos de ruptura com base na cobertura em dias e meses de cada item." data-tooltip-position="top">?</span></h3>
                     <p class="predictive-subtitle">Configure os limites de alerta e aplique filtros inteligentes em um único painel para monitorar riscos de ruptura com linguagem objetiva.</p>
                 </div>
-                <button class="prediction-settings-btn" type="button" onclick="openPredictionSettings()">⚙️ Ajustar limiares</button>
             </div>
 
             <div class="prediction-actions">
@@ -2374,22 +2382,9 @@
                         </div>
                     </div>
                 </div>
-                <button class="prediction-clear" type="button" id="clearPredictiveFilters" onclick="clearPredictiveFilters()" aria-pressed="false">✖ Limpar filtros</button>
             </div>
 
             <div class="prediction-grid">
-                <div class="prediction-card clickable" data-prediction-filter="limit-urgent" onclick="filterUrgentLimit()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterUrgentLimit();}">
-                    <div class="card-label">
-                        <span class="card-label-text">Limite urgente <span class="info-icon has-tooltip" tabindex="0" aria-label="Limite urgente" data-tooltip="Número de dias até a ruptura para um item ser considerado crítico." data-tooltip-position="top">?</span></span>
-                        <span class="card-bubble" id="urgentLimitCount" aria-live="polite" aria-label="0 itens críticos">
-                            <span class="bubble-number">0</span>
-                            <span class="bubble-label">itens</span>
-                        </span>
-                    </div>
-                    <div class="prediction-value"><span id="urgentDaysLabel" data-urgent-days>--</span> dias</div>
-                    <span class="card-helper">Itens com cobertura menor ou igual a este valor entram como críticos.</span>
-                </div>
-
                 <div class="prediction-card clickable" data-prediction-filter="limit-warning" onclick="filterWarningLimit()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterWarningLimit();}">
                     <div class="card-label">
                         <span class="card-label-text">Limite de atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Limite de atenção" data-tooltip="Número de dias até a ruptura para sinalizar itens em atenção." data-tooltip-position="top">?</span></span>
@@ -2458,6 +2453,8 @@
             </div>
         </div>
     </div>
+
+    <button type="button" id="globalResetButton" class="floating-reset-button" onclick="handleGlobalReset()" aria-hidden="true">Limpar filtros</button>
 
     <!-- Modal de Exportação -->
     <div id="exportModal" class="modal">
@@ -2531,6 +2528,8 @@
         let currentFilter = 'all';
         let currentEstablishment = '';
         let searchTerm = '';
+        let searchResultsCacheHtml = '';
+        let searchResultsHidden = false;
         let predictionFilter = null;
         let selectedFamily = null;
         let selectedSupplier = null;
@@ -4561,6 +4560,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             if (searchTerm === '') {
                 resultsDiv.innerHTML = '';
+                resultsDiv.classList.remove('is-hidden');
+                searchResultsCacheHtml = '';
+                searchResultsHidden = false;
                 applyAllFilters();
                 removeHighlights();
                 return;
@@ -4722,6 +4724,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     + `</div>`;
             }
 
+            searchResultsCacheHtml = suggestionsHtml;
+            searchResultsHidden = false;
+            resultsDiv.classList.remove('is-hidden');
             resultsDiv.innerHTML = suggestionsHtml;
         }
 
@@ -4793,7 +4798,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 highlightSearchResults();
 
                 if (resultsDiv) {
-                    resultsDiv.innerHTML = `<div class="search-summary applied">Filtro de família "<em>${escapeTooltip(family)}</em>" aplicado.</div>`;
+                    const summaryHtml = `<div class="search-summary applied">Filtro de família "<em>${escapeTooltip(family)}</em>" aplicado.</div>`;
+                    resultsDiv.innerHTML = summaryHtml;
+                    searchResultsCacheHtml = summaryHtml;
+                    searchResultsHidden = false;
+                    resultsDiv.classList.remove('is-hidden');
                 }
 
                 return;
@@ -4835,7 +4844,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 highlightSearchResults();
 
                 if (resultsDiv) {
-                    resultsDiv.innerHTML = `<div class="search-summary applied">Filtro de fornecedor "<em>${escapeTooltip(supplier)}</em>" aplicado.</div>`;
+                    const summaryHtml = `<div class="search-summary applied">Filtro de fornecedor "<em>${escapeTooltip(supplier)}</em>" aplicado.</div>`;
+                    resultsDiv.innerHTML = summaryHtml;
+                    searchResultsCacheHtml = summaryHtml;
+                    searchResultsHidden = false;
+                    resultsDiv.classList.remove('is-hidden');
                 }
             }
         }
@@ -4872,12 +4885,56 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function clearSearch() {
-            resetAllFilters();
-            document.getElementById('globalSearch').value = '';
-            document.getElementById('searchResults').innerHTML = '';
+            const searchInput = document.getElementById('globalSearch');
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+                resultsDiv.classList.remove('is-hidden');
+            }
+
             searchTerm = '';
+            searchResultsCacheHtml = '';
+            searchResultsHidden = false;
+
             applyAllFilters();
             removeHighlights();
+        }
+
+        function clearAllFilters() {
+            resetAllFilters();
+
+            const searchInput = document.getElementById('globalSearch');
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+                resultsDiv.classList.remove('is-hidden');
+            }
+
+            searchTerm = '';
+            searchResultsCacheHtml = '';
+            searchResultsHidden = false;
+
+            removeHighlights();
+            applyAllFilters();
+        }
+
+        function handleGlobalReset() {
+            if (searchTerm && searchTerm.trim() !== '') {
+                clearSearch();
+                return;
+            }
+
+            clearAllFilters();
         }
 
         function highlightSearchResults() {
@@ -4912,6 +4969,38 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             animations.forEach(function(el) {
                 el.classList.remove('highlight-animation');
             });
+        }
+
+        function hideSearchResultsTemporarily() {
+            const resultsDiv = document.getElementById('searchResults');
+            if (!resultsDiv) {
+                return;
+            }
+
+            const currentHtml = resultsDiv.innerHTML.trim();
+            if (currentHtml !== '') {
+                searchResultsCacheHtml = resultsDiv.innerHTML;
+            } else {
+                searchResultsCacheHtml = '';
+            }
+
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.add('is-hidden');
+            searchResultsHidden = true;
+        }
+
+        function restoreSearchResultsFromCache() {
+            const resultsDiv = document.getElementById('searchResults');
+            if (!resultsDiv) {
+                return;
+            }
+
+            if (searchResultsHidden && searchResultsCacheHtml) {
+                resultsDiv.innerHTML = searchResultsCacheHtml;
+            }
+
+            resultsDiv.classList.remove('is-hidden');
+            searchResultsHidden = false;
         }
 
         // === FUNÇÕES DE DADOS - VERSÃO CORRIGIDA ===
@@ -5478,6 +5567,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterCriticalStock() {
+            const chip = document.querySelector('.prediction-item[data-coverage-filter="critical"]');
+            if (chip && chip.classList.contains('is-empty')) {
+                return;
+            }
             const wasActive = criticalFilterActive;
             predictionFilter = null;
             resetAdvancedFilterSelection();
@@ -5496,6 +5589,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterLowStock() {
+            const chip = document.querySelector('.prediction-item[data-coverage-filter="low"]');
+            if (chip && chip.classList.contains('is-empty')) {
+                return;
+            }
             predictionFilter = null;
             criticalFilterActive = false;
             resetAdvancedFilterSelection();
@@ -5512,6 +5609,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterHighStock() {
+            const chip = document.querySelector('.prediction-item[data-coverage-filter="high"]');
+            if (chip && chip.classList.contains('is-empty')) {
+                return;
+            }
             predictionFilter = null;
             criticalFilterActive = false;
             resetAdvancedFilterSelection();
@@ -5527,38 +5628,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             applyAllFilters();
         }
 
-        function filterUrgentLimit() {
-            const urgentCard = document.querySelector('.prediction-card[data-prediction-filter="limit-urgent"]');
-            const warningCard = document.querySelector('.prediction-card[data-prediction-filter="limit-warning"]');
-            const zero30Card = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
-            const zero60Card = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
-
-            resetAdvancedFilterSelection();
-
-            if (predictionFilter === 'limit-urgent') {
-                predictionFilter = null;
-                currentFilter = 'all';
-                criticalFilterActive = false;
-                setPredictionCardActive(urgentCard, false);
-            } else {
-                resetCoverageFilterChips();
-                resetPredictionRangeButtons();
-
-                predictionFilter = 'limit-urgent';
-                currentFilter = 'limitUrgent';
-                criticalFilterActive = false;
-                setPredictionCardActive(urgentCard, true);
-            }
-
-            setPredictionCardActive(warningCard, predictionFilter === 'limit-warning');
-            setPredictionCardActive(zero30Card, predictionFilter === 'zero30');
-            setPredictionCardActive(zero60Card, predictionFilter === 'zero60');
-            updateActiveButton(currentFilter === 'all' ? 'all' : null);
-            applyAllFilters();
-        }
-
         function filterWarningLimit() {
-            const urgentCard = document.querySelector('.prediction-card[data-prediction-filter="limit-urgent"]');
             const warningCard = document.querySelector('.prediction-card[data-prediction-filter="limit-warning"]');
             const zero30Card = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
             const zero60Card = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
@@ -5580,7 +5650,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 setPredictionCardActive(warningCard, true);
             }
 
-            setPredictionCardActive(urgentCard, predictionFilter === 'limit-urgent');
             setPredictionCardActive(zero30Card, predictionFilter === 'zero30');
             setPredictionCardActive(zero60Card, predictionFilter === 'zero60');
             updateActiveButton(currentFilter === 'all' ? 'all' : null);
@@ -5613,6 +5682,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function filterByAdvancedStock(value) {
             if (typeof value === 'string') {
                 const normalized = value.trim();
+                const chip = document.querySelector(`.prediction-item[data-advanced-filter="${normalized}"]`);
+                if (chip && chip.classList.contains('is-empty')) {
+                    return;
+                }
                 if (advancedStockFilter === normalized) {
                     resetAdvancedFilterSelection();
                 } else {
@@ -5689,17 +5762,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             updateActiveButton(currentFilter === 'all' ? 'all' : null);
-            applyAllFilters();
-        }
-
-        function clearPredictiveFilters() {
-            predictionFilter = null;
-            currentFilter = 'all';
-            criticalFilterActive = false;
-            resetCoverageFilterChips();
-            resetAdvancedFilterSelection();
-            resetPredictionRangeButtons();
-            updateActiveButton('all');
             applyAllFilters();
         }
 
@@ -5977,49 +6039,47 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             });
         }
 
-        function updatePredictiveResetButton() {
-            const resetButton = document.getElementById('clearPredictiveFilters');
+        function updateFloatingResetButton() {
+            const resetButton = document.getElementById('globalResetButton');
             if (!resetButton) {
                 return;
             }
 
+            const hasSearch = typeof searchTerm === 'string' && searchTerm.trim() !== '';
             const predictiveFiltersActive = predictionFilter !== null
-                || ['critical', 'low', 'high', 'prediction30', 'prediction60', 'limitUrgent', 'limitWarning'].includes(currentFilter)
+                || ['critical', 'low', 'high', 'prediction30', 'prediction60', 'limitWarning'].includes(currentFilter)
+                || criticalFilterActive
                 || (advancedStockFilter && advancedStockFilter !== '');
+            const dimensionFiltersActive = Boolean(selectedFamily || selectedSupplier || currentEstablishment);
+            const hasAnyFilter = hasSearch || predictiveFiltersActive || dimensionFiltersActive;
 
-            if (predictiveFiltersActive) {
-                resetButton.classList.add('visible');
-                resetButton.setAttribute('aria-pressed', 'true');
-            } else {
+            if (!hasAnyFilter) {
                 resetButton.classList.remove('visible');
-                resetButton.setAttribute('aria-pressed', 'false');
+                resetButton.setAttribute('aria-hidden', 'true');
+                resetButton.removeAttribute('data-mode');
+                resetButton.textContent = 'Limpar filtros';
+                return;
             }
+
+            if (hasSearch) {
+                resetButton.textContent = 'Limpar busca';
+                resetButton.setAttribute('data-mode', 'search');
+                resetButton.setAttribute('aria-label', 'Limpar resultados da busca');
+            } else {
+                resetButton.textContent = 'Limpar filtros';
+                resetButton.setAttribute('data-mode', 'filters');
+                resetButton.setAttribute('aria-label', 'Limpar filtros aplicados');
+            }
+
+            resetButton.classList.add('visible');
+            resetButton.setAttribute('aria-hidden', 'false');
         }
 
         function applyAllFilters() {
             let baseData = allProductsData.slice();
             const { urgentDays, warningDays } = getPredictionSettings();
 
-            if (predictionFilter === 'limit-urgent') {
-                baseData = baseData.filter(function(p) {
-                    const prediction = getPrediction(p);
-                    if (!prediction) {
-                        return false;
-                    }
-
-                    if (prediction.status === 'urgent') {
-                        return true;
-                    }
-
-                    if (prediction.status === 'unknown' || prediction.daysToDepletion === null) {
-                        return false;
-                    }
-
-                    return Number.isFinite(prediction.daysToDepletion)
-                        ? prediction.daysToDepletion <= urgentDays
-                        : false;
-                });
-            } else if (predictionFilter === 'limit-warning') {
+            if (predictionFilter === 'limit-warning') {
                 baseData = baseData.filter(function(p) {
                     const prediction = getPrediction(p);
                     if (!prediction) {
@@ -6151,7 +6211,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             updateSummary();
             updateGauges();
             updatePredictiveAnalysis();
-            updatePredictiveResetButton();
+            updateFloatingResetButton();
         }
 
         function updateActiveButton(filter) {
@@ -6252,24 +6312,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const zeroIn30Element = document.getElementById('zeroIn30');
             const zeroIn60Element = document.getElementById('zeroIn60');
-            const urgentBubble = document.getElementById('urgentLimitCount');
             const warningBubble = document.getElementById('warningLimitCount');
-
-            if (urgentBubble) {
-                const urgentLabel = urgentCount === 1 ? 'item' : 'itens';
-                const urgentAria = urgentCount === 1 ? 'item crítico' : 'itens críticos';
-                const numberSpan = urgentBubble.querySelector('.bubble-number');
-                const labelSpan = urgentBubble.querySelector('.bubble-label');
-                if (numberSpan) {
-                    numberSpan.textContent = urgentCount;
-                }
-                if (labelSpan) {
-                    labelSpan.textContent = urgentLabel;
-                } else {
-                    urgentBubble.textContent = `${urgentCount} ${urgentLabel}`;
-                }
-                urgentBubble.setAttribute('aria-label', `${urgentCount} ${urgentAria}`);
-            }
 
             if (warningBubble) {
                 const warningLabel = warningCount === 1 ? 'item' : 'itens';
@@ -7165,36 +7208,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function buildProductHistoryDescription(product) {
-            if (!product) {
-                return '';
-            }
-
-            const parts = [];
-            const family = (product.family || '').toString().trim();
-            const supplier = (product.supplier || '').toString().trim();
-
-            if (family && supplier) {
-                parts.push(`Produto da família ${family}, fornecido por ${supplier}.`);
-            } else if (family) {
-                parts.push(`Produto da família ${family}.`);
-            } else if (supplier) {
-                parts.push(`Fornecido por ${supplier}.`);
-            }
-
-            const coverageValue = getCoverageValue(product);
-            if (Number.isFinite(coverageValue)) {
-                const coverageDisplay = formatCoverageDisplay(coverageValue);
-                if (coverageDisplay && coverageDisplay.displayValue && coverageDisplay.displayValue !== '--') {
-                    const coverageLabel = coverageDisplay.unitLabel
-                        ? `${coverageDisplay.displayValue} ${coverageDisplay.unitLabel}`.trim()
-                        : coverageDisplay.displayValue;
-                    if (coverageLabel) {
-                        parts.push(`Cobertura atual estimada em ${coverageLabel}.`);
-                    }
-                }
-            }
-
-            return parts.join(' ');
+            return '';
         }
 
         function openProductHistory(code) {
@@ -7786,17 +7800,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function updateData() {
-            resetAllFilters();
-            const searchInput = document.getElementById('globalSearch');
-            if (searchInput) {
-                searchInput.value = '';
-            }
-            const resultsDiv = document.getElementById('searchResults');
-            if (resultsDiv) {
-                resultsDiv.innerHTML = '';
-            }
-            searchTerm = '';
-            applyAllFilters();
+            clearAllFilters();
             loadData();
             showMessage('✅ Dashboard atualizado!', 'success');
         }
@@ -7880,10 +7884,37 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(performGlobalSearch, 300);
                 });
+
+                searchInput.addEventListener('focus', function() {
+                    if (searchResultsHidden && searchResultsCacheHtml) {
+                        restoreSearchResultsFromCache();
+                    }
+                });
+
+                searchInput.addEventListener('click', function() {
+                    if (searchResultsHidden && searchResultsCacheHtml) {
+                        restoreSearchResultsFromCache();
+                    }
+                });
             }
 
             if (searchResultsContainer) {
                 searchResultsContainer.addEventListener('click', handleSearchSuggestionClick);
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            const searchSection = document.querySelector('.search-section');
+            if (!searchSection) {
+                return;
+            }
+
+            if (event.target.closest('.search-section')) {
+                return;
+            }
+
+            if (searchResultsCacheHtml || (document.getElementById('searchResults') && document.getElementById('searchResults').innerHTML.trim() !== '')) {
+                hideSearchResultsTemporarily();
             }
         });
 
