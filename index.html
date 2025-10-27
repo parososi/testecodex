@@ -177,40 +177,161 @@
         }
         
         .search-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #dbe2f5;
+            box-shadow: 0 10px 30px rgba(17, 38, 90, 0.08);
         }
-        
+
         .search-container {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
         }
-        
+
         .search-input {
             flex: 1;
-            min-width: 300px;
-            padding: 12px 20px;
+            min-width: 280px;
+            padding: 12px 18px;
             border: 2px solid #1F448C;
-            border-radius: 25px;
+            border-radius: 14px;
             font-size: 16px;
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
+            background: #f8f9ff;
         }
-        
+
         .search-input:focus {
-            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.1);
+            box-shadow: 0 0 0 4px rgba(31, 68, 140, 0.12);
             transform: translateY(-1px);
+            background: #ffffff;
         }
-        
+
         .search-results {
-            margin-top: 10px;
+            margin-top: 14px;
             font-size: 14px;
-            color: #666;
+            color: #2f3f67;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .search-summary {
+            background: #eef3ff;
+            border: 1px solid rgba(31, 68, 140, 0.18);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #1F448C;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-summary em {
+            font-style: normal;
+            color: #0f2a66;
+        }
+
+        .search-summary.applied {
+            background: #e3fcec;
+            border-color: rgba(29, 102, 56, 0.4);
+            color: #1d6638;
+        }
+
+        .search-suggestion-group {
+            background: #ffffff;
+            border: 1px solid #d8e2ff;
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 12px 28px rgba(17, 38, 90, 0.06);
+        }
+
+        .search-suggestion-group .group-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4b5f94;
+        }
+
+        .search-suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-suggestion {
+            border: 1px solid transparent;
+            background: #f5f7ff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1F448C;
+            font-weight: 600;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .search-suggestion:hover,
+        .search-suggestion:focus-visible {
+            border-color: #1F448C;
+            box-shadow: 0 10px 24px rgba(31, 68, 140, 0.15);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .search-suggestion .suggestion-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: inset 0 0 0 1px rgba(31, 68, 140, 0.1);
+        }
+
+        .search-suggestion .suggestion-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-suggestion .suggestion-main {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-suggestion .suggestion-meta {
+            font-size: 12px;
+            color: #4d5f94;
+            font-weight: 500;
+        }
+
+        .search-suggestion .suggestion-tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1F448C;
+            background: rgba(31, 68, 140, 0.12);
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
         }
         
         .controls {
@@ -472,6 +593,10 @@
         .item-name {
             font-weight: 600;
             color: #1f2a44;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .item-coverage {
@@ -563,6 +688,716 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 20px;
+        }
+
+        .predictive-section {
+            background: #eef3ff;
+            border: 1px solid #d0dcff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 12px 30px rgba(31, 68, 140, 0.08);
+        }
+
+        .predictive-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .predictive-subtitle {
+            margin: 6px 0 0;
+            font-size: 14px;
+            color: #4a5568;
+            max-width: 620px;
+        }
+
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .prediction-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e3e8f0;
+            box-shadow: 0 4px 10px rgba(31, 68, 140, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+
+        .prediction-card.clickable {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .prediction-card.clickable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.12);
+        }
+
+        .prediction-card.clickable.active {
+            border-color: #1F448C;
+            box-shadow: 0 10px 26px rgba(31, 68, 140, 0.18);
+        }
+
+        .prediction-card .card-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1F448C;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .prediction-card .card-label-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: calc(100% - 48px);
+        }
+
+        .prediction-card .card-bubble {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 36px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(31, 68, 140, 0.12);
+            color: #1F448C;
+            border: 1px solid rgba(31, 68, 140, 0.16);
+            white-space: nowrap;
+        }
+
+        .prediction-card .card-bubble .bubble-number {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .prediction-card .card-bubble .bubble-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: lowercase;
+            color: #1F448C;
+            line-height: 1;
+        }
+
+        .prediction-card .card-helper {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .prediction-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F448C;
+        }
+
+        .prediction-value.prediction-critical {
+            color: #d32f2f;
+        }
+
+        .prediction-value.prediction-warning {
+            color: #f57c00;
+        }
+
+        .prediction-value.prediction-good {
+            color: #2e7d32;
+        }
+
+        .prediction-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .prediction-chip-groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            flex: 1 1 auto;
+        }
+
+        .prediction-chip-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 180px;
+            flex: 1 1 200px;
+        }
+
+        .prediction-chip-group .chip-group-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4b5f94;
+        }
+
+        .prediction-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .prediction-clear {
+            margin-left: auto;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background-color: #1F448C;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            box-shadow: 0 6px 16px rgba(31, 68, 140, 0.2);
+        }
+
+        .prediction-clear:hover {
+            background-color: #163666;
+        }
+
+        .prediction-clear.visible {
+            display: inline-flex;
+        }
+
+        .prediction-settings-btn {
+            border-radius: 999px;
+            padding: 10px 20px;
+            font-weight: 600;
+            background-color: #1F448C;
+            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.18);
+        }
+
+        .prediction-settings-btn:hover {
+            background-color: #163666;
+        }
+
+        .prediction-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 14px;
+            min-height: 46px;
+            background: #ffffff;
+            border: 1px solid #c7d3ee;
+            border-radius: 14px;
+            color: #1F448C;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .prediction-item .filter-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            text-align: left;
+            line-height: 1.2;
+        }
+
+        .prediction-item:hover {
+            background: #f0f4ff;
+            border-color: #1F448C;
+            box-shadow: 0 6px 18px rgba(31, 68, 140, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .prediction-item:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(31, 68, 140, 0.25);
+        }
+
+        .prediction-item.active {
+            background: #1F448C;
+            color: #ffffff;
+            border-color: #1F448C;
+            box-shadow: 0 8px 22px rgba(31, 68, 140, 0.28);
+        }
+
+        .prediction-item.active .filter-count {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+        }
+
+        .prediction-item.active .filter-helper {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .prediction-item.is-empty {
+            color: #90a1cc;
+            border-color: #dbe4f9;
+            background: #f6f8ff;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .prediction-item.is-empty:hover {
+            background: #f6f8ff;
+            border-color: #dbe4f9;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .prediction-item.is-empty .filter-count,
+        .prediction-item.is-empty .filter-helper {
+            color: #aebce2;
+        }
+
+        .prediction-item .filter-title {
+            font-size: 13px;
+        }
+
+        .prediction-item .filter-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1F448C;
+            background: rgba(31, 68, 140, 0.1);
+            border-radius: 999px;
+            padding: 4px 10px;
+            line-height: 1;
+            align-self: center;
+            white-space: nowrap;
+        }
+
+        .prediction-item .filter-helper {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #5c6fa8;
+        }
+
+        .prediction-item .filter-helper.secondary {
+            color: #7b8ab8;
+        }
+
+        .prediction-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .timeline-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .timeline-highlight {
+            border-radius: 14px;
+            border: 1px solid #dfe3eb;
+            background: #ffffff;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+        }
+
+        .timeline-highlight .highlight-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #667085;
+        }
+
+        .timeline-highlight strong {
+            font-size: 16px;
+            color: #101828;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .timeline-highlight span {
+            font-size: 13px;
+            color: #475467;
+            line-height: 1.4;
+        }
+
+        .highlight-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1F448C;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .highlight-action:hover,
+        .highlight-action:focus-visible {
+            color: #16356a;
+        }
+
+        .highlight-action:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(31, 68, 140, 0.2);
+            border-radius: 999px;
+        }
+
+        .timeline-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .timeline-note {
+            font-size: 12px;
+            color: #5c6fa8;
+            background: #f6f8ff;
+            border: 1px solid #dce3f7;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 4px;
+        }
+
+        .timeline-card {
+            position: relative;
+            border-radius: 18px;
+            background: #ffffff;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+            border: 1px solid #dfe3f2;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .timeline-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 46px rgba(15, 23, 42, 0.12);
+        }
+
+        .timeline-card.timeline-card-critical {
+            border-top: 6px solid #d32f2f;
+        }
+
+        .timeline-card.timeline-card-warning {
+            border-top: 6px solid #f57c00;
+        }
+
+        .timeline-card.timeline-card-stable {
+            border-top: 6px solid #2e7d32;
+        }
+
+        .timeline-card.timeline-card-unknown {
+            border-top: 6px solid #6b7280;
+        }
+
+        .timeline-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .timeline-card-header strong {
+            font-size: 16px;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .timeline-card-header span {
+            font-size: 12px;
+            color: #4b5563;
+            line-height: 1.4;
+        }
+
+        .timeline-card-header .lane-title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .timeline-card-header .lane-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .timeline-card-header .lane-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #edf1ff;
+            color: #1F448C;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .timeline-card-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(31, 68, 140, 0.1);
+            color: #1F448C;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .timeline-card-action:hover,
+        .timeline-card-action:focus-visible {
+            background: #1F448C;
+            color: #ffffff;
+            box-shadow: 0 12px 28px rgba(31, 68, 140, 0.22);
+        }
+
+        .timeline-card-action:focus-visible {
+            outline: none;
+        }
+
+        .timeline-card-action:disabled,
+        .timeline-card-action[aria-disabled="true"] {
+            background: #e8ecfa;
+            color: #94a3c9;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .timeline-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeline-list:not(.is-expanded) .timeline-item:nth-child(n+6) {
+            display: none;
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f7f9fe;
+            border-radius: 16px;
+            padding: 16px 18px;
+            border: 1px solid #d7def3;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .timeline-item strong {
+            font-size: 16px;
+            color: #0f172a;
+            line-height: 1.35;
+        }
+
+        .timeline-item-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(31, 68, 140, 0.28);
+            background: rgba(31, 68, 140, 0.12);
+            color: #1F448C;
+            font-weight: 600;
+            font-size: 13px;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .product-chip.product-chip-static {
+            background: rgba(31, 68, 140, 0.08);
+        }
+
+        button.product-chip {
+            border: 1px solid rgba(31, 68, 140, 0.28);
+            background: rgba(31, 68, 140, 0.12);
+            cursor: pointer;
+        }
+
+        button.product-chip:hover,
+        button.product-chip:focus-visible {
+            background: rgba(31, 68, 140, 0.18);
+            border-color: rgba(31, 68, 140, 0.45);
+            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.18);
+            outline: none;
+        }
+
+        .timeline-product-chip {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .timeline-product-chip + .timeline-item-code {
+            margin-left: 4px;
+        }
+
+        .timeline-item .timeline-item-code {
+            color: #667085;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .timeline-item span {
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .timeline-item-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .timeline-item-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(31, 68, 140, 0.1);
+            color: #1F448C;
+            font-weight: 600;
+        }
+
+        .timeline-item.has-tooltip:hover {
+            border-color: #c2cdef;
+            box-shadow: 0 12px 28px rgba(31, 68, 140, 0.12);
+            transform: translateY(-2px);
+        }
+
+        button.timeline-product-chip {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        button.timeline-product-chip:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(31, 68, 140, 0.3);
+        }
+
+        .timeline-toggle-wrapper {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .timeline-toggle {
+            display: inline-flex;
+            justify-content: center;
+            background: transparent;
+            color: #1F448C;
+            border: 1px solid #d6def0;
+            border-radius: 999px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 12px;
+            width: auto;
+            min-width: 0;
+            margin-top: 16px;
+}
+
+        .timeline-toggle:hover,
+        .timeline-toggle:focus-visible {
+            background: rgba(31, 68, 140, 0.08);
+            color: #16356a;
+        }
+
+        .timeline-empty {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+            padding: 14px 8px;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .toast {
+            min-width: 220px;
+            max-width: 320px;
+            background: #1F448C;
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(31, 68, 140, 0.25);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: toast-in 0.25s ease forwards;
+        }
+
+        .toast.toast-success {
+            background: #1b5e20;
+        }
+
+        .toast.toast-warning {
+            background: #f57c00;
+        }
+
+        .toast.toast-error {
+            background: #c62828;
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toast-out {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
         }
 
         .pareto-section {
@@ -743,7 +1578,7 @@
 
         .history-modal-body {
             padding: 8px 32px 32px;
-            background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+            background: #ffffff;
             flex: 1;
             overflow-y: auto;
             min-height: 0;
@@ -753,7 +1588,7 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
-            --history-header-gradient: linear-gradient(135deg, #1d396e 0%, #2d4174 55%, #113b96 100%);
+            --history-header-surface: #1d396e;
             --history-header-text: #ffffff;
             --history-header-subtext: rgba(255, 255, 255, 0.85);
             --history-family-chip-bg: rgba(255, 255, 255, 0.16);
@@ -766,7 +1601,7 @@
             gap: 18px;
             padding: 28px;
             border-radius: 20px;
-            background: var(--history-header-gradient);
+            background: var(--history-header-surface);
             box-shadow: 0 18px 42px rgba(31, 68, 140, 0.25);
             color: var(--history-header-text);
         }
@@ -1022,6 +1857,12 @@
         .history-subtitle {
             font-size: 15px;
             color: rgba(255, 255, 255, 0.75);
+        }
+
+        .history-description {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .history-grid {
@@ -1400,14 +2241,6 @@
         
         <div class="controls">
             <div class="control-group">
-                <label>Filtrar por:</label>
-                <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">Todos</button>
-                <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">Estoque Crítico (&lt;2m)</button>
-                <button onclick="filterLowStock()" class="filter-btn" data-filter="low">Estoque Baixo (2-6m)</button>
-                <button onclick="filterHighStock()" class="filter-btn" data-filter="high">Slow Moving (&gt;6m)</button>
-            </div>
-            
-            <div class="control-group">
                 <label>Família:</label>
                 <select id="familyFilter" onchange="filterByFamily()">
                     <option value="">Todas as Famílias</option>
@@ -1428,18 +2261,6 @@
                     <option value="1-4">1-4 (GUARULHOS)</option>
                     <option value="90-13">90-13 (ITAJAÍ)</option>
                     <option value="90-15">90-15 (GARUVA)</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label>Filtro avançado:</label>
-                <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
-                    <option value="">Todos os produtos</option>
-                    <option value="no-stock">Sem estoque</option>
-                    <option value="over50">Estoque &gt; 50 meses</option>
-                    <option value="abc-a">Classe A</option>
-                    <option value="abc-b">Classe B</option>
-                    <option value="abc-c">Classe C</option>
                 </select>
             </div>
 
@@ -1468,15 +2289,133 @@
                     <div class="stat-value" id="totalStockValue">0</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
                 </div>
-                <div class="stat-item clickable" onclick="filterCriticalStock()" title="Clique para ver produtos críticos (<2 meses)">
-                    <div class="stat-value critical" id="criticalCount">0</div>
-                    <div class="stat-label"><span class="label-text">Produtos Críticos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Produtos críticos" data-tooltip="Itens com cobertura inferior a 2 meses. Clique no card para filtrar somente esses produtos." data-tooltip-position="top" onclick="event.stopPropagation();">?</span></div>
-                </div>
                 <div class="stat-item">
                     <div class="stat-value" id="totalFamilies">0</div>
                     <div class="stat-label"><span class="label-text">Famílias de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Famílias de produtos" data-tooltip="Número de famílias distintas representadas na lista atual de produtos." data-tooltip-position="top">?</span></div>
                 </div>
             </div>
+        </div>
+
+        <div class="predictive-section" id="predictiveAnalysis">
+            <div class="predictive-header">
+                <div>
+                    <h3 class="header-label">🔮 Análise Preditiva <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise preditiva" data-tooltip="Resumo visual dos riscos de ruptura com base na cobertura em dias e meses de cada item." data-tooltip-position="top">?</span></h3>
+                    <p class="predictive-subtitle">Configure os limites de alerta e aplique filtros inteligentes em um único painel para monitorar riscos de ruptura com linguagem objetiva.</p>
+                </div>
+                <button class="prediction-settings-btn" type="button" onclick="openPredictionSettings()">⚙️ Ajustar limiares</button>
+            </div>
+
+            <div class="prediction-actions">
+                <div class="prediction-chip-groups">
+                    <div class="prediction-chip-group" data-chip-group="coverage">
+                        <span class="chip-group-title">Cobertura</span>
+                        <div class="prediction-chips" id="coverageQuickFilters">
+                            <button class="prediction-item clickable" type="button" data-coverage-filter="critical" onclick="filterCriticalStock()" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Estoque crítico</span>
+                                    <span class="filter-helper">Cobertura &lt; <span data-coverage-threshold="critical">2 meses</span></span>
+                                </span>
+                                <span class="filter-count" id="coverageCriticalCount">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-coverage-filter="low" onclick="filterLowStock()" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Estoque baixo</span>
+                                    <span class="filter-helper">Entre <span data-coverage-range="low-start">2 meses</span> e <span data-coverage-range="low-end">6 meses</span></span>
+                                </span>
+                                <span class="filter-count" id="coverageLowCount">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-coverage-filter="high" onclick="filterHighStock()" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Slow moving</span>
+                                    <span class="filter-helper">Acima de <span data-coverage-threshold="slow">6 meses</span></span>
+                                </span>
+                                <span class="filter-count" id="coverageSlowCount">0 itens</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="prediction-chip-group" data-chip-group="advanced">
+                        <span class="chip-group-title">Filtros avançados</span>
+                        <div class="prediction-chips" id="advancedFilterChips">
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="no-stock" onclick="filterByAdvancedStock('no-stock')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Sem estoque</span>
+                                    <span class="filter-helper">Produtos com ruptura imediata</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="no-stock">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="over50" onclick="filterByAdvancedStock('over50')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Estoque &gt; 50 meses</span>
+                                    <span class="filter-helper">Cobertura extremamente alta</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="over50">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-a" onclick="filterByAdvancedStock('abc-a')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe A</span>
+                                    <span class="filter-helper secondary">Top 5% por venda</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-a">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-b" onclick="filterByAdvancedStock('abc-b')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe B</span>
+                                    <span class="filter-helper secondary">Itens intermediários</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-b">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-c" onclick="filterByAdvancedStock('abc-c')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe C</span>
+                                    <span class="filter-helper secondary">Cauda longa</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-c">0 itens</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="prediction-clear" type="button" id="clearPredictiveFilters" onclick="clearPredictiveFilters()" aria-pressed="false">✖ Limpar filtros</button>
+            </div>
+
+            <div class="prediction-grid">
+                <div class="prediction-card clickable" data-prediction-filter="limit-urgent" onclick="filterUrgentLimit()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterUrgentLimit();}">
+                    <div class="card-label">
+                        <span class="card-label-text">Limite urgente <span class="info-icon has-tooltip" tabindex="0" aria-label="Limite urgente" data-tooltip="Número de dias até a ruptura para um item ser considerado crítico." data-tooltip-position="top">?</span></span>
+                        <span class="card-bubble" id="urgentLimitCount" aria-live="polite" aria-label="0 itens críticos">
+                            <span class="bubble-number">0</span>
+                            <span class="bubble-label">itens</span>
+                        </span>
+                    </div>
+                    <div class="prediction-value"><span id="urgentDaysLabel" data-urgent-days>--</span> dias</div>
+                    <span class="card-helper">Itens com cobertura menor ou igual a este valor entram como críticos.</span>
+                </div>
+
+                <div class="prediction-card clickable" data-prediction-filter="limit-warning" onclick="filterWarningLimit()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterWarningLimit();}">
+                    <div class="card-label">
+                        <span class="card-label-text">Limite de atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Limite de atenção" data-tooltip="Número de dias até a ruptura para sinalizar itens em atenção." data-tooltip-position="top">?</span></span>
+                        <span class="card-bubble" id="warningLimitCount" aria-live="polite" aria-label="0 itens em atenção">
+                            <span class="bubble-number">0</span>
+                            <span class="bubble-label">itens</span>
+                        </span>
+                    </div>
+                    <div class="prediction-value"><span id="warningDaysLabel" data-warning-days>--</span> dias</div>
+                    <span class="card-helper">Acima do limite urgente e até este valor, os itens exigem planejamento.</span>
+                </div>
+
+                <div class="prediction-card clickable" data-prediction-filter="zero30" onclick="filterZeroIn30()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterZeroIn30();}">
+                    <span class="card-label">Produtos que zeram em ≤ <span data-urgent-days>--</span> dias <span class="info-icon has-tooltip" tabindex="0" aria-label="Zera em curto prazo" data-tooltip="Clique para filtrar itens sem estoque ou que acabam dentro do limite urgente." data-tooltip-position="top">?</span></span>
+                    <div class="prediction-value" id="zeroIn30">--</div>
+                    <span class="card-helper">Inclui itens sem estoque e com ruptura imediata prevista.</span>
+                </div>
+
+                <div class="prediction-card clickable" data-prediction-filter="zero60" onclick="filterZeroIn60()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterZeroIn60();}">
+                    <span class="card-label">Produtos que zeram entre <span data-warning-start>--</span> e <span data-warning-days>--</span> dias <span class="info-icon has-tooltip" tabindex="0" aria-label="Zera em médio prazo" data-tooltip="Clique para filtrar itens que ficam sem estoque logo após o limite urgente." data-tooltip-position="top">?</span></span>
+                    <div class="prediction-value" id="zeroIn60">--</div>
+                    <span class="card-helper">Priorize pedidos para evitar ruptura nos próximos meses.</span>
+                </div>
+            </div>
+
+            <div class="prediction-timeline" id="predictionTimeline" aria-live="polite"></div>
         </div>
 
         <div class="pareto-section">
@@ -1545,6 +2484,29 @@
         </div>
     </div>
 
+    <!-- Modal de Configurações Preditivas -->
+    <div id="predictionSettingsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurar Limiares Preditivos</h2>
+                <span class="close" role="button" tabindex="0" aria-label="Fechar configurações" onclick="closePredictionSettings()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closePredictionSettings();}">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="urgentDaysInput">Dias para alerta urgente:</label>
+                <input type="number" id="urgentDaysInput" min="1" step="1" placeholder="Ex: 30">
+            </div>
+            <div class="form-group">
+                <label for="warningDaysInput">Dias para alerta de atenção:</label>
+                <input type="number" id="warningDaysInput" min="1" step="1" placeholder="Ex: 60">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" type="button" onclick="resetPredictionSettings()">Restaurar padrão</button>
+                <button class="btn-secondary" type="button" onclick="closePredictionSettings()">Cancelar</button>
+                <button type="button" onclick="savePredictionSettings()">Aplicar ajustes</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Histórico do Produto -->
     <div id="historyModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="modal-content history-modal-container">
@@ -1555,6 +2517,8 @@
             <div class="history-modal-body" id="historyModalContent"></div>
         </div>
     </div>
+
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Inclusão das bibliotecas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1581,6 +2545,9 @@
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
 
+        const LOCAL_CONFIG_STORAGE_KEY = 'dashboardConfigOverrides';
+        let localConfigOverrides = loadLocalConfigOverrides();
+
         const defaultFamilyAccentPalette = Object.freeze([
             '#FF6F61',
             '#2EC5B6',
@@ -1606,6 +2573,10 @@
         const abcIndividualThresholds = Object.freeze({
             classA: 0.05,
             classB: 0.01
+        });
+        const coverageSegmentThresholds = Object.freeze({
+            critical: 2,
+            lowUpper: 6
         });
         let abcClassificationMap = new Map();
         let tooltipElement = null;
@@ -1725,16 +2696,15 @@
 
         function buildFamilyAccent(baseColor) {
             const sanitizedBase = sanitizeHexColor(baseColor) || familyAccentFallback;
-            const mid = shiftHexColor(sanitizedBase, -0.12) || sanitizedBase;
-            const dark = shiftHexColor(sanitizedBase, -0.24) || mid;
-            const chipBackground = shiftHexColor(sanitizedBase, 0.18) || sanitizedBase;
-            const textColor = getReadableTextColor(sanitizedBase);
+            const surface = shiftHexColor(sanitizedBase, -0.1) || sanitizedBase;
+            const chipBackground = shiftHexColor(sanitizedBase, 0.14) || sanitizedBase;
+            const textColor = getReadableTextColor(surface);
             const subTextColor = textColor === '#ffffff'
                 ? 'rgba(255, 255, 255, 0.85)'
                 : 'rgba(31, 41, 51, 0.72)';
 
             return {
-                gradient: `linear-gradient(135deg, ${sanitizedBase} 0%, ${mid} 55%, ${dark} 100%)`,
+                surface,
                 text: textColor,
                 subText: subTextColor,
                 chipBackground,
@@ -2290,25 +3260,145 @@
             mappingDiv.innerHTML = html;
         }
 
+        function getNestedConfigValue(source, keys) {
+            if (!source || typeof source !== 'object' || !Array.isArray(keys)) {
+                return undefined;
+            }
+
+            let current = source;
+            for (const key of keys) {
+                if (current && typeof current === 'object' && key in current) {
+                    current = current[key];
+                } else {
+                    return undefined;
+                }
+            }
+
+            return current;
+        }
+
+        function setNestedConfigValue(target, keys, value) {
+            if (!target || typeof target !== 'object' || !Array.isArray(keys) || keys.length === 0) {
+                return;
+            }
+
+            let current = target;
+            for (let index = 0; index < keys.length - 1; index++) {
+                const key = keys[index];
+                if (!current[key] || typeof current[key] !== 'object') {
+                    current[key] = {};
+                }
+                current = current[key];
+            }
+
+            current[keys[keys.length - 1]] = value;
+        }
+
+        function loadLocalConfigOverrides() {
+            if (typeof localStorage === 'undefined') {
+                return {};
+            }
+
+            try {
+                const stored = localStorage.getItem(LOCAL_CONFIG_STORAGE_KEY);
+                if (!stored) {
+                    return {};
+                }
+
+                const parsed = JSON.parse(stored);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (error) {
+                console.warn('Não foi possível carregar overrides locais:', error);
+                return {};
+            }
+        }
+
+        function saveLocalConfigOverrides() {
+            if (typeof localStorage === 'undefined') {
+                return;
+            }
+
+            try {
+                if (localConfigOverrides && Object.keys(localConfigOverrides).length > 0) {
+                    localStorage.setItem(LOCAL_CONFIG_STORAGE_KEY, JSON.stringify(localConfigOverrides));
+                } else {
+                    localStorage.removeItem(LOCAL_CONFIG_STORAGE_KEY);
+                }
+            } catch (error) {
+                console.warn('Não foi possível salvar overrides locais:', error);
+            }
+        }
+
+        function setLocalConfigValue(path, value) {
+            if (!path) {
+                return;
+            }
+
+            if (!localConfigOverrides || typeof localConfigOverrides !== 'object') {
+                localConfigOverrides = {};
+            }
+
+            const keys = path.split('.');
+            if (!Array.isArray(keys) || keys.length === 0) {
+                return;
+            }
+
+            if (value === null || typeof value === 'undefined' || value === '') {
+                let current = localConfigOverrides;
+                const stack = [];
+
+                for (let index = 0; index < keys.length - 1; index++) {
+                    const key = keys[index];
+                    if (!current[key] || typeof current[key] !== 'object') {
+                        return;
+                    }
+                    stack.push({ parent: current, key });
+                    current = current[key];
+                }
+
+                delete current[keys[keys.length - 1]];
+
+                for (let index = stack.length - 1; index >= 0; index--) {
+                    const { parent, key } = stack[index];
+                    if (parent[key] && typeof parent[key] === 'object' && Object.keys(parent[key]).length === 0) {
+                        delete parent[key];
+                    }
+                }
+            } else {
+                setNestedConfigValue(localConfigOverrides, keys, value);
+            }
+
+            saveLocalConfigOverrides();
+        }
+
+        function clearLocalConfigOverrides() {
+            localConfigOverrides = {};
+            saveLocalConfigOverrides();
+        }
+
         function getConfigValue(path, fallback) {
+            if (!path) {
+                return fallback;
+            }
+
+            const keyPath = path.split('.');
+            const overrideValue = getNestedConfigValue(localConfigOverrides, keyPath);
+            if (typeof overrideValue !== 'undefined') {
+                return overrideValue;
+            }
+
             if (typeof getConfig === 'function') {
                 const value = getConfig(path);
                 if (typeof value !== 'undefined') {
                     return value;
                 }
-            } else if (window.dashboardConfig) {
-                const keys = path.split('.');
-                let current = window.dashboardConfig;
-                for (const key of keys) {
-                    if (current && typeof current === 'object' && key in current) {
-                        current = current[key];
-                    } else {
-                        current = undefined;
-                        break;
-                    }
-                }
-                if (typeof current !== 'undefined') {
-                    return current;
+            }
+
+            const candidateConfigs = [window.DASHBOARD_CONFIG, window.dashboardConfig];
+            for (const config of candidateConfigs) {
+                const value = getNestedConfigValue(config, keyPath);
+                if (typeof value !== 'undefined') {
+                    return value;
                 }
             }
 
@@ -2318,15 +3408,25 @@
         function getPredictionSettings() {
             const defaults = { urgentDays: 30, warningDays: 60 };
             const configValues = getConfigValue('predictions', {}) || {};
-            return Object.assign({}, defaults, {
-                urgentDays: typeof configValues.urgentDays === 'number' ? configValues.urgentDays : defaults.urgentDays,
-                warningDays: typeof configValues.warningDays === 'number' ? configValues.warningDays : defaults.warningDays
-            });
-        }
+            const urgentConfig = Number(configValues.urgentDays);
+            const warningConfig = Number(configValues.warningDays);
 
-        function getReorderPointValue() {
-            const reorder = getConfigValue('stockLevels.reorderPoint', null);
-            return typeof reorder === 'number' ? reorder : null;
+            const urgentDays = Number.isFinite(urgentConfig) && urgentConfig > 0
+                ? urgentConfig
+                : defaults.urgentDays;
+
+            let warningDays = Number.isFinite(warningConfig) && warningConfig > 0
+                ? warningConfig
+                : defaults.warningDays;
+
+            if (warningDays < urgentDays) {
+                warningDays = urgentDays;
+            }
+
+            return {
+                urgentDays: urgentDays,
+                warningDays: warningDays
+            };
         }
 
         function calculateDailyDemand(product) {
@@ -2397,6 +3497,15 @@
             }
 
             return Math.round(value).toLocaleString('pt-BR');
+        }
+
+        function formatWeightDisplay(value) {
+            if (!Number.isFinite(value)) {
+                return '--';
+            }
+
+            const rounded = Math.round(value);
+            return `${rounded.toLocaleString('pt-BR')} kg`;
         }
 
         function formatCoverageDisplay(value) {
@@ -2492,6 +3601,17 @@
                 unitLabel: Math.abs(totalMinutes) === 1 ? 'minuto' : 'minutos',
                 unitType: 'minutes'
             };
+        }
+
+        function formatCoverageThresholdLabel(months) {
+            const display = formatCoverageDisplay(months);
+            if (!display || display.displayValue === '--') {
+                return '--';
+            }
+
+            return display.unitLabel
+                ? `${display.displayValue} ${display.unitLabel}`.trim()
+                : display.displayValue;
         }
 
         function resolveCoverageSource(product) {
@@ -2621,22 +3741,53 @@
             const { urgentDays, warningDays } = getPredictionSettings();
             const urgentLabel = document.getElementById('urgentDaysLabel');
             const warningLabel = document.getElementById('warningDaysLabel');
-            const reorderElement = document.getElementById('reorderPoint');
-            const reorderPointValue = getReorderPointValue();
+
+            const urgentDisplay = Number.isFinite(urgentDays) ? urgentDays : '--';
+            const warningDisplay = Number.isFinite(warningDays) ? warningDays : '--';
 
             if (urgentLabel) {
-                urgentLabel.textContent = urgentDays;
+                urgentLabel.textContent = urgentDisplay;
             }
 
             if (warningLabel) {
-                warningLabel.textContent = warningDays;
+                warningLabel.textContent = warningDisplay;
             }
 
-            if (reorderElement) {
-                reorderElement.textContent = typeof reorderPointValue === 'number'
-                    ? `${reorderPointValue} meses`
-                    : '--';
-            }
+            document.querySelectorAll('[data-urgent-days]').forEach(function(element) {
+                element.textContent = urgentDisplay;
+            });
+
+            document.querySelectorAll('[data-warning-days]').forEach(function(element) {
+                element.textContent = warningDisplay;
+            });
+
+            const warningStart = Number.isFinite(urgentDays) ? urgentDays + 1 : null;
+            const warningStartDisplay = Number.isFinite(warningStart) && Number.isFinite(warningDays) && warningStart <= warningDays
+                ? warningStart
+                : (Number.isFinite(urgentDays) ? urgentDays : null);
+
+            document.querySelectorAll('[data-warning-start]').forEach(function(element) {
+                element.textContent = Number.isFinite(warningStartDisplay) ? warningStartDisplay : '--';
+            });
+
+            const criticalThresholdLabel = formatCoverageThresholdLabel(coverageSegmentThresholds.critical);
+            const slowThresholdLabel = formatCoverageThresholdLabel(coverageSegmentThresholds.lowUpper);
+
+            document.querySelectorAll('[data-coverage-threshold="critical"]').forEach(function(element) {
+                element.textContent = criticalThresholdLabel;
+            });
+
+            document.querySelectorAll('[data-coverage-range="low-start"]').forEach(function(element) {
+                element.textContent = criticalThresholdLabel;
+            });
+
+            document.querySelectorAll('[data-coverage-range="low-end"]').forEach(function(element) {
+                element.textContent = slowThresholdLabel;
+            });
+
+            document.querySelectorAll('[data-coverage-threshold="slow"]').forEach(function(element) {
+                element.textContent = slowThresholdLabel;
+            });
         }
 
         // Detectar suporte ao File System Access API
@@ -3398,29 +4549,295 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         // === FUNÇÕES DE BUSCA E FILTROS ===
         function performGlobalSearch() {
             const searchInput = document.getElementById('globalSearch');
-            searchTerm = searchInput.value.toLowerCase().trim();
-            
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!searchInput || !resultsDiv) {
+                return;
+            }
+
+            const rawValue = searchInput.value || '';
+            const trimmedValue = rawValue.trim();
+            searchTerm = trimmedValue.toLowerCase();
+
             if (searchTerm === '') {
-                document.getElementById('searchResults').innerHTML = '';
+                resultsDiv.innerHTML = '';
                 applyAllFilters();
                 removeHighlights();
                 return;
             }
 
-            resetAllFilters();
+            const productMatches = allProductsData.filter(function(product) {
+                const code = (product.code || '').toString().toLowerCase();
+                const name = (product.item || '').toString().toLowerCase();
+                const supplier = (product.supplier || '').toString().toLowerCase();
+                const family = (product.family || '').toString().toLowerCase();
+                return code.includes(searchTerm)
+                    || name.includes(searchTerm)
+                    || supplier.includes(searchTerm)
+                    || family.includes(searchTerm);
+            }).slice(0, 8);
 
-            const searchResults = allProductsData.filter(function(product) {
-                return product.code.toLowerCase().includes(searchTerm) ||
-                    product.item.toLowerCase().includes(searchTerm) ||
-                    product.supplier.toLowerCase().includes(searchTerm) ||
-                    product.family.toLowerCase().includes(searchTerm);
+            const families = Array.from(new Set(allProductsData.map(function(product) {
+                return (product.family || '').toString().trim();
+            }).filter(function(value) { return value !== ''; })));
+            const suppliers = Array.from(new Set(allProductsData.map(function(product) {
+                return (product.supplier || '').toString().trim();
+            }).filter(function(value) { return value !== ''; })));
+
+            const familyCounts = new Map();
+            const supplierCounts = new Map();
+
+            allProductsData.forEach(function(product) {
+                const familyName = (product.family || '').toString().trim();
+                if (familyName !== '') {
+                    familyCounts.set(familyName, (familyCounts.get(familyName) || 0) + 1);
+                }
+
+                const supplierName = (product.supplier || '').toString().trim();
+                if (supplierName !== '') {
+                    supplierCounts.set(supplierName, (supplierCounts.get(supplierName) || 0) + 1);
+                }
             });
 
-            const resultsDiv = document.getElementById('searchResults');
-            resultsDiv.innerHTML = `🔍 <strong>${searchResults.length}</strong> produtos encontrados para: "<em>${searchTerm}</em>"`;
+            const familyMatches = families.filter(function(family) {
+                return family.toLowerCase().includes(searchTerm);
+            }).slice(0, 6);
+
+            const supplierMatches = suppliers.filter(function(supplier) {
+                return supplier.toLowerCase().includes(searchTerm);
+            }).slice(0, 6);
 
             applyAllFilters();
             highlightSearchResults();
+
+            const filteredCount = filteredData.length;
+            const summaryLabel = filteredCount === 1 ? 'produto' : 'produtos';
+            const escapedTerm = escapeTooltip(trimmedValue);
+
+            let suggestionsHtml = `<div class="search-summary">🔍 <strong>${filteredCount}</strong> ${summaryLabel} encontrados para "<em>${escapedTerm}</em>"</div>`;
+
+            const maxSuggestions = 4;
+            let suggestionsCount = 0;
+            const suggestionGroups = {
+                products: [],
+                families: [],
+                suppliers: []
+            };
+
+            const buildProductSuggestion = function(product) {
+                const code = (product.code || '').toString().trim();
+                const name = (product.item || '').toString().trim() || code || 'Produto';
+                const family = (product.family || '').toString().trim();
+                const supplier = (product.supplier || '').toString().trim();
+                const metaParts = [];
+                if (code) { metaParts.push(`Código ${code}`); }
+                if (family) { metaParts.push(family); }
+                if (supplier) { metaParts.push(supplier); }
+                const metaHtml = metaParts.length > 0
+                    ? `<span class="suggestion-meta">${escapeTooltip(metaParts.join(' • '))}</span>`
+                    : '';
+                const targetTerm = code || name;
+                return `<button type="button" class="search-suggestion" data-suggestion-type="product" data-search-term="${escapeTooltip(targetTerm)}" data-product-code="${escapeTooltip(code)}">`
+                    + `<span class="suggestion-icon" aria-hidden="true">📦</span>`
+                    + `<span class="suggestion-content">`
+                    + `<span class="suggestion-main">${escapeTooltip(name)}</span>`
+                    + `${metaHtml}`
+                    + `</span>`
+                    + `<span class="suggestion-tag">Produto</span>`
+                    + `</button>`;
+            };
+
+            const buildFamilySuggestion = function(family) {
+                const count = familyCounts.get(family) || 0;
+                const countLabel = count === 1 ? '1 item' : `${count} itens`;
+                return `<button type="button" class="search-suggestion" data-suggestion-type="family" data-family="${escapeTooltip(family)}">`
+                    + `<span class="suggestion-icon" aria-hidden="true">🏷️</span>`
+                    + `<span class="suggestion-content">`
+                    + `<span class="suggestion-main">${escapeTooltip(family)}</span>`
+                    + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
+                    + `</span>`
+                    + `<span class="suggestion-tag">Filtrar família</span>`
+                    + `</button>`;
+            };
+
+            const buildSupplierSuggestion = function(supplier) {
+                const count = supplierCounts.get(supplier) || 0;
+                const countLabel = count === 1 ? '1 item' : `${count} itens`;
+                return `<button type="button" class="search-suggestion" data-suggestion-type="supplier" data-supplier="${escapeTooltip(supplier)}">`
+                    + `<span class="suggestion-icon" aria-hidden="true">🏭</span>`
+                    + `<span class="suggestion-content">`
+                    + `<span class="suggestion-main">${escapeTooltip(supplier)}</span>`
+                    + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
+                    + `</span>`
+                    + `<span class="suggestion-tag">Filtrar fornecedor</span>`
+                    + `</button>`;
+            };
+
+            productMatches.forEach(function(product) {
+                if (suggestionsCount >= maxSuggestions) {
+                    return;
+                }
+                suggestionGroups.products.push(buildProductSuggestion(product));
+                suggestionsCount += 1;
+            });
+
+            if (suggestionsCount < maxSuggestions) {
+                familyMatches.forEach(function(family) {
+                    if (suggestionsCount >= maxSuggestions) {
+                        return;
+                    }
+                    suggestionGroups.families.push(buildFamilySuggestion(family));
+                    suggestionsCount += 1;
+                });
+            }
+
+            if (suggestionsCount < maxSuggestions) {
+                supplierMatches.forEach(function(supplier) {
+                    if (suggestionsCount >= maxSuggestions) {
+                        return;
+                    }
+                    suggestionGroups.suppliers.push(buildSupplierSuggestion(supplier));
+                    suggestionsCount += 1;
+                });
+            }
+
+            if (suggestionGroups.products.length > 0) {
+                suggestionsHtml += `<div class="search-suggestion-group" data-group="products">`
+                    + `<span class="group-title">Produtos sugeridos</span>`
+                    + `<div class="search-suggestion-list">${suggestionGroups.products.join('')}</div>`
+                    + `</div>`;
+            }
+
+            if (suggestionGroups.families.length > 0) {
+                suggestionsHtml += `<div class="search-suggestion-group" data-group="families">`
+                    + `<span class="group-title">Famílias relacionadas</span>`
+                    + `<div class="search-suggestion-list">${suggestionGroups.families.join('')}</div>`
+                    + `</div>`;
+            }
+
+            if (suggestionGroups.suppliers.length > 0) {
+                suggestionsHtml += `<div class="search-suggestion-group" data-group="suppliers">`
+                    + `<span class="group-title">Fornecedores relacionados</span>`
+                    + `<div class="search-suggestion-list">${suggestionGroups.suppliers.join('')}</div>`
+                    + `</div>`;
+            }
+
+            resultsDiv.innerHTML = suggestionsHtml;
+        }
+
+        function handleSearchSuggestionClick(event) {
+            const button = event.target.closest('.search-suggestion');
+            if (!button) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const type = button.getAttribute('data-suggestion-type');
+            if (!type) {
+                return;
+            }
+
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (type === 'product') {
+                const term = button.getAttribute('data-search-term') || '';
+                if (term === '') {
+                    return;
+                }
+
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.value = term;
+                    searchInput.focus();
+                }
+
+                searchTerm = term.toLowerCase();
+                performGlobalSearch();
+                return;
+            }
+
+            if (type === 'family') {
+                const family = (button.getAttribute('data-family') || '').trim();
+                if (family === '') {
+                    return;
+                }
+
+                selectedFamily = family;
+                criticalFilterActive = false;
+
+                const familySelect = document.getElementById('familyFilter');
+                if (familySelect) {
+                    const hasOption = Array.from(familySelect.options || []).some(function(option) {
+                        return option.value === family;
+                    });
+
+                    if (!hasOption) {
+                        const option = document.createElement('option');
+                        option.value = family;
+                        option.textContent = family;
+                        familySelect.appendChild(option);
+                    }
+
+                    familySelect.value = family;
+                }
+
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+
+                searchTerm = '';
+                applyAllFilters();
+                refreshFamilyChipSelection();
+                highlightSearchResults();
+
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `<div class="search-summary applied">Filtro de família "<em>${escapeTooltip(family)}</em>" aplicado.</div>`;
+                }
+
+                return;
+            }
+
+            if (type === 'supplier') {
+                const supplier = (button.getAttribute('data-supplier') || '').trim();
+                if (supplier === '') {
+                    return;
+                }
+
+                selectedSupplier = supplier;
+                criticalFilterActive = false;
+
+                const supplierSelect = document.getElementById('supplierFilter');
+                if (supplierSelect) {
+                    const hasOption = Array.from(supplierSelect.options || []).some(function(option) {
+                        return option.value === supplier;
+                    });
+
+                    if (!hasOption) {
+                        const option = document.createElement('option');
+                        option.value = supplier;
+                        option.textContent = supplier;
+                        supplierSelect.appendChild(option);
+                    }
+
+                    supplierSelect.value = supplier;
+                }
+
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+
+                searchTerm = '';
+                applyAllFilters();
+                refreshFamilyChipSelection();
+                highlightSearchResults();
+
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `<div class="search-summary applied">Filtro de fornecedor "<em>${escapeTooltip(supplier)}</em>" aplicado.</div>`;
+                }
+            }
         }
 
         function resetAllFilters() {
@@ -3430,22 +4847,28 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             selectedSupplier = null;
             currentEstablishment = '';
             criticalFilterActive = false;
-            advancedStockFilter = '';
 
-            document.getElementById('familyFilter').value = '';
-            document.getElementById('supplierFilter').value = '';
-            document.getElementById('establishmentFilter').value = '';
-            const advancedDropdown = document.getElementById('advancedStockFilter');
-            if (advancedDropdown) {
-                advancedDropdown.value = '';
-            }
+            resetAdvancedFilterSelection();
+            resetCoverageFilterChips();
+            resetPredictionRangeButtons();
+
+            const familySelect = document.getElementById('familyFilter');
+            const supplierSelect = document.getElementById('supplierFilter');
+            const establishmentSelect = document.getElementById('establishmentFilter');
+
+            if (familySelect) { familySelect.value = ''; }
+            if (supplierSelect) { supplierSelect.value = ''; }
+            if (establishmentSelect) { establishmentSelect.value = ''; }
 
             updateActiveButton('all');
-            
+
             const activeItems = document.querySelectorAll('.prediction-item.active');
             activeItems.forEach(function(item) {
                 item.classList.remove('active');
+                item.setAttribute('aria-pressed', 'false');
             });
+
+            refreshFamilyChipSelection();
         }
 
         function clearSearch() {
@@ -3975,14 +5398,33 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         // === FUNÇÕES DE FILTROS ===
-        function resetOver50AdvancedFilter() {
-            if (advancedStockFilter === 'over50') {
-                advancedStockFilter = '';
-                const advancedDropdown = document.getElementById('advancedStockFilter');
-                if (advancedDropdown) {
-                    advancedDropdown.value = '';
-                }
+        function setPredictionCardActive(card, isActive) {
+            if (!card) {
+                return;
             }
+
+            if (isActive) {
+                card.classList.add('active');
+                card.setAttribute('aria-pressed', 'true');
+            } else {
+                card.classList.remove('active');
+                card.setAttribute('aria-pressed', 'false');
+            }
+        }
+
+        function resetPredictionRangeButtons() {
+            const rangeButtons = document.querySelectorAll('.prediction-card[data-prediction-filter]');
+            rangeButtons.forEach(function(button) {
+                setPredictionCardActive(button, false);
+            });
+        }
+
+        function resetCoverageFilterChips() {
+            const chips = document.querySelectorAll('.prediction-item[data-coverage-filter].active');
+            chips.forEach(function(chip) {
+                chip.classList.remove('active');
+                chip.setAttribute('aria-pressed', 'false');
+            });
         }
 
         function populateFamilyFilter() {
@@ -3993,7 +5435,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             select.innerHTML = '<option value="">Todas as Famílias</option>';
             families.forEach(function(family) {
                 const option = document.createElement('option');
-                option.value = family;
+                const normalized = (family || '').toString().trim();
+                option.value = normalized;
                 option.textContent = family;
                 select.appendChild(option);
             });
@@ -4022,66 +5465,135 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const activeItems = document.querySelectorAll('.prediction-item.active');
             activeItems.forEach(function(item) {
                 item.classList.remove('active');
+                item.setAttribute('aria-pressed', 'false');
             });
+            resetPredictionRangeButtons();
             document.getElementById('familyFilter').value = '';
             document.getElementById('supplierFilter').value = '';
             document.getElementById('establishmentFilter').value = '';
-            document.getElementById('advancedStockFilter').value = '';
-            advancedStockFilter = '';
+            resetAdvancedFilterSelection();
             updateActiveButton('all');
+            refreshFamilyChipSelection();
             applyAllFilters();
         }
 
         function filterCriticalStock() {
-            if (criticalFilterActive) {
+            const wasActive = criticalFilterActive;
+            predictionFilter = null;
+            resetAdvancedFilterSelection();
+            resetPredictionRangeButtons();
+
+            if (wasActive) {
                 criticalFilterActive = false;
                 currentFilter = 'all';
-                updateActiveButton('all');
-                applyAllFilters();
             } else {
                 criticalFilterActive = true;
                 currentFilter = 'critical';
-                predictionFilter = null;
-                resetOver50AdvancedFilter();
-                const activeItems = document.querySelectorAll('.prediction-item.active');
-                activeItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
-                updateActiveButton('critical');
-                applyAllFilters();
             }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
         }
 
         function filterLowStock() {
-            currentFilter = 'low';
             predictionFilter = null;
             criticalFilterActive = false;
-            resetOver50AdvancedFilter();
-            const activeItems = document.querySelectorAll('.prediction-item.active');
-            activeItems.forEach(function(item) {
-                item.classList.remove('active');
-            });
-            updateActiveButton('low');
+            resetAdvancedFilterSelection();
+            resetPredictionRangeButtons();
+
+            if (!predictionFilter && currentFilter === 'low') {
+                currentFilter = 'all';
+            } else {
+                currentFilter = 'low';
+            }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
             applyAllFilters();
         }
 
         function filterHighStock() {
-            currentFilter = 'high';
             predictionFilter = null;
             criticalFilterActive = false;
-            resetOver50AdvancedFilter();
-            const activeItems = document.querySelectorAll('.prediction-item.active');
-            activeItems.forEach(function(item) {
-                item.classList.remove('active');
-            });
-            updateActiveButton('high');
+            resetAdvancedFilterSelection();
+            resetPredictionRangeButtons();
+
+            if (!predictionFilter && currentFilter === 'high') {
+                currentFilter = 'all';
+            } else {
+                currentFilter = 'high';
+            }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
+        }
+
+        function filterUrgentLimit() {
+            const urgentCard = document.querySelector('.prediction-card[data-prediction-filter="limit-urgent"]');
+            const warningCard = document.querySelector('.prediction-card[data-prediction-filter="limit-warning"]');
+            const zero30Card = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
+            const zero60Card = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+
+            resetAdvancedFilterSelection();
+
+            if (predictionFilter === 'limit-urgent') {
+                predictionFilter = null;
+                currentFilter = 'all';
+                criticalFilterActive = false;
+                setPredictionCardActive(urgentCard, false);
+            } else {
+                resetCoverageFilterChips();
+                resetPredictionRangeButtons();
+
+                predictionFilter = 'limit-urgent';
+                currentFilter = 'limitUrgent';
+                criticalFilterActive = false;
+                setPredictionCardActive(urgentCard, true);
+            }
+
+            setPredictionCardActive(warningCard, predictionFilter === 'limit-warning');
+            setPredictionCardActive(zero30Card, predictionFilter === 'zero30');
+            setPredictionCardActive(zero60Card, predictionFilter === 'zero60');
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
+        }
+
+        function filterWarningLimit() {
+            const urgentCard = document.querySelector('.prediction-card[data-prediction-filter="limit-urgent"]');
+            const warningCard = document.querySelector('.prediction-card[data-prediction-filter="limit-warning"]');
+            const zero30Card = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
+            const zero60Card = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+
+            resetAdvancedFilterSelection();
+
+            if (predictionFilter === 'limit-warning') {
+                predictionFilter = null;
+                currentFilter = 'all';
+                criticalFilterActive = false;
+                setPredictionCardActive(warningCard, false);
+            } else {
+                resetCoverageFilterChips();
+                resetPredictionRangeButtons();
+
+                predictionFilter = 'limit-warning';
+                currentFilter = 'limitWarning';
+                criticalFilterActive = false;
+                setPredictionCardActive(warningCard, true);
+            }
+
+            setPredictionCardActive(urgentCard, predictionFilter === 'limit-urgent');
+            setPredictionCardActive(zero30Card, predictionFilter === 'zero30');
+            setPredictionCardActive(zero60Card, predictionFilter === 'zero60');
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
             applyAllFilters();
         }
 
         function filterByFamily() {
             const familyDropdown = document.getElementById('familyFilter');
-            selectedFamily = familyDropdown.value;
+            const rawValue = familyDropdown ? familyDropdown.value : '';
+            const normalizedValue = typeof rawValue === 'string' ? rawValue.trim() : '';
+            selectedFamily = normalizedValue ? normalizedValue : null;
             criticalFilterActive = false;
+            refreshFamilyChipSelection();
             applyAllFilters();
         }
 
@@ -4098,69 +5610,97 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             applyAllFilters();
         }
 
-        function filterByAdvancedStock() {
-            const advancedDropdown = document.getElementById('advancedStockFilter');
-            advancedStockFilter = advancedDropdown ? advancedDropdown.value : '';
+        function filterByAdvancedStock(value) {
+            if (typeof value === 'string') {
+                const normalized = value.trim();
+                if (advancedStockFilter === normalized) {
+                    resetAdvancedFilterSelection();
+                } else {
+                    advancedStockFilter = normalized;
+                    currentFilter = 'all';
+                    predictionFilter = null;
+                    resetCoverageFilterChips();
+                    resetPredictionRangeButtons();
+                    syncAdvancedFilterChips();
+                }
+            } else {
+                resetAdvancedFilterSelection();
+            }
+
             criticalFilterActive = false;
+            updateActiveButton('all');
+            refreshFamilyChipSelection();
             applyAllFilters();
         }
 
         function filterByGauge(family) {
-            if (selectedFamily === family) {
-                selectedFamily = null;
-                document.getElementById('familyFilter').value = '';
-                showAllProducts();
-            } else {
-                selectedFamily = family;
-                document.getElementById('familyFilter').value = family;
-                filterByFamily();
-            }
+            const normalizedFamily = typeof family === 'string' ? family.trim() : '';
+            toggleFamilyFilterSelection(normalizedFamily);
         }
 
         function filterZeroIn30() {
-            const item30 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn30()"]');
-            
+            const item30 = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
+            const item60 = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+
+            resetAdvancedFilterSelection();
+
             if (predictionFilter === 'zero30') {
                 predictionFilter = null;
-                item30.classList.remove('active');
-                showAllProducts();
+                currentFilter = 'all';
+                criticalFilterActive = false;
+                setPredictionCardActive(item30, false);
+                setPredictionCardActive(item60, false);
             } else {
-                const activeItems = document.querySelectorAll('.prediction-item.active');
-                activeItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
-                
+                resetCoverageFilterChips();
+                resetPredictionRangeButtons();
+
                 predictionFilter = 'zero30';
                 criticalFilterActive = false;
-                item30.classList.add('active');
                 currentFilter = 'prediction30';
-                updateActiveButton(null);
-                
-                applyAllFilters();
+                setPredictionCardActive(item30, true);
+                setPredictionCardActive(item60, false);
             }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
         }
 
         function filterZeroIn60() {
-            const item60 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn60()"]');
+            const item30 = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
+            const item60 = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+
+            resetAdvancedFilterSelection();
 
             if (predictionFilter === 'zero60') {
                 predictionFilter = null;
-                item60.classList.remove('active');
-                showAllProducts();
+                currentFilter = 'all';
+                criticalFilterActive = false;
+                setPredictionCardActive(item60, false);
+                setPredictionCardActive(item30, false);
             } else {
-                const activeItems = document.querySelectorAll('.prediction-item.active');
-                activeItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
+                resetCoverageFilterChips();
+                resetPredictionRangeButtons();
 
                 predictionFilter = 'zero60';
                 criticalFilterActive = false;
-                item60.classList.add('active');
                 currentFilter = 'prediction60';
-                updateActiveButton(null);
-
-                applyAllFilters();
+                setPredictionCardActive(item30, false);
+                setPredictionCardActive(item60, true);
             }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
+        }
+
+        function clearPredictiveFilters() {
+            predictionFilter = null;
+            currentFilter = 'all';
+            criticalFilterActive = false;
+            resetCoverageFilterChips();
+            resetAdvancedFilterSelection();
+            resetPredictionRangeButtons();
+            updateActiveButton('all');
+            applyAllFilters();
         }
 
         function assignAbcClassification(dataSet) {
@@ -4250,11 +5790,255 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             return classificationMap;
         }
 
+        function getCoverageMonthsForProduct(product) {
+            const directValue = getCoverageValue(product);
+            if (Number.isFinite(directValue)) {
+                return directValue;
+            }
+
+            const coverageInfo = getCoverageInfo(product);
+            if (coverageInfo.outOfStock) {
+                return 0;
+            }
+
+            if (Number.isFinite(coverageInfo.daysToDepletion)) {
+                return coverageInfo.daysToDepletion / 30;
+            }
+
+            return null;
+        }
+
+        function computeCoverageSegments(dataSet) {
+            const segments = { critical: 0, low: 0, slow: 0 };
+
+            if (!Array.isArray(dataSet) || dataSet.length === 0) {
+                return segments;
+            }
+
+            dataSet.forEach(function(product) {
+                const coverageValue = getCoverageMonthsForProduct(product);
+                if (!Number.isFinite(coverageValue)) {
+                    return;
+                }
+
+                if (coverageValue < coverageSegmentThresholds.critical) {
+                    segments.critical += 1;
+                } else if (coverageValue < coverageSegmentThresholds.lowUpper) {
+                    segments.low += 1;
+                } else {
+                    segments.slow += 1;
+                }
+            });
+
+            return segments;
+        }
+
+        function computeAdvancedFilterSegments(dataSet) {
+            const segments = {
+                'no-stock': 0,
+                'over50': 0,
+                'abc-a': 0,
+                'abc-b': 0,
+                'abc-c': 0
+            };
+
+            if (!Array.isArray(dataSet) || dataSet.length === 0) {
+                return segments;
+            }
+
+            dataSet.forEach(function(product) {
+                if (getProductStock(product) <= 0) {
+                    segments['no-stock'] += 1;
+                }
+
+                const coverage = getCoverageInfo(product);
+                let coverageMonths = null;
+                if (coverage && coverage.daysToDepletion !== null) {
+                    coverageMonths = coverage.daysToDepletion / 30;
+                } else if (Number.isFinite(product && product.stockMonths)) {
+                    coverageMonths = product.stockMonths;
+                }
+
+                if (Number.isFinite(coverageMonths) && coverageMonths > 50) {
+                    segments['over50'] += 1;
+                }
+
+                const abcClass = (product && product.currentAbcClass) || '—';
+                if (abcClass === 'A') {
+                    segments['abc-a'] += 1;
+                } else if (abcClass === 'B') {
+                    segments['abc-b'] += 1;
+                } else if (abcClass === 'C') {
+                    segments['abc-c'] += 1;
+                }
+            });
+
+            return segments;
+        }
+
+        function formatChipCount(count) {
+            const safeCount = Number(count) || 0;
+            const label = safeCount === 1 ? 'item' : 'itens';
+            return `${safeCount} ${label}`;
+        }
+
+        function resetAdvancedFilterChips() {
+            const chips = document.querySelectorAll('.prediction-item[data-advanced-filter]');
+            chips.forEach(function(chip) {
+                chip.classList.remove('active');
+                chip.setAttribute('aria-pressed', 'false');
+            });
+        }
+
+        function syncAdvancedFilterChips() {
+            const chips = document.querySelectorAll('.prediction-item[data-advanced-filter]');
+            chips.forEach(function(chip) {
+                const key = chip.getAttribute('data-advanced-filter');
+                const isActive = advancedStockFilter === key;
+                if (isActive) {
+                    chip.classList.add('active');
+                    chip.setAttribute('aria-pressed', 'true');
+                } else {
+                    chip.classList.remove('active');
+                    chip.setAttribute('aria-pressed', 'false');
+                }
+            });
+        }
+
+        function updateAdvancedFilterChips(segments) {
+            const chips = document.querySelectorAll('.prediction-item[data-advanced-filter]');
+            chips.forEach(function(chip) {
+                const key = chip.getAttribute('data-advanced-filter');
+                const count = segments[key] || 0;
+                const counter = chip.querySelector('.filter-count');
+                if (counter) {
+                    counter.textContent = formatChipCount(count);
+                }
+
+                if (count === 0) {
+                    chip.classList.add('is-empty');
+                    chip.setAttribute('aria-disabled', 'true');
+                } else {
+                    chip.classList.remove('is-empty');
+                    chip.removeAttribute('aria-disabled');
+                }
+            });
+
+            syncAdvancedFilterChips();
+        }
+
+        function resetAdvancedFilterSelection() {
+            advancedStockFilter = '';
+            resetAdvancedFilterChips();
+            syncAdvancedFilterChips();
+        }
+
+        function updateCoverageQuickFilters(segments) {
+            const safeSegments = segments || { critical: 0, low: 0, slow: 0 };
+            const counts = {
+                critical: Number.isFinite(safeSegments.critical) ? safeSegments.critical : 0,
+                low: Number.isFinite(safeSegments.low) ? safeSegments.low : 0,
+                slow: Number.isFinite(safeSegments.slow) ? safeSegments.slow : 0
+            };
+
+            const chips = document.querySelectorAll('.prediction-item[data-coverage-filter]');
+            chips.forEach(function(chip) {
+                const key = chip.getAttribute('data-coverage-filter');
+                const count = counts[key] || 0;
+                const counter = chip.querySelector('.filter-count');
+                if (counter) {
+                    counter.textContent = formatChipCount(count);
+                }
+
+                if (count === 0) {
+                    chip.classList.add('is-empty');
+                    chip.setAttribute('aria-disabled', 'true');
+                } else {
+                    chip.classList.remove('is-empty');
+                    chip.removeAttribute('aria-disabled');
+                }
+            });
+
+            syncCoverageFilterChips();
+        }
+
+        function syncCoverageFilterChips() {
+            const chips = document.querySelectorAll('.prediction-item[data-coverage-filter]');
+            chips.forEach(function(chip) {
+                const key = chip.getAttribute('data-coverage-filter');
+                const isActive = !predictionFilter && currentFilter === key;
+                if (isActive) {
+                    chip.classList.add('active');
+                    chip.setAttribute('aria-pressed', 'true');
+                } else {
+                    chip.classList.remove('active');
+                    chip.setAttribute('aria-pressed', 'false');
+                }
+            });
+        }
+
+        function updatePredictiveResetButton() {
+            const resetButton = document.getElementById('clearPredictiveFilters');
+            if (!resetButton) {
+                return;
+            }
+
+            const predictiveFiltersActive = predictionFilter !== null
+                || ['critical', 'low', 'high', 'prediction30', 'prediction60', 'limitUrgent', 'limitWarning'].includes(currentFilter)
+                || (advancedStockFilter && advancedStockFilter !== '');
+
+            if (predictiveFiltersActive) {
+                resetButton.classList.add('visible');
+                resetButton.setAttribute('aria-pressed', 'true');
+            } else {
+                resetButton.classList.remove('visible');
+                resetButton.setAttribute('aria-pressed', 'false');
+            }
+        }
+
         function applyAllFilters() {
             let baseData = allProductsData.slice();
             const { urgentDays, warningDays } = getPredictionSettings();
 
-            if (predictionFilter === 'zero30') {
+            if (predictionFilter === 'limit-urgent') {
+                baseData = baseData.filter(function(p) {
+                    const prediction = getPrediction(p);
+                    if (!prediction) {
+                        return false;
+                    }
+
+                    if (prediction.status === 'urgent') {
+                        return true;
+                    }
+
+                    if (prediction.status === 'unknown' || prediction.daysToDepletion === null) {
+                        return false;
+                    }
+
+                    return Number.isFinite(prediction.daysToDepletion)
+                        ? prediction.daysToDepletion <= urgentDays
+                        : false;
+                });
+            } else if (predictionFilter === 'limit-warning') {
+                baseData = baseData.filter(function(p) {
+                    const prediction = getPrediction(p);
+                    if (!prediction) {
+                        return false;
+                    }
+
+                    if (prediction.status === 'warning') {
+                        return true;
+                    }
+
+                    if (prediction.status === 'unknown' || prediction.daysToDepletion === null) {
+                        return false;
+                    }
+
+                    return Number.isFinite(prediction.daysToDepletion)
+                        ? prediction.daysToDepletion > urgentDays && prediction.daysToDepletion <= warningDays
+                        : false;
+                });
+            } else if (predictionFilter === 'zero30') {
                 baseData = baseData.filter(function(p) {
                     const coverage = getCoverageInfo(p);
                     if (coverage.outOfStock) {
@@ -4287,26 +6071,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
             }
 
-            if (!predictionFilter) {
-                switch(currentFilter) {
-                    case 'critical':
-                        baseData = baseData.filter(function(p) {
-                            return p.stockMonths < 2;
-                        });
-                        break;
-                    case 'low':
-                        baseData = baseData.filter(function(p) {
-                            return p.stockMonths >= 2 && p.stockMonths < 6;
-                        });
-                        break;
-                    case 'high':
-                        baseData = baseData.filter(function(p) {
-                            return p.stockMonths >= 6;
-                        });
-                        break;
-                }
-            }
-
             if (selectedFamily) {
                 baseData = baseData.filter(function(product) {
                     return product.family === selectedFamily;
@@ -4331,6 +6095,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             assignAbcClassification(baseData);
 
+            const advancedSegments = computeAdvancedFilterSegments(baseData);
+
             if (advancedStockFilter && advancedStockFilter.startsWith('abc-')) {
                 const desiredClass = advancedStockFilter.slice(4).toUpperCase();
                 baseData = baseData.filter(function(product) {
@@ -4350,12 +6116,42 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
             }
 
+            const coverageSegments = computeCoverageSegments(baseData);
+
+            if (!predictionFilter) {
+                switch(currentFilter) {
+                    case 'critical':
+                        baseData = baseData.filter(function(product) {
+                            const coverageValue = getCoverageMonthsForProduct(product);
+                            return Number.isFinite(coverageValue) && coverageValue < coverageSegmentThresholds.critical;
+                        });
+                        break;
+                    case 'low':
+                        baseData = baseData.filter(function(product) {
+                            const coverageValue = getCoverageMonthsForProduct(product);
+                            return Number.isFinite(coverageValue)
+                                && coverageValue >= coverageSegmentThresholds.critical
+                                && coverageValue < coverageSegmentThresholds.lowUpper;
+                        });
+                        break;
+                    case 'high':
+                        baseData = baseData.filter(function(product) {
+                            const coverageValue = getCoverageMonthsForProduct(product);
+                            return Number.isFinite(coverageValue) && coverageValue >= coverageSegmentThresholds.lowUpper;
+                        });
+                        break;
+                }
+            }
+
             filteredData = baseData;
+            updateAdvancedFilterChips(advancedSegments);
+            updateCoverageQuickFilters(coverageSegments);
             updateParetoAnalysis();
             updateTable();
             updateSummary();
             updateGauges();
             updatePredictiveAnalysis();
+            updatePredictiveResetButton();
         }
 
         function updateActiveButton(filter) {
@@ -4375,28 +6171,121 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const { urgentDays, warningDays } = getPredictionSettings();
             let urgentCount = 0;
             let warningCount = 0;
+            const timelineBuckets = {
+                urgent: [],
+                warning: [],
+                stable: [],
+                unknown: []
+            };
 
             filteredData.forEach(function(product) {
                 const coverage = getCoverageInfo(product);
+                const predictionInfo = getPrediction(product);
+                let bucketKey = 'unknown';
 
                 if (coverage.outOfStock) {
                     urgentCount++;
-                    return;
-                }
-
-                if (coverage.daysToDepletion === null) {
-                    return;
-                }
-
-                if (coverage.daysToDepletion <= urgentDays) {
+                    bucketKey = 'urgent';
+                } else if (coverage.daysToDepletion === null) {
+                    bucketKey = 'unknown';
+                } else if (coverage.daysToDepletion <= urgentDays) {
                     urgentCount++;
+                    bucketKey = 'urgent';
                 } else if (coverage.daysToDepletion <= warningDays) {
                     warningCount++;
+                    bucketKey = 'warning';
+                } else {
+                    bucketKey = 'stable';
+                }
+
+                if (!predictionInfo) {
+                    return;
+                }
+
+                const estimatedDate = predictionInfo.estimatedDate ? new Date(predictionInfo.estimatedDate) : null;
+                const formattedDate = estimatedDate && !Number.isNaN(estimatedDate.getTime())
+                    ? estimatedDate.toLocaleDateString('pt-BR')
+                    : '--';
+                const coverageMonths = getCoverageMonthsForProduct(product);
+                const coverageDisplay = Number.isFinite(coverageMonths) ? formatCoverageDisplay(coverageMonths) : null;
+                const coverageText = coverageDisplay
+                    ? (coverageDisplay.unitLabel
+                        ? `${coverageDisplay.displayValue} ${coverageDisplay.unitLabel}`.trim()
+                        : coverageDisplay.displayValue)
+                    : null;
+                const tooltipParts = [];
+                if (predictionInfo.detail) {
+                    tooltipParts.push(predictionInfo.detail);
+                } else if (predictionInfo.fullText) {
+                    tooltipParts.push(predictionInfo.fullText);
+                }
+                if (coverageText) {
+                    tooltipParts.push(`Cobertura atual: ${coverageText}`);
+                }
+                if (Number.isFinite(coverage.daysToDepletion)) {
+                    tooltipParts.push(`Dias até ruptura: ${Math.round(coverage.daysToDepletion)}`);
+                }
+                if (formattedDate && formattedDate !== '--') {
+                    tooltipParts.push(`Ruptura estimada: ${formattedDate}`);
+                }
+
+                const entry = {
+                    product: product,
+                    prediction: predictionInfo,
+                    formattedDate: formattedDate,
+                    tooltip: tooltipParts.join(' • '),
+                    coverageMonths: Number.isFinite(coverageMonths) ? coverageMonths : null,
+                    coverageDisplay: coverageDisplay,
+                    coverageText: coverageText
+                };
+
+                if (bucketKey === 'urgent') {
+                    timelineBuckets.urgent.push(entry);
+                } else if (bucketKey === 'warning') {
+                    timelineBuckets.warning.push(entry);
+                } else if (bucketKey === 'stable') {
+                    timelineBuckets.stable.push(entry);
+                } else {
+                    timelineBuckets.unknown.push(entry);
                 }
             });
 
             const zeroIn30Element = document.getElementById('zeroIn30');
             const zeroIn60Element = document.getElementById('zeroIn60');
+            const urgentBubble = document.getElementById('urgentLimitCount');
+            const warningBubble = document.getElementById('warningLimitCount');
+
+            if (urgentBubble) {
+                const urgentLabel = urgentCount === 1 ? 'item' : 'itens';
+                const urgentAria = urgentCount === 1 ? 'item crítico' : 'itens críticos';
+                const numberSpan = urgentBubble.querySelector('.bubble-number');
+                const labelSpan = urgentBubble.querySelector('.bubble-label');
+                if (numberSpan) {
+                    numberSpan.textContent = urgentCount;
+                }
+                if (labelSpan) {
+                    labelSpan.textContent = urgentLabel;
+                } else {
+                    urgentBubble.textContent = `${urgentCount} ${urgentLabel}`;
+                }
+                urgentBubble.setAttribute('aria-label', `${urgentCount} ${urgentAria}`);
+            }
+
+            if (warningBubble) {
+                const warningLabel = warningCount === 1 ? 'item' : 'itens';
+                const warningAria = warningCount === 1 ? 'item em atenção' : 'itens em atenção';
+                const numberSpan = warningBubble.querySelector('.bubble-number');
+                const labelSpan = warningBubble.querySelector('.bubble-label');
+                if (numberSpan) {
+                    numberSpan.textContent = warningCount;
+                }
+                if (labelSpan) {
+                    labelSpan.textContent = warningLabel;
+                } else {
+                    warningBubble.textContent = `${warningCount} ${warningLabel}`;
+                }
+                warningBubble.setAttribute('aria-label', `${warningCount} ${warningAria}`);
+            }
 
             if (zeroIn30Element) {
                 zeroIn30Element.textContent = urgentCount;
@@ -4411,6 +6300,599 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ? 'prediction-value prediction-warning'
                     : 'prediction-value prediction-good';
             }
+
+            const sortByDays = function(list) {
+                return list.sort(function(a, b) {
+                    const daysA = Number.isFinite(a && a.prediction && a.prediction.daysToDepletion)
+                        ? a.prediction.daysToDepletion
+                        : Number.MAX_SAFE_INTEGER;
+                    const daysB = Number.isFinite(b && b.prediction && b.prediction.daysToDepletion)
+                        ? b.prediction.daysToDepletion
+                        : Number.MAX_SAFE_INTEGER;
+                    return daysA - daysB;
+                });
+            };
+
+            sortByDays(timelineBuckets.urgent);
+            sortByDays(timelineBuckets.warning);
+            sortByDays(timelineBuckets.stable);
+
+            renderPredictionTimeline(timelineBuckets, urgentDays, warningDays);
+        }
+
+        function buildTimelineProductChip(product, fallbackName) {
+            const rawName = fallbackName && fallbackName.toString().trim() !== ''
+                ? fallbackName.toString()
+                : (product && (product.item || product.code))
+                    ? (product.item || product.code)
+                    : 'Produto';
+            const displayName = escapeTooltip(rawName);
+            const codeValue = product && product.code ? product.code.toString().trim() : '';
+
+            if (codeValue !== '') {
+                const safeCode = escapeTooltip(codeValue);
+                const actionLabel = escapeTooltip(`Abrir histórico do produto ${rawName}`);
+                return `<button type="button" class="product-chip timeline-product-chip" data-code="${safeCode}" aria-label="${actionLabel}" onclick="openProductHistoryFromElement(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProductHistoryFromElement(this);}">${displayName}</button>`;
+            }
+
+            return `<span class="product-chip product-chip-static timeline-product-chip">${displayName}</span>`;
+        }
+
+        function toggleFamilyFilterSelection(family) {
+            const normalizedFamily = typeof family === 'string' ? family.trim() : '';
+            const dropdown = document.getElementById('familyFilter');
+            const shouldReset = !normalizedFamily || selectedFamily === normalizedFamily;
+
+            if (shouldReset) {
+                selectedFamily = null;
+                if (dropdown) {
+                    dropdown.value = '';
+                }
+            } else {
+                selectedFamily = normalizedFamily;
+                if (dropdown) {
+                    const hasOption = Array.from(dropdown.options || []).some(function(option) {
+                        return option.value === normalizedFamily;
+                    });
+
+                    if (!hasOption) {
+                        const option = document.createElement('option');
+                        option.value = normalizedFamily;
+                        option.textContent = normalizedFamily;
+                        dropdown.appendChild(option);
+                    }
+
+                    dropdown.value = normalizedFamily;
+                }
+            }
+
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function onFamilyChipClick(event) {
+            const chip = event.currentTarget;
+            if (!chip) {
+                return;
+            }
+
+            const family = chip.dataset.family || '';
+            if (!family) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            toggleFamilyFilterSelection(family);
+        }
+
+        function onFamilyChipKeydown(event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            const chip = event.currentTarget;
+            if (!chip) {
+                return;
+            }
+
+            event.preventDefault();
+            const family = chip.dataset.family || '';
+            if (!family) {
+                return;
+            }
+
+            toggleFamilyFilterSelection(family);
+        }
+
+        function refreshFamilyChipSelection(scope) {
+            const root = scope || document;
+            const chips = root.querySelectorAll('.js-family-chip');
+            chips.forEach(function(chip) {
+                const family = chip.dataset.family || '';
+                if (!family) {
+                    chip.classList.remove('is-selected');
+                    chip.removeAttribute('aria-pressed');
+                    return;
+                }
+
+                const isSelected = !!selectedFamily && family === selectedFamily;
+                if (isSelected) {
+                    chip.classList.add('is-selected');
+                    chip.setAttribute('aria-pressed', 'true');
+                } else {
+                    chip.classList.remove('is-selected');
+                    chip.setAttribute('aria-pressed', 'false');
+                }
+            });
+        }
+
+        function setupFamilyChipInteractions(root) {
+            const scope = root || document;
+            const chips = scope.querySelectorAll('.js-family-chip');
+
+            chips.forEach(function(chip) {
+                chip.removeEventListener('click', onFamilyChipClick);
+                chip.removeEventListener('keydown', onFamilyChipKeydown);
+                chip.addEventListener('click', onFamilyChipClick);
+                chip.addEventListener('keydown', onFamilyChipKeydown);
+            });
+
+            refreshFamilyChipSelection(scope);
+        }
+
+        function renderPredictionTimeline(buckets, urgentDays, warningDays) {
+            const container = document.getElementById('predictionTimeline');
+            if (!container) {
+                return;
+            }
+
+            const maxPreviewItems = 5;
+            const formatDaysText = function(value) {
+                if (!Number.isFinite(value)) {
+                    return '--';
+                }
+
+                const rounded = Math.round(value);
+                return rounded === 1 ? '1 dia' : `${rounded} dias`;
+            };
+
+            const urgentLimitText = Number.isFinite(urgentDays)
+                ? `Cobertura ≤ ${formatDaysText(urgentDays)}`
+                : 'Cobertura urgente';
+            const warningStart = Number.isFinite(urgentDays) ? Math.round(urgentDays) + 1 : null;
+            const warningSubtitle = Number.isFinite(warningDays)
+                ? (warningStart !== null
+                    ? `Cobertura entre ${warningStart} e ${Math.round(warningDays)} dias`
+                    : `Cobertura ≤ ${formatDaysText(warningDays)}`)
+                : 'Cobertura em atenção';
+
+            let comfortableSubtitle = 'Acima dos limites configurados';
+            if (Number.isFinite(warningDays)) {
+                const comfortableCoverage = formatCoverageDisplay(warningDays / 30);
+                const coverageLabel = comfortableCoverage && comfortableCoverage.displayValue !== '--'
+                    ? (comfortableCoverage.unitLabel
+                        ? `${comfortableCoverage.displayValue} ${comfortableCoverage.unitLabel}`.trim()
+                        : comfortableCoverage.displayValue)
+                    : '';
+                const daysLabel = formatDaysText(warningDays);
+                comfortableSubtitle = coverageLabel
+                    ? `Cobertura superior a ${daysLabel} (${coverageLabel})`
+                    : `Cobertura superior a ${daysLabel}`;
+            }
+
+            const columns = [
+                {
+                    key: 'urgent',
+                    title: 'Ruptura urgente',
+                    subtitle: urgentLimitText,
+                    className: 'timeline-card-critical',
+                    empty: 'Nenhum item crítico para os filtros aplicados.',
+                    action: { handler: 'filterZeroIn30()', label: 'Filtrar críticos' }
+                },
+                {
+                    key: 'warning',
+                    title: 'Em atenção',
+                    subtitle: warningSubtitle,
+                    className: 'timeline-card-warning',
+                    empty: 'Nenhum item em atenção neste momento.',
+                    action: { handler: 'filterZeroIn60()', label: 'Filtrar atenção' }
+                },
+                {
+                    key: 'stable',
+                    title: 'Cobertura confortável',
+                    subtitle: comfortableSubtitle,
+                    className: 'timeline-card-stable',
+                    empty: 'Sem itens com cobertura confortável para exibir.',
+                    action: null
+                }
+            ];
+
+            const createList = function(items, bucketKey) {
+                if (!Array.isArray(items) || items.length === 0) {
+                    return '';
+                }
+
+                const shouldCollapse = items.length > maxPreviewItems;
+                const listClass = shouldCollapse ? 'timeline-list' : 'timeline-list is-expanded';
+
+                const entriesHtml = items.map(function(entry) {
+                    const product = entry && entry.product ? entry.product : null;
+                    const rawProductName = product && product.item
+                        ? product.item
+                        : (product && product.code ? product.code : 'Produto');
+                    const productChip = buildTimelineProductChip(product, rawProductName);
+                    const productCode = product && product.code ? escapeTooltip(product.code) : '';
+                    const label = entry && entry.prediction && entry.prediction.label ? escapeTooltip(entry.prediction.label) : '';
+                    const tooltipText = entry && entry.tooltip ? escapeTooltip(entry.tooltip) : '';
+                    const dateText = entry && entry.formattedDate && entry.formattedDate !== '--'
+                        ? escapeTooltip(entry.formattedDate)
+                        : '';
+                    const daysValue = entry && entry.prediction && Number.isFinite(entry.prediction.daysToDepletion)
+                        ? entry.prediction.daysToDepletion
+                        : null;
+                    const metaChips = [];
+                    if (label) {
+                        metaChips.push(`<span>${label}</span>`);
+                    }
+                    if (Number.isFinite(daysValue)) {
+                        metaChips.push(`<span>${formatDaysText(daysValue)}</span>`);
+                    }
+                    if (entry && entry.coverageText) {
+                        metaChips.push(`<span>${escapeTooltip(entry.coverageText)}</span>`);
+                    }
+                    if (dateText) {
+                        metaChips.push(`<span>${dateText}</span>`);
+                    }
+
+                    const tooltipAttr = tooltipText ? ` data-tooltip="${tooltipText}"` : '';
+                    const ariaParts = [rawProductName];
+                    if (label) {
+                        ariaParts.push(label);
+                    }
+                    if (Number.isFinite(daysValue)) {
+                        ariaParts.push(formatDaysText(daysValue));
+                    }
+                    if (entry && entry.coverageText) {
+                        ariaParts.push(entry.coverageText);
+                    }
+                    if (dateText) {
+                        ariaParts.push(`Data ${dateText}`);
+                    }
+                    const ariaLabel = escapeTooltip(ariaParts.join(' • '));
+                    const codeLabel = productCode ? ` <span class="timeline-item-code">(${productCode})</span>` : '';
+                    const metaHtml = metaChips.length > 0
+                        ? `<div class="timeline-item-meta">${metaChips.join('')}</div>`
+                        : '';
+
+                    return `<li class="timeline-item has-tooltip" tabindex="0" aria-label="${ariaLabel}"${tooltipAttr}>`
+                        + `<strong class="timeline-item-title">${productChip}${codeLabel}</strong>`
+                        + `${metaHtml}`
+                        + `</li>`;
+                }).join('');
+
+                return `<ul class="${listClass}" data-bucket="${bucketKey}" data-count="${items.length}">${entriesHtml}</ul>`;
+            };
+
+            const highlights = [];
+            const withDays = ['urgent', 'warning'].reduce(function(acc, key) {
+                const entries = Array.isArray(buckets[key]) ? buckets[key] : [];
+                entries.forEach(function(entry) {
+                    const days = entry && entry.prediction ? entry.prediction.daysToDepletion : null;
+                    if (Number.isFinite(days)) {
+                        acc.push({ entry: entry, bucket: key });
+                    }
+                });
+                return acc;
+            }, []);
+
+            withDays.sort(function(a, b) {
+                return a.entry.prediction.daysToDepletion - b.entry.prediction.daysToDepletion;
+            });
+
+            if (withDays.length > 0) {
+                const nextRupture = withDays[0];
+                const productName = nextRupture.entry.product && (nextRupture.entry.product.item || nextRupture.entry.product.code)
+                    ? (nextRupture.entry.product.item || nextRupture.entry.product.code)
+                    : 'Produto';
+                const daysText = formatDaysText(nextRupture.entry.prediction.daysToDepletion);
+                const dateText = nextRupture.entry.formattedDate && nextRupture.entry.formattedDate !== '--'
+                    ? nextRupture.entry.formattedDate
+                    : '';
+                const detailParts = [`Estimativa em ${daysText}`];
+                if (dateText) {
+                    detailParts.push(dateText);
+                }
+                highlights.push({
+                    label: 'Próxima ruptura prevista',
+                    title: productName,
+                    titleHtml: buildTimelineProductChip(nextRupture.entry.product, productName),
+                    detail: detailParts.join(' • '),
+                    action: nextRupture.bucket === 'urgent'
+                        ? { handler: 'filterZeroIn30()', label: 'Ver críticos' }
+                        : { handler: 'filterZeroIn60()', label: 'Ver atenção' }
+                });
+            }
+
+            const slowCandidates = (buckets.stable || []).filter(function(entry) {
+                return Number.isFinite(entry && entry.coverageMonths)
+                    && entry.coverageMonths >= coverageSegmentThresholds.lowUpper;
+            });
+
+            if (slowCandidates.length > 0) {
+                const sortedSlow = slowCandidates.slice().sort(function(a, b) {
+                    return (b.coverageMonths || 0) - (a.coverageMonths || 0);
+                });
+                const topSlow = sortedSlow.slice(0, 3);
+                const names = topSlow.map(function(entry) {
+                    const product = entry && entry.product;
+                    if (!product) {
+                        return 'Produto';
+                    }
+                    return product.item || product.code || 'Produto';
+                });
+                const coverageTexts = topSlow.map(function(entry) {
+                    return entry && entry.coverageText ? entry.coverageText : '--';
+                });
+                const remainingSlow = slowCandidates.length - topSlow.length;
+                const coverageDetail = remainingSlow > 0
+                    ? `${coverageTexts.join(' • ')} (+${remainingSlow} ${remainingSlow === 1 ? 'item' : 'itens'})`
+                    : coverageTexts.join(' • ');
+                const namesHtml = topSlow.map(function(entry, index) {
+                    const product = entry && entry.product ? entry.product : null;
+                    const displayName = names[index] || (product && (product.item || product.code)) || 'Produto';
+                    return buildTimelineProductChip(product, displayName);
+                }).join(' ');
+
+                highlights.push({
+                    label: 'Maiores coberturas',
+                    title: names.join(', '),
+                    titleHtml: namesHtml,
+                    detail: `Coberturas: ${coverageDetail}`,
+                    action: { handler: 'filterHighStock()', label: 'Ver slow moving' }
+                });
+            }
+
+            if (highlights.length === 0) {
+                highlights.push({
+                    label: 'Tudo em dia',
+                    title: 'Nenhum risco de ruptura detectado',
+                    detail: 'Os filtros atuais apresentam cobertura confortável para todos os itens monitorados.',
+                    action: null
+                });
+            }
+
+            const highlightsHtml = `<div class="timeline-highlights">${highlights.map(function(card) {
+                const actionHtml = card.action
+                    ? `<button type="button" class="highlight-action" onclick="${card.action.handler}">${card.action.label} →</button>`
+                    : '';
+                const detailHtml = card.detail ? `<span>${escapeTooltip(card.detail)}</span>` : '';
+                const titleContent = card.titleHtml
+                    ? card.titleHtml
+                    : escapeTooltip(card.title || '');
+
+                return `<div class="timeline-highlight">`
+                    + `<span class="highlight-label">${escapeTooltip(card.label)}</span>`
+                    + `<strong>${titleContent}</strong>`
+                    + `${detailHtml}`
+                    + `${actionHtml}`
+                    + `</div>`;
+            }).join('')}</div>`;
+
+            const boardHtml = columns.map(function(column) {
+                const items = Array.isArray(buckets[column.key]) ? buckets[column.key] : [];
+                const listHtml = createList(items, column.key);
+                const toggleButton = items.length > maxPreviewItems
+                    ? `<div class="timeline-toggle-wrapper"><button type="button" class="timeline-toggle" data-bucket="${column.key}" data-total="${items.length}" aria-expanded="false" aria-label="Ver todos os ${items.length} itens deste grupo">Ver todos</button></div>`
+                    : '';
+                const content = listHtml || `<div class="timeline-empty">${column.empty}</div>`;
+                const countText = items.length === 1 ? '1 item' : `${items.length} itens`;
+                const hasAction = !!column.action;
+                const actionDisabled = items.length === 0;
+                const actionButton = hasAction
+                    ? `<button type="button" class="timeline-card-action" onclick="${column.action.handler}" ${actionDisabled ? 'disabled aria-disabled="true"' : ''}>${column.action.label}</button>`
+                    : '';
+
+                return `<div class="timeline-card ${column.className}" data-bucket="${column.key}">`
+                    + `<div class="timeline-card-header">`
+                    + `<div class="lane-title">`
+                    + `<strong>${column.title}</strong>`
+                    + `<span>${column.subtitle}</span>`
+                    + `</div>`
+                    + `<div class="lane-meta">`
+                    + `<span class="lane-count">${countText}</span>`
+                    + `${actionButton}`
+                    + `</div>`
+                    + `</div>`
+                    + `${content}`
+                    + `${toggleButton}`
+                    + `</div>`;
+            }).join('');
+
+            const hasAnyItems = columns.some(function(column) {
+                const items = Array.isArray(buckets[column.key]) ? buckets[column.key] : [];
+                return items.length > 0;
+            });
+
+            const boardWrapper = hasAnyItems
+                ? `<div class="timeline-board">${boardHtml}</div>`
+                : '<div class="timeline-empty">Nenhuma previsão calculada para os filtros aplicados.</div>';
+
+            const unknownCount = Array.isArray(buckets.unknown) ? buckets.unknown.length : 0;
+            const unknownNote = unknownCount > 0
+                ? `<div class="timeline-note">⚠️ ${unknownCount} ${unknownCount === 1 ? 'item' : 'itens'} sem previsão calculada — revise histórico de vendas para gerar uma estimativa.</div>`
+                : '';
+
+            container.innerHTML = `${highlightsHtml}${boardWrapper}${unknownNote}`;
+            initializePredictionTimelineInteractions(container);
+            initializeTooltips(container);
+        }
+
+        function initializePredictionTimelineInteractions(scope) {
+            const root = scope || document;
+            const toggles = root.querySelectorAll('.timeline-toggle');
+
+            toggles.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const bucket = button.dataset.bucket;
+                    if (!bucket) {
+                        return;
+                    }
+
+                    const list = root.querySelector(`.timeline-list[data-bucket="${bucket}"]`);
+                    if (!list) {
+                        return;
+                    }
+
+                    const isExpanded = list.classList.toggle('is-expanded');
+                    button.setAttribute('aria-expanded', isExpanded.toString());
+                    const total = button.dataset.total || list.dataset.count || list.childElementCount;
+                    button.textContent = isExpanded ? 'Mostrar menos' : 'Ver todos';
+                    if (isExpanded) {
+                        button.setAttribute('aria-label', 'Mostrar menos itens deste grupo');
+                    } else {
+                        button.setAttribute('aria-label', `Ver todos os ${total} itens deste grupo`);
+                    }
+                });
+            });
+
+            setupFamilyChipInteractions(root);
+        }
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            if (!container || !message) {
+                return;
+            }
+
+            const toast = document.createElement('div');
+            const normalizedType = type || 'info';
+            const typeClass = normalizedType === 'success'
+                ? ' toast-success'
+                : normalizedType === 'warning'
+                    ? ' toast-warning'
+                    : normalizedType === 'error'
+                        ? ' toast-error'
+                        : '';
+
+            toast.className = `toast${typeClass}`;
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            setTimeout(function() {
+                toast.style.animation = 'toast-out 0.25s ease forwards';
+                setTimeout(function() {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 260);
+            }, 3200);
+        }
+
+        function openPredictionSettings() {
+            const modal = document.getElementById('predictionSettingsModal');
+            if (!modal) {
+                return;
+            }
+
+            const { urgentDays, warningDays } = getPredictionSettings();
+            const urgentInput = document.getElementById('urgentDaysInput');
+            const warningInput = document.getElementById('warningDaysInput');
+
+            if (urgentInput) {
+                urgentInput.value = Number.isFinite(urgentDays) ? Math.round(urgentDays) : '';
+            }
+
+            if (warningInput) {
+                warningInput.value = Number.isFinite(warningDays) ? Math.round(warningDays) : '';
+            }
+
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+
+            setTimeout(function() {
+                if (urgentInput) {
+                    urgentInput.focus();
+                }
+            }, 60);
+        }
+
+        function closePredictionSettings() {
+            const modal = document.getElementById('predictionSettingsModal');
+            if (!modal) {
+                return;
+            }
+
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }
+
+        function savePredictionSettings() {
+            const previousSettings = getPredictionSettings();
+            const urgentInput = document.getElementById('urgentDaysInput');
+            const warningInput = document.getElementById('warningDaysInput');
+
+            const parsePositiveInteger = function(inputElement) {
+                if (!inputElement) {
+                    return null;
+                }
+
+                const raw = inputElement.value.trim();
+                if (raw === '') {
+                    return null;
+                }
+
+                const numeric = Number(raw);
+                return Number.isFinite(numeric) && numeric > 0 ? Math.round(numeric) : null;
+            };
+
+            const urgentOverride = parsePositiveInteger(urgentInput);
+            let warningOverride = parsePositiveInteger(warningInput);
+
+            if (urgentOverride !== null && warningOverride !== null && warningOverride < urgentOverride) {
+                warningOverride = urgentOverride;
+            }
+
+            setLocalConfigValue('predictions.urgentDays', urgentOverride);
+            setLocalConfigValue('predictions.warningDays', warningOverride);
+
+            const updatedSettings = getPredictionSettings();
+
+            closePredictionSettings();
+            applyAllFilters();
+
+            const hasChanges = previousSettings.urgentDays !== updatedSettings.urgentDays
+                || previousSettings.warningDays !== updatedSettings.warningDays;
+
+            showToast(
+                hasChanges ? 'Limiares preditivos atualizados com sucesso!' : 'Nenhuma alteração aplicada aos limiares.',
+                hasChanges ? 'success' : 'warning'
+            );
+        }
+
+        function resetPredictionSettings() {
+            const previousSettings = getPredictionSettings();
+
+            setLocalConfigValue('predictions.urgentDays', null);
+            setLocalConfigValue('predictions.warningDays', null);
+
+            const updatedSettings = getPredictionSettings();
+
+            closePredictionSettings();
+            applyAllFilters();
+
+            const hasChanges = previousSettings.urgentDays !== updatedSettings.urgentDays
+                || previousSettings.warningDays !== updatedSettings.warningDays;
+
+            showToast(
+                hasChanges ? 'Limiares restaurados para os padrões configurados.' : 'Os limiares já estavam nos valores padrão.',
+                hasChanges ? 'success' : 'warning'
+            );
         }
         function updateSummary() {
             const total = filteredData.length;
@@ -4427,10 +6909,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }, 0);
 
             const avgStock = coverageValues.length > 0 ? totalCoverage / coverageValues.length : 0;
-            const criticalCount = filteredData.filter(function(p) {
-                const coverage = getCoverageValue(p);
-                return Number.isFinite(coverage) && coverage < 2;
-            }).length;
             const families = new Set(filteredData.map(function(p) {
                 return p.family;
             })).size;
@@ -4440,10 +6918,19 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
             document.getElementById('totalProducts').textContent = total;
-            document.getElementById('avgStockMonths').textContent = coverageValues.length > 0 ? formatStatValue(avgStock) : '--';
-            document.getElementById('totalCoverage').textContent = coverageValues.length > 0 ? formatStatValue(totalCoverage) : '--';
-            document.getElementById('totalStockValue').textContent = formatIntegerValue(safeTotalStock);
-            document.getElementById('criticalCount').textContent = criticalCount;
+            const averageCoverageDisplay = coverageValues.length > 0 ? formatCoverageDisplay(avgStock) : null;
+            const totalCoverageDisplay = coverageValues.length > 0 ? formatCoverageDisplay(totalCoverage) : null;
+            document.getElementById('avgStockMonths').textContent = averageCoverageDisplay
+                ? (averageCoverageDisplay.unitLabel
+                    ? `${averageCoverageDisplay.displayValue} ${averageCoverageDisplay.unitLabel}`.trim()
+                    : averageCoverageDisplay.displayValue)
+                : '--';
+            document.getElementById('totalCoverage').textContent = totalCoverageDisplay
+                ? (totalCoverageDisplay.unitLabel
+                    ? `${totalCoverageDisplay.displayValue} ${totalCoverageDisplay.unitLabel}`.trim()
+                    : totalCoverageDisplay.displayValue)
+                : '--';
+            document.getElementById('totalStockValue').textContent = formatWeightDisplay(safeTotalStock);
             document.getElementById('totalFamilies').textContent = families;
         }
 
@@ -4574,8 +7061,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ? Math.round(product.media3M).toLocaleString('pt-BR')
                     : '0';
                 const hasCoverageData = coverageMeta.key !== 'none' && Number.isFinite(coverageValue);
-                const coverageValueDisplay = hasCoverageData
-                    ? `${formatStatValue(coverageValue)} meses`
+                const coverageDisplay = hasCoverageData ? formatCoverageDisplay(coverageValue) : null;
+                const coverageValueDisplay = coverageDisplay
+                    ? (coverageDisplay.unitLabel
+                        ? `${coverageDisplay.displayValue} ${coverageDisplay.unitLabel}`.trim()
+                        : coverageDisplay.displayValue)
                     : '--';
                 const coverageSourceClass = coverageMeta.className;
                 const coverageSourceLabel = coverageMeta.label;
@@ -4593,9 +7083,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const safeSupplier = escapeTooltip(product.supplier || '—');
                 const safeFamily = escapeTooltip(product.family || '—');
                 const itemText = escapeTooltip(product.item || '—');
-                const itemInteractive = hasCode
-                    ? `<button type="button" class="link-button" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${itemText}</button>`
-                    : itemText;
+                const productChipHtml = hasCode
+                    ? `<button type="button" class="product-chip" data-code="${safeCodeAttr}" onclick="openProductHistoryFromElement(this)">${itemText}</button>`
+                    : `<span class="product-chip product-chip-static">${itemText}</span>`;
                 const rawCoverageTagLabel = (coverageSourceLabel || '').trim();
                 const normalizedCoverageTagLabel = rawCoverageTagLabel.toLowerCase();
                 const coverageTagText = (normalizedCoverageTagLabel === 'planilha' || normalizedCoverageTagLabel === 'dados importados')
@@ -4605,7 +7095,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ? `<span class="coverage-tag ${coverageSourceClass}"${coverageSourceTitle}>${coverageTagText}</span>`
                     : '';
                 const itemCellContent = `
-                    <div class="item-name">${itemInteractive}</div>
+                    <div class="item-name">${productChipHtml}</div>
                     <div class="item-coverage">
                         Cobertura: <strong>${coverageValueDisplay}</strong>
                         ${coverageTagHtml}
@@ -4672,6 +7162,39 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             if (code) {
                 openProductHistory(code);
             }
+        }
+
+        function buildProductHistoryDescription(product) {
+            if (!product) {
+                return '';
+            }
+
+            const parts = [];
+            const family = (product.family || '').toString().trim();
+            const supplier = (product.supplier || '').toString().trim();
+
+            if (family && supplier) {
+                parts.push(`Produto da família ${family}, fornecido por ${supplier}.`);
+            } else if (family) {
+                parts.push(`Produto da família ${family}.`);
+            } else if (supplier) {
+                parts.push(`Fornecido por ${supplier}.`);
+            }
+
+            const coverageValue = getCoverageValue(product);
+            if (Number.isFinite(coverageValue)) {
+                const coverageDisplay = formatCoverageDisplay(coverageValue);
+                if (coverageDisplay && coverageDisplay.displayValue && coverageDisplay.displayValue !== '--') {
+                    const coverageLabel = coverageDisplay.unitLabel
+                        ? `${coverageDisplay.displayValue} ${coverageDisplay.unitLabel}`.trim()
+                        : coverageDisplay.displayValue;
+                    if (coverageLabel) {
+                        parts.push(`Cobertura atual estimada em ${coverageLabel}.`);
+                    }
+                }
+            }
+
+            return parts.join(' ');
         }
 
         function openProductHistory(code) {
@@ -4831,8 +7354,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const supplierDisplay = escapeTooltip(product.supplier || '—');
             const familyDisplay = escapeTooltip(product.family || '—');
             const familyAccent = getFamilyAccent(product.family);
+            const productDescription = buildProductHistoryDescription(product);
+            const descriptionHtml = productDescription
+                ? `<p class="history-description">${escapeTooltip(productDescription)}</p>`
+                : '';
             const historyStyleAttributes = familyAccent
-                ? ` style="--history-header-gradient: ${familyAccent.gradient}; --history-header-text: ${familyAccent.text}; --history-header-subtext: ${familyAccent.subText}; --history-family-chip-bg: ${familyAccent.chipBackground}; --history-family-chip-text: ${familyAccent.chipText};"`
+                ? ` style="--history-header-surface: ${familyAccent.surface}; --history-header-text: ${familyAccent.text}; --history-header-subtext: ${familyAccent.subText}; --history-family-chip-bg: ${familyAccent.chipBackground}; --history-family-chip-text: ${familyAccent.chipText};"`
                 : '';
 
             const historyHtml = `
@@ -4842,6 +7369,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                             <span class="history-code">${codeDisplay}</span>
                             <h1>${itemDisplay}</h1>
                             <p class="history-subtitle">Histórico e evolução dos dados importados para o produto.</p>
+                            ${descriptionHtml}
                         </div>
                         <div class="history-meta">
                             <span class="history-chip">Fornecedor: ${supplierDisplay}</span>
@@ -4903,9 +7431,14 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return;
             }
 
-            const modal = document.getElementById('historyModal');
-            if (modal && modal.style.display === 'block') {
+            const historyModal = document.getElementById('historyModal');
+            if (historyModal && historyModal.style.display === 'block') {
                 closeHistoryModal();
+            }
+
+            const predictionModal = document.getElementById('predictionSettingsModal');
+            if (predictionModal && predictionModal.style.display === 'block') {
+                closePredictionSettings();
             }
         });
 
@@ -4935,7 +7468,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return {
                     label: 'S/ Estoque',
                     detail: 'Ruptura imediata — produto sem unidades disponíveis no estoque atual.',
-                    fullText: 'Sem estoque — ruptura imediata'
+                    fullText: 'Sem estoque — ruptura imediata',
+                    daysToDepletion: 0,
+                    estimatedDate: new Date().toISOString(),
+                    status: 'urgent'
                 };
             }
 
@@ -4943,7 +7479,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return {
                     label: 'Sem demanda recente',
                     detail: 'Sem consumo registrado nos últimos meses, por isso não é possível estimar a data de ruptura.',
-                    fullText: 'Sem demanda recente — cobertura indefinida'
+                    fullText: 'Sem demanda recente — cobertura indefinida',
+                    daysToDepletion: null,
+                    estimatedDate: null,
+                    status: 'unknown'
                 };
             }
 
@@ -4962,7 +7501,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return {
                     label,
                     detail: `${baseDetail} Recomendado acionar reposição imediata.`,
-                    fullText
+                    fullText,
+                    daysToDepletion,
+                    estimatedDate: estimatedDate.toISOString(),
+                    status: 'urgent'
                 };
             }
 
@@ -4972,7 +7514,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return {
                     label,
                     detail: `${baseDetail} Planeje reposição para evitar ruptura no curto prazo.`,
-                    fullText
+                    fullText,
+                    daysToDepletion,
+                    estimatedDate: estimatedDate.toISOString(),
+                    status: 'warning'
                 };
             }
 
@@ -4981,7 +7526,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             return {
                 label: stableLabel,
                 detail: `${baseDetail} Estoque confortável considerando o ritmo de consumo atual.`,
-                fullText
+                fullText,
+                daysToDepletion,
+                estimatedDate: estimatedDate.toISOString(),
+                status: 'stable'
             };
         }
 
@@ -5255,9 +7803,14 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
         // Fechar modal ao clicar fora dele
         window.onclick = function(event) {
-            const modal = document.getElementById('exportModal');
-            if (event.target === modal) {
+            const exportModal = document.getElementById('exportModal');
+            if (exportModal && event.target === exportModal) {
                 closeExportModal();
+            }
+
+            const predictionModal = document.getElementById('predictionSettingsModal');
+            if (predictionModal && event.target === predictionModal) {
+                closePredictionSettings();
             }
         }
 
@@ -5319,6 +7872,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         // Adicionar event listeners para inputs
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('globalSearch');
+            const searchResultsContainer = document.getElementById('searchResults');
             if (searchInput) {
                 // Throttle para melhor performance
                 let searchTimeout;
@@ -5326,6 +7880,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(performGlobalSearch, 300);
                 });
+            }
+
+            if (searchResultsContainer) {
+                searchResultsContainer.addEventListener('click', handleSearchSuggestionClick);
             }
         });
 
