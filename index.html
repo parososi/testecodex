@@ -223,6 +223,61 @@
             display: none;
         }
 
+        .search-selection {
+            margin-top: 14px;
+            display: none;
+        }
+
+        .search-selection.is-visible {
+            display: block;
+        }
+
+        .search-selection-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #e5f1ff;
+            border: 1px solid rgba(31, 68, 140, 0.2);
+            color: #1F448C;
+            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.08);
+        }
+
+        .search-selection-card .selection-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: #1F448C;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .search-selection-card .selection-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .search-selection-card .selection-content strong {
+            font-size: 15px;
+            line-height: 1.2;
+        }
+
+        .search-selection-card .selection-meta {
+            font-size: 12px;
+            color: #385499;
+        }
+
+        .search-selection-card .selection-clear {
+            margin-left: auto;
+        }
+
         .search-summary {
             background: #eef3ff;
             border: 1px solid rgba(31, 68, 140, 0.18);
@@ -244,6 +299,101 @@
             background: #e3fcec;
             border-color: rgba(29, 102, 56, 0.4);
             color: #1d6638;
+        }
+
+        .assistant-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .assistant-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 16px;
+            border-radius: 16px;
+            background: #f4f7ff;
+            border: 1px solid rgba(31, 68, 140, 0.18);
+            box-shadow: 0 12px 28px rgba(17, 38, 90, 0.08);
+        }
+
+        .assistant-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1F448C, #3f6bd6);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(31, 68, 140, 0.25);
+        }
+
+        .assistant-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .assistant-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1d2a4d;
+        }
+
+        .assistant-text strong {
+            color: #0f2a66;
+        }
+
+        .assistant-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .assistant-action-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(31, 68, 140, 0.2);
+            background: #ffffff;
+            color: #1F448C;
+            font-weight: 600;
+            font-size: 13px;
+            box-shadow: 0 8px 18px rgba(17, 38, 90, 0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .assistant-action-chip .chip-count {
+            font-size: 11px;
+            color: #4b5f94;
+            font-weight: 500;
+        }
+
+        .assistant-action-chip:hover,
+        .assistant-action-chip:focus-visible {
+            transform: translateY(-1px);
+            border-color: #ffe15e;
+            box-shadow: 0 12px 24px rgba(31, 68, 140, 0.2);
+            outline: none;
+        }
+
+        .assistant-note {
+            font-size: 12px;
+            color: #50609c;
+            background: rgba(80, 96, 156, 0.12);
+            border-radius: 10px;
+            padding: 6px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .search-suggestion-group {
@@ -760,9 +910,10 @@
             font-weight: 600;
             color: #1F448C;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
+            align-items: baseline;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .prediction-card .card-label-text {
@@ -825,38 +976,39 @@
 
         .prediction-actions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: stretch;
+            flex-direction: column;
+            gap: 18px;
         }
 
         .prediction-chip-groups {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            flex: 1 1 auto;
+            display: grid;
+            gap: 16px;
+            width: 100%;
         }
 
         .prediction-chip-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            min-width: 180px;
-            flex: 1 1 200px;
+            gap: 12px;
+            padding: 18px 22px;
+            border-radius: 18px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            background: linear-gradient(135deg, rgba(31, 68, 140, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
         }
 
         .prediction-chip-group .chip-group-title {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #4b5f94;
+            letter-spacing: 0.12em;
+            color: #1F448C;
         }
 
         .prediction-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             align-items: stretch;
         }
 
@@ -968,6 +1120,15 @@
             margin-top: 24px;
         }
 
+        .prediction-timeline.is-empty-state {
+            margin-top: 16px;
+            gap: 16px;
+        }
+
+        .prediction-timeline.is-empty-state + .products-table {
+            margin-top: 22px;
+        }
+
         .timeline-highlights {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1045,11 +1206,11 @@
             padding: 12px 20px;
             border-radius: 999px;
             border: none;
-            background: #1F448C;
+            background: #df0404;
             color: #ffffff;
             font-size: 14px;
             font-weight: 600;
-            box-shadow: 0 16px 32px rgba(31, 68, 140, 0.22);
+            box-shadow: 0 16px 32px rgba(223, 4, 4, 0.24);
             cursor: pointer;
             z-index: 1000;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -1061,20 +1222,20 @@
 
         .floating-reset-button:hover,
         .floating-reset-button:focus-visible {
-            background: #16356a;
+            background: #b30303;
             transform: translateY(-2px);
-            box-shadow: 0 20px 38px rgba(22, 53, 106, 0.28);
+            box-shadow: 0 20px 38px rgba(179, 3, 3, 0.28);
         }
 
         .floating-reset-button:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.24);
+            box-shadow: 0 0 0 3px rgba(223, 4, 4, 0.28);
         }
 
         .timeline-board {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
         }
 
         .timeline-note {
@@ -1089,36 +1250,66 @@
 
         .timeline-card {
             position: relative;
-            border-radius: 18px;
-            background: #ffffff;
-            padding: 22px;
+            border-radius: 20px;
+            background: linear-gradient(155deg, rgba(31, 68, 140, 0.06) 0%, #ffffff 55%, #f7f9ff 100%);
+            padding: 26px;
             display: flex;
             flex-direction: column;
-            gap: 18px;
-            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
-            border: 1px solid #dfe3f2;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            gap: 22px;
+            box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            overflow: hidden;
+            --lane-accent: #1F448C;
+        }
+
+        .timeline-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border-top: 6px solid var(--lane-accent);
+            pointer-events: none;
+        }
+
+        .timeline-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(140deg, rgba(255, 255, 255, 0) 30%, rgba(31, 68, 140, 0.08) 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
         }
 
         .timeline-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 24px 46px rgba(15, 23, 42, 0.12);
+            transform: translateY(-6px);
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.16);
+        }
+
+        .timeline-card:hover::after {
+            opacity: 1;
         }
 
         .timeline-card.timeline-card-critical {
-            border-top: 6px solid #d32f2f;
+            --lane-accent: #d32f2f;
+            background: linear-gradient(155deg, rgba(211, 47, 47, 0.08) 0%, #ffffff 55%, #fff6f6 100%);
         }
 
         .timeline-card.timeline-card-warning {
-            border-top: 6px solid #f57c00;
+            --lane-accent: #f57c00;
+            background: linear-gradient(155deg, rgba(245, 124, 0, 0.08) 0%, #ffffff 55%, #fff9f2 100%);
         }
 
         .timeline-card.timeline-card-stable {
-            border-top: 6px solid #2e7d32;
+            --lane-accent: #2e7d32;
+            background: linear-gradient(155deg, rgba(46, 125, 50, 0.08) 0%, #ffffff 55%, #f4fbf5 100%);
         }
 
         .timeline-card.timeline-card-unknown {
-            border-top: 6px solid #6b7280;
+            --lane-accent: #6b7280;
+            background: linear-gradient(155deg, rgba(107, 114, 128, 0.08) 0%, #ffffff 55%, #f6f7fa 100%);
         }
 
         .timeline-card-header {
@@ -1213,14 +1404,28 @@
         }
 
         .timeline-item {
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            background: #f7f9fe;
+            gap: 12px;
+            background: #ffffff;
             border-radius: 16px;
-            padding: 16px 18px;
-            border: 1px solid #d7def3;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            padding: 18px 20px 18px 24px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+            overflow: hidden;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--lane-accent, #1F448C);
+            opacity: 0.9;
         }
 
         .timeline-item strong {
@@ -1303,15 +1508,16 @@
             gap: 4px;
             padding: 4px 8px;
             border-radius: 999px;
-            background: rgba(31, 68, 140, 0.1);
+            background: rgba(31, 68, 140, 0.08);
+            border: 1px solid rgba(31, 68, 140, 0.18);
             color: #1F448C;
             font-weight: 600;
         }
 
         .timeline-item.has-tooltip:hover {
-            border-color: #c2cdef;
-            box-shadow: 0 12px 28px rgba(31, 68, 140, 0.12);
-            transform: translateY(-2px);
+            border-color: rgba(31, 68, 140, 0.3);
+            box-shadow: 0 22px 44px rgba(15, 23, 42, 0.16);
+            transform: translateY(-4px);
         }
 
         button.timeline-product-chip {
@@ -2242,10 +2448,11 @@
                     type="text"
                     id="globalSearch"
                     class="search-input"
-                    placeholder="🔍 Buscar por código ou nome do produto..."
+                    placeholder="🔍 Busque por código, nome ou descreva o que procura..."
                 />
             </div>
             <div class="search-results" id="searchResults"></div>
+            <div class="search-selection" id="searchSelection" aria-live="polite"></div>
         </div>
         
         <div class="controls">
@@ -2385,18 +2592,6 @@
             </div>
 
             <div class="prediction-grid">
-                <div class="prediction-card clickable" data-prediction-filter="limit-warning" onclick="filterWarningLimit()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterWarningLimit();}">
-                    <div class="card-label">
-                        <span class="card-label-text">Limite de atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Limite de atenção" data-tooltip="Número de dias até a ruptura para sinalizar itens em atenção." data-tooltip-position="top">?</span></span>
-                        <span class="card-bubble" id="warningLimitCount" aria-live="polite" aria-label="0 itens em atenção">
-                            <span class="bubble-number">0</span>
-                            <span class="bubble-label">itens</span>
-                        </span>
-                    </div>
-                    <div class="prediction-value"><span id="warningDaysLabel" data-warning-days>--</span> dias</div>
-                    <span class="card-helper">Acima do limite urgente e até este valor, os itens exigem planejamento.</span>
-                </div>
-
                 <div class="prediction-card clickable" data-prediction-filter="zero30" onclick="filterZeroIn30()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterZeroIn30();}">
                     <span class="card-label">Produtos que zeram em ≤ <span data-urgent-days>--</span> dias <span class="info-icon has-tooltip" tabindex="0" aria-label="Zera em curto prazo" data-tooltip="Clique para filtrar itens sem estoque ou que acabam dentro do limite urgente." data-tooltip-position="top">?</span></span>
                     <div class="prediction-value" id="zeroIn30">--</div>
@@ -2520,7 +2715,9 @@
     <!-- Inclusão das bibliotecas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
-    
+    <script src="search-intelligence.js"></script>
+    <script src="conversation-parameters.js"></script>
+
     <script>
         // Variáveis globais
         let allProductsData = [];
@@ -2530,6 +2727,8 @@
         let searchTerm = '';
         let searchResultsCacheHtml = '';
         let searchResultsHidden = false;
+        let activeSearchContext = null;
+        let selectedSearchProduct = null;
         let predictionFilter = null;
         let selectedFamily = null;
         let selectedSupplier = null;
@@ -3613,36 +3812,81 @@
                 : display.displayValue;
         }
 
+        function toFiniteNumber(value) {
+            if (typeof value === 'number') {
+                return Number.isFinite(value) ? value : null;
+            }
+
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (trimmed === '') {
+                    return null;
+                }
+
+                const parsed = parseNumber(value);
+                if (!Number.isFinite(parsed)) {
+                    return null;
+                }
+
+                if (parsed === 0) {
+                    const digits = trimmed.replace(/[^0-9]/g, '');
+                    if (digits === '') {
+                        return null;
+                    }
+                }
+
+                return parsed;
+            }
+
+            if (typeof value === 'bigint') {
+                const converted = Number(value);
+                return Number.isFinite(converted) ? converted : null;
+            }
+
+            if (value === null || typeof value === 'undefined' || typeof value === 'boolean') {
+                return null;
+            }
+
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric : null;
+        }
+
         function resolveCoverageSource(product) {
             if (!product || typeof product !== 'object') {
                 return 'none';
             }
 
-            if (typeof product.coverageSource === 'string' && product.coverageSource) {
-                if (product.coverageSource === 'estimated') {
-                    return 'calculated';
-                }
-                if (product.coverageSource === 'cobertura' && Number.isFinite(product.cobertura)) {
-                    return 'cobertura';
-                }
-                if (product.coverageSource === 'stockMonths' && Number.isFinite(product.stockMonths)) {
-                    return 'stockMonths';
-                }
-                if (Number.isFinite(product.cobertura)) {
-                    return 'cobertura';
-                }
-                if (Number.isFinite(product.stockMonths)) {
-                    return 'stockMonths';
-                }
-                return product.coverageSource;
+            const rawSource = typeof product.coverageSource === 'string' ? product.coverageSource : '';
+            const normalizedSource = rawSource.toLowerCase();
+            const coverageFromCobertura = toFiniteNumber(product.cobertura);
+            const coverageFromStockMonths = toFiniteNumber(product.stockMonths);
+
+            if (normalizedSource === 'estimated') {
+                return 'calculated';
             }
 
-            if (Number.isFinite(product.cobertura)) {
+            if (normalizedSource === 'cobertura' && coverageFromCobertura !== null) {
                 return 'cobertura';
             }
 
-            if (Number.isFinite(product.stockMonths)) {
+            if (normalizedSource === 'stockmonths' && coverageFromStockMonths !== null) {
                 return 'stockMonths';
+            }
+
+            if (normalizedSource === 'calculated') {
+                return 'calculated';
+            }
+
+            if (coverageFromCobertura !== null) {
+                return 'cobertura';
+            }
+
+            if (coverageFromStockMonths !== null) {
+                return 'stockMonths';
+            }
+
+            if (rawSource) {
+                return rawSource;
             }
 
             return 'none';
@@ -3656,9 +3900,9 @@
             const source = resolveCoverageSource(product);
             switch (source) {
                 case 'cobertura':
-                    return Number.isFinite(product.cobertura) ? product.cobertura : null;
+                    return toFiniteNumber(product.cobertura);
                 case 'stockMonths':
-                    return Number.isFinite(product.stockMonths) ? product.stockMonths : null;
+                    return toFiniteNumber(product.stockMonths);
                 case 'calculated': {
                     const coverageInfo = getCoverageInfo(product);
                     if (coverageInfo && Number.isFinite(coverageInfo.daysToDepletion)) {
@@ -3667,11 +3911,13 @@
                     return null;
                 }
                 default:
-                    if (Number.isFinite(product.cobertura)) {
-                        return product.cobertura;
+                    const coberturaValue = toFiniteNumber(product.cobertura);
+                    if (coberturaValue !== null) {
+                        return coberturaValue;
                     }
-                    if (Number.isFinite(product.stockMonths)) {
-                        return product.stockMonths;
+                    const stockMonthsValue = toFiniteNumber(product.stockMonths);
+                    if (stockMonthsValue !== null) {
+                        return stockMonthsValue;
                     }
                     return null;
             }
@@ -3738,19 +3984,8 @@
 
         function applyPredictionLabels() {
             const { urgentDays, warningDays } = getPredictionSettings();
-            const urgentLabel = document.getElementById('urgentDaysLabel');
-            const warningLabel = document.getElementById('warningDaysLabel');
-
             const urgentDisplay = Number.isFinite(urgentDays) ? urgentDays : '--';
             const warningDisplay = Number.isFinite(warningDays) ? warningDays : '--';
-
-            if (urgentLabel) {
-                urgentLabel.textContent = urgentDisplay;
-            }
-
-            if (warningLabel) {
-                warningLabel.textContent = warningDisplay;
-            }
 
             document.querySelectorAll('[data-urgent-days]').forEach(function(element) {
                 element.textContent = urgentDisplay;
@@ -4546,6 +4781,468 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         // === FUNÇÕES DE BUSCA E FILTROS ===
+        function updateSearchSelectionDisplay() {
+            const container = document.getElementById('searchSelection');
+            if (!container) {
+                return;
+            }
+
+            if (!selectedSearchProduct) {
+                container.innerHTML = '';
+                container.classList.remove('is-visible');
+                return;
+            }
+
+            const product = selectedSearchProduct;
+            const productName = product && product.item && product.item.toString().trim() !== ''
+                ? product.item
+                : (product && product.code) ? product.code : 'Produto';
+            const metaParts = [];
+            if (product && product.code) {
+                metaParts.push(`Código ${product.code}`);
+            }
+            if (product && product.family) {
+                metaParts.push(product.family);
+            }
+            if (product && product.supplier) {
+                metaParts.push(product.supplier);
+            }
+            const metaHtml = metaParts.length > 0
+                ? `<span class="selection-meta">${escapeTooltip(metaParts.join(' • '))}</span>`
+                : '';
+
+            container.innerHTML = `
+                <div class="search-selection-card">
+                    <span class="selection-badge">Produto selecionado</span>
+                    <div class="selection-content">
+                        <strong>${escapeTooltip(productName)}</strong>
+                        ${metaHtml}
+                    </div>
+                    <button type="button" class="link-button selection-clear" onclick="clearSearchSelection()">Limpar</button>
+                </div>`;
+            container.classList.add('is-visible');
+        }
+
+        function resetSearchSelection() {
+            selectedSearchProduct = null;
+            updateSearchSelectionDisplay();
+        }
+
+        function clearSearchSelection() {
+            clearSearch();
+        }
+
+        window.clearSearchSelection = clearSearchSelection;
+
+        function formatAssistantFocusLabel(context) {
+            if (!context) {
+                return '';
+            }
+
+            const focusTokens = Array.isArray(context.focusTokens)
+                ? context.focusTokens.filter(Boolean)
+                : [];
+
+            if (focusTokens.length > 0) {
+                return focusTokens.map(function(token) {
+                    if (!token) {
+                        return '';
+                    }
+                    if (token.length <= 2) {
+                        return token.toUpperCase();
+                    }
+                    return token.charAt(0).toUpperCase() + token.slice(1);
+                }).join(' / ');
+            }
+
+            if (context.highlightTerm && context.highlightTerm.trim() !== '') {
+                return context.highlightTerm.trim();
+            }
+
+            if (context.rawQuery && context.rawQuery.trim() !== '') {
+                return context.rawQuery.trim();
+            }
+
+            return '';
+        }
+
+        function getAssistantRelevantProducts(context, productMatches) {
+            const focusTokens = context && Array.isArray(context.focusTokens)
+                ? context.focusTokens.filter(Boolean)
+                : [];
+            const normalizedFocus = focusTokens.map(function(token) {
+                return token.toString().toLowerCase();
+            });
+
+            let candidates = Array.isArray(productMatches) && productMatches.length > 0
+                ? productMatches.slice()
+                : filteredData.slice(0, 20);
+
+            if (normalizedFocus.length > 0) {
+                const matchesFocus = function(product) {
+                    if (!product) {
+                        return false;
+                    }
+                    const haystack = [
+                        (product.item || ''),
+                        (product.code || ''),
+                        (product.family || ''),
+                        (product.supplier || '')
+                    ].join(' ').toLowerCase();
+
+                    return normalizedFocus.every(function(token) {
+                        return token && haystack.includes(token);
+                    });
+                };
+
+                let filteredCandidates = candidates.filter(matchesFocus);
+
+                if (filteredCandidates.length === 0) {
+                    filteredCandidates = filteredData.filter(matchesFocus);
+                }
+
+                candidates = filteredCandidates;
+            }
+
+            if (!Array.isArray(candidates) || candidates.length === 0) {
+                return [];
+            }
+
+            return candidates.slice(0, 20);
+        }
+
+        function buildAssistantPanel(context, productMatches, filteredCount, conversationMatch) {
+            if (!context || !context.intent || context.intent === 'search') {
+                return null;
+            }
+
+            const focusLabel = formatAssistantFocusLabel(context);
+            const relevantProducts = getAssistantRelevantProducts(context, productMatches);
+            const messages = [];
+            const insights = conversationMatch || (window.conversationParameters && typeof window.conversationParameters.resolve === 'function'
+                ? window.conversationParameters.resolve(context)
+                : null);
+            const expectsExact = Boolean(insights && insights.expectExact);
+            let hasExactAnswer = false;
+
+            if (context.intent === 'ask_supplier') {
+                const supplierMap = new Map();
+
+                relevantProducts.forEach(function(product) {
+                    if (!product || !product.supplier) {
+                        return;
+                    }
+                    const supplierName = (product.supplier || '').toString().trim();
+                    if (!supplierName) {
+                        return;
+                    }
+
+                    if (!supplierMap.has(supplierName)) {
+                        supplierMap.set(supplierName, {
+                            count: 0,
+                            families: new Set()
+                        });
+                    }
+
+                    const entry = supplierMap.get(supplierName);
+                    entry.count += 1;
+                    if (product.family) {
+                        entry.families.add(product.family);
+                    }
+                });
+
+                if (supplierMap.size > 0) {
+                    const supplierEntries = Array.from(supplierMap.entries()).sort(function(a, b) {
+                        if (b[1].count !== a[1].count) {
+                            return b[1].count - a[1].count;
+                        }
+                        return a[0].localeCompare(b[0], 'pt-BR', { sensitivity: 'base' });
+                    });
+
+                    const supplierCount = supplierEntries.length;
+                    const relationshipLabel = supplierCount === 1
+                        ? 'Encontrei 1 fornecedor'
+                        : `Encontrei ${supplierCount} fornecedores`;
+                    const scopeText = focusLabel
+                        ? ` relacionado${supplierCount > 1 ? 's' : ''} a <strong>${escapeTooltip(focusLabel)}</strong>`
+                        : '';
+                    const helperText = `${relationshipLabel}${scopeText}. Escolha um para aplicar o filtro automaticamente.`;
+
+                    const chipHtml = supplierEntries.slice(0, 6).map(function(entry) {
+                        const supplierName = entry[0];
+                        const supplierStats = entry[1];
+                        const countLabel = supplierStats.count === 1
+                            ? '1 item'
+                            : `${supplierStats.count} itens`;
+                        return `<button type="button" class="assistant-action-chip" data-suggestion-type="supplier" data-supplier="${escapeTooltip(supplierName)}">`
+                            + `<span class="chip-label">${escapeTooltip(supplierName)}</span>`
+                            + `<span class="chip-count">${escapeTooltip(countLabel)}</span>`
+                            + `</button>`;
+                    }).join('');
+
+                    const extraSuppliers = supplierEntries.length - Math.min(6, supplierEntries.length);
+                    const extraNote = extraSuppliers > 0
+                        ? `<span class="assistant-note">+${extraSuppliers} fornecedor${extraSuppliers > 1 ? 'es' : ''} adicionais nos resultados.</span>`
+                        : '';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🔎</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">${helperText}</div>
+                                <div class="assistant-actions">${chipHtml}</div>
+                                ${extraNote}
+                            </div>
+                        </div>
+                    `);
+
+                    if (expectsExact && supplierEntries.length === 1) {
+                        hasExactAnswer = true;
+                    }
+                } else {
+                    const fallbackText = focusLabel
+                        ? `Não encontrei fornecedores vinculados a <strong>${escapeTooltip(focusLabel)}</strong>. Tente especificar o código ou parte do nome do produto.`
+                        : 'Me conta qual produto, código ou família você quer e eu localizo o fornecedor para você.';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🔎</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">${fallbackText}</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            } else if (context.intent === 'ask_history') {
+                const targetProduct = Array.isArray(productMatches) && productMatches.length > 0
+                    ? productMatches[0]
+                    : (filteredData.length > 0 ? filteredData[0] : null);
+
+                if (targetProduct && targetProduct.code) {
+                    const productLabel = (targetProduct.item && targetProduct.item.trim() !== '')
+                        ? targetProduct.item
+                        : targetProduct.code;
+                    const metaPieces = [];
+                    if (targetProduct.code) {
+                        metaPieces.push(`Código ${targetProduct.code}`);
+                    }
+                    if (targetProduct.supplier) {
+                        metaPieces.push(targetProduct.supplier);
+                    }
+
+                    const metaText = metaPieces.length > 0
+                        ? `<span class="assistant-note">${escapeTooltip(metaPieces.join(' • '))}</span>`
+                        : '';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">📈</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Encontrei <strong>${escapeTooltip(productLabel)}</strong>. Clique abaixo para abrir o histórico e ver as últimas importações.</div>
+                                <div class="assistant-actions">
+                                    <button type="button" class="assistant-action-chip" data-suggestion-type="product-history" data-product-code="${escapeTooltip(targetProduct.code)}" data-search-term="${escapeTooltip(productLabel)}">Abrir histórico</button>
+                                </div>
+                                ${metaText}
+                            </div>
+                        </div>
+                    `);
+
+                    if (expectsExact) {
+                        hasExactAnswer = true;
+                    }
+                } else {
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">📈</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Ainda não consegui identificar o produto para exibir o histórico. Informe o código ou parte do nome para continuar.</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            } else if (context.intent === 'ask_class') {
+                const targetProduct = Array.isArray(productMatches) && productMatches.length > 0
+                    ? productMatches[0]
+                    : (filteredData.length > 0 ? filteredData[0] : null);
+
+                const classDescriptions = {
+                    A: 'Alta relevância nas vendas (topo do portfólio).',
+                    B: 'Participação intermediária, exige atenção equilibrada.',
+                    C: 'Baixa representatividade, reposição pontual.'
+                };
+
+                if (targetProduct && targetProduct.currentAbcClass) {
+                    const classKey = (targetProduct.currentAbcClass || '').toString().trim().toUpperCase();
+                    const classLabel = classKey ? `Classe ${classKey}` : 'Classe —';
+                    const description = classDescriptions[classKey] || 'Classificação calculada pelo % Individual de vendas.';
+                    const productLabel = targetProduct.item && targetProduct.item.trim() !== ''
+                        ? targetProduct.item
+                        : (targetProduct.code || '');
+                    const metaPieces = [];
+                    if (targetProduct.code) {
+                        metaPieces.push(`Código ${targetProduct.code}`);
+                    }
+                    if (targetProduct.supplier) {
+                        metaPieces.push(targetProduct.supplier);
+                    }
+                    const metaText = metaPieces.length > 0
+                        ? `<span class="assistant-note">${escapeTooltip(metaPieces.join(' • '))}</span>`
+                        : '';
+                    const chipKey = `abc-${classKey.toLowerCase()}`;
+                    const chipHtml = classKey
+                        ? `<button type="button" class="assistant-action-chip" data-suggestion-type="abc-class" data-abc-class="${escapeTooltip(chipKey)}">`
+                            + `<span class="chip-label">Filtrar ${escapeTooltip(classLabel)}</span>`
+                            + `</button>`
+                        : '';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🎯</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text"><strong>${escapeTooltip(productLabel)}</strong> está na <strong>${escapeTooltip(classLabel)}</strong>. ${escapeTooltip(description)}</div>
+                                <div class="assistant-actions">${chipHtml}</div>
+                                ${metaText}
+                            </div>
+                        </div>
+                    `);
+
+                    if (expectsExact && classKey) {
+                        hasExactAnswer = true;
+                    }
+                } else {
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🎯</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Ainda não identifiquei a classe ABC do item pedido. Informe o código ou parte do nome para eu analisar.</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            } else if (context.intent === 'ask_family') {
+                const familyMap = new Map();
+                relevantProducts.forEach(function(product) {
+                    if (!product || !product.family) {
+                        return;
+                    }
+                    const familyName = (product.family || '').toString().trim();
+                    if (!familyName) {
+                        return;
+                    }
+                    if (!familyMap.has(familyName)) {
+                        familyMap.set(familyName, 0);
+                    }
+                    familyMap.set(familyName, familyMap.get(familyName) + 1);
+                });
+
+                if (familyMap.size > 0) {
+                    const entries = Array.from(familyMap.entries()).sort(function(a, b) {
+                        if (b[1] !== a[1]) {
+                            return b[1] - a[1];
+                        }
+                        return a[0].localeCompare(b[0], 'pt-BR', { sensitivity: 'base' });
+                    });
+                    const totalFamilies = entries.length;
+                    const scopeText = focusLabel
+                        ? ` relacionados a <strong>${escapeTooltip(focusLabel)}</strong>`
+                        : '';
+                    const headerText = totalFamilies === 1
+                        ? `Encontrei a família${scopeText}.`
+                        : `Encontrei ${totalFamilies} famílias${scopeText}.`;
+                    const chipHtml = entries.slice(0, 6).map(function(entry) {
+                        const familyName = entry[0];
+                        const count = entry[1];
+                        const countLabel = count === 1 ? '1 item' : `${count} itens`;
+                        return `<button type="button" class="assistant-action-chip" data-suggestion-type="family" data-family="${escapeTooltip(familyName)}">`
+                            + `<span class="chip-label">${escapeTooltip(familyName)}</span>`
+                            + `<span class="chip-count">${escapeTooltip(countLabel)}</span>`
+                            + `</button>`;
+                    }).join('');
+                    const extraFamilies = totalFamilies - Math.min(6, totalFamilies);
+                    const extraNote = extraFamilies > 0
+                        ? `<span class="assistant-note">+${extraFamilies} família${extraFamilies > 1 ? 's' : ''} adicionais nos resultados.</span>`
+                        : '';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🗂️</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">${headerText}</div>
+                                <div class="assistant-actions">${chipHtml}</div>
+                                ${extraNote}
+                            </div>
+                        </div>
+                    `);
+
+                    if (expectsExact && totalFamilies === 1) {
+                        hasExactAnswer = true;
+                    }
+                } else {
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">🗂️</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Não consegui identificar a família desejada. Informe o produto ou código para que eu encontre o agrupamento correto.</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            } else if (context.intent === 'ask_stock') {
+                if (filteredCount > 0) {
+                    let totalQuantity = 0;
+                    let totalItems = 0;
+
+                    filteredData.forEach(function(product) {
+                        totalItems += 1;
+                        const stock = Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0);
+                        if (Number.isFinite(stock)) {
+                            totalQuantity += stock;
+                        }
+                    });
+
+                    const quantityLabel = Number.isFinite(totalQuantity)
+                        ? totalQuantity.toLocaleString('pt-BR')
+                        : '--';
+
+                    const scopeText = focusLabel
+                        ? ` para <strong>${escapeTooltip(focusLabel)}</strong>`
+                        : '';
+
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">📦</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Tenho ${escapeTooltip(totalItems.toString())} produto${totalItems === 1 ? '' : 's'}${scopeText} somando aproximadamente <strong>${escapeTooltip(quantityLabel)}</strong> unidades em estoque.</div>
+                            </div>
+                        </div>
+                    `);
+
+                    if (expectsExact) {
+                        hasExactAnswer = true;
+                    }
+                } else {
+                    messages.push(`
+                        <div class="assistant-message">
+                            <div class="assistant-avatar" aria-hidden="true">📦</div>
+                            <div class="assistant-content">
+                                <div class="assistant-text">Não localizei itens para avaliar o estoque. Especifique melhor o código, nome ou família.</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            }
+
+            if (messages.length === 0) {
+                return null;
+            }
+
+            return {
+                html: `<div class="assistant-panel">${messages.join('')}</div>`,
+                hasExactAnswer: hasExactAnswer,
+                expectsExact: expectsExact
+            };
+        }
+
         function performGlobalSearch() {
             const searchInput = document.getElementById('globalSearch');
             const resultsDiv = document.getElementById('searchResults');
@@ -4556,35 +5253,54 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const rawValue = searchInput.value || '';
             const trimmedValue = rawValue.trim();
-            searchTerm = trimmedValue.toLowerCase();
+            const previousSelection = selectedSearchProduct;
 
-            if (searchTerm === '') {
-                resultsDiv.innerHTML = '';
-                resultsDiv.classList.remove('is-hidden');
+            if (trimmedValue === '') {
+                activeSearchContext = null;
+                searchTerm = '';
                 searchResultsCacheHtml = '';
                 searchResultsHidden = false;
+                resultsDiv.innerHTML = '';
+                resultsDiv.classList.remove('is-hidden');
+                resetSearchSelection();
                 applyAllFilters();
                 removeHighlights();
+                updateSearchSelectionDisplay();
                 return;
             }
 
-            const productMatches = allProductsData.filter(function(product) {
-                const code = (product.code || '').toString().toLowerCase();
-                const name = (product.item || '').toString().toLowerCase();
-                const supplier = (product.supplier || '').toString().toLowerCase();
-                const family = (product.family || '').toString().toLowerCase();
-                return code.includes(searchTerm)
-                    || name.includes(searchTerm)
-                    || supplier.includes(searchTerm)
-                    || family.includes(searchTerm);
-            }).slice(0, 8);
+            let context = null;
+            if (window.searchIntelligence && typeof window.searchIntelligence.buildContext === 'function') {
+                context = window.searchIntelligence.buildContext(trimmedValue);
+                if (context && !context.hasMeaning) {
+                    context = null;
+                }
+            }
+
+            activeSearchContext = context;
+            if (activeSearchContext && activeSearchContext.highlightTerm) {
+                searchTerm = activeSearchContext.highlightTerm.toLowerCase();
+            } else {
+                searchTerm = trimmedValue.toLowerCase();
+            }
+
+            if (previousSelection) {
+                const keepSelection = activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.matchesProduct === 'function'
+                    ? window.searchIntelligence.matchesProduct(previousSelection, activeSearchContext)
+                    : ((previousSelection.item || '').toString().toLowerCase().includes(searchTerm)
+                        || (previousSelection.code || '').toString().toLowerCase().includes(searchTerm));
+
+                if (!keepSelection) {
+                    resetSearchSelection();
+                }
+            }
 
             const families = Array.from(new Set(allProductsData.map(function(product) {
                 return (product.family || '').toString().trim();
-            }).filter(function(value) { return value !== ''; })));
+            }).filter(function(value) { return value !== ''; }))).sort();
             const suppliers = Array.from(new Set(allProductsData.map(function(product) {
                 return (product.supplier || '').toString().trim();
-            }).filter(function(value) { return value !== ''; })));
+            }).filter(function(value) { return value !== ''; }))).sort();
 
             const familyCounts = new Map();
             const supplierCounts = new Map();
@@ -4601,13 +5317,54 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             });
 
-            const familyMatches = families.filter(function(family) {
-                return family.toLowerCase().includes(searchTerm);
-            }).slice(0, 6);
+            const matchesContext = function(text) {
+                const value = (text || '').toString();
+                if (!value) {
+                    return false;
+                }
 
-            const supplierMatches = suppliers.filter(function(supplier) {
-                return supplier.toLowerCase().includes(searchTerm);
-            }).slice(0, 6);
+                if (activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.textMatchesContext === 'function') {
+                    return window.searchIntelligence.textMatchesContext(value, activeSearchContext);
+                }
+
+                return value.toLowerCase().includes(searchTerm);
+            };
+
+            let productMatches = [];
+            if (activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.rankProducts === 'function') {
+                const ranked = window.searchIntelligence.rankProducts(allProductsData, activeSearchContext, 8);
+                productMatches = ranked.map(function(entry) { return entry.product; });
+
+                if (productMatches.length === 0 && activeSearchContext.highlightTerm) {
+                    const fallbackTerm = activeSearchContext.highlightTerm.toLowerCase();
+                    if (fallbackTerm) {
+                        productMatches = allProductsData.filter(function(product) {
+                            const code = (product.code || '').toString().toLowerCase();
+                            const name = (product.item || '').toString().toLowerCase();
+                            const supplier = (product.supplier || '').toString().toLowerCase();
+                            const family = (product.family || '').toString().toLowerCase();
+                            return code.includes(fallbackTerm)
+                                || name.includes(fallbackTerm)
+                                || supplier.includes(fallbackTerm)
+                                || family.includes(fallbackTerm);
+                        }).slice(0, 8);
+                    }
+                }
+            } else {
+                productMatches = allProductsData.filter(function(product) {
+                    const code = (product.code || '').toString().toLowerCase();
+                    const name = (product.item || '').toString().toLowerCase();
+                    const supplier = (product.supplier || '').toString().toLowerCase();
+                    const family = (product.family || '').toString().toLowerCase();
+                    return code.includes(searchTerm)
+                        || name.includes(searchTerm)
+                        || supplier.includes(searchTerm)
+                        || family.includes(searchTerm);
+                }).slice(0, 8);
+            }
+
+            const familyMatches = families.filter(matchesContext).slice(0, 6);
+            const supplierMatches = suppliers.filter(matchesContext).slice(0, 6);
 
             applyAllFilters();
             highlightSearchResults();
@@ -4616,118 +5373,138 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const summaryLabel = filteredCount === 1 ? 'produto' : 'produtos';
             const escapedTerm = escapeTooltip(trimmedValue);
 
-            let suggestionsHtml = `<div class="search-summary">🔍 <strong>${filteredCount}</strong> ${summaryLabel} encontrados para "<em>${escapedTerm}</em>"</div>`;
+            const conversationMatch = activeSearchContext && window.conversationParameters && typeof window.conversationParameters.resolve === 'function'
+                ? window.conversationParameters.resolve(activeSearchContext)
+                : null;
+            const assistantPanel = buildAssistantPanel(activeSearchContext, productMatches, filteredCount, conversationMatch);
 
-            const maxSuggestions = 4;
-            let suggestionsCount = 0;
+            const htmlParts = [];
+
+            if (assistantPanel && assistantPanel.html) {
+                htmlParts.push(assistantPanel.html);
+            }
+
+            htmlParts.push(`<div class="search-summary">🔍 <strong>${filteredCount}</strong> ${summaryLabel} encontrados para "<em>${escapedTerm}</em>"</div>`);
+
+            const shouldHideSuggestions = Boolean(assistantPanel && assistantPanel.hasExactAnswer);
             const suggestionGroups = {
                 products: [],
                 families: [],
                 suppliers: []
             };
 
-            const buildProductSuggestion = function(product) {
-                const code = (product.code || '').toString().trim();
-                const name = (product.item || '').toString().trim() || code || 'Produto';
-                const family = (product.family || '').toString().trim();
-                const supplier = (product.supplier || '').toString().trim();
-                const metaParts = [];
-                if (code) { metaParts.push(`Código ${code}`); }
-                if (family) { metaParts.push(family); }
-                if (supplier) { metaParts.push(supplier); }
-                const metaHtml = metaParts.length > 0
-                    ? `<span class="suggestion-meta">${escapeTooltip(metaParts.join(' • '))}</span>`
-                    : '';
-                const targetTerm = code || name;
-                return `<button type="button" class="search-suggestion" data-suggestion-type="product" data-search-term="${escapeTooltip(targetTerm)}" data-product-code="${escapeTooltip(code)}">`
-                    + `<span class="suggestion-icon" aria-hidden="true">📦</span>`
-                    + `<span class="suggestion-content">`
-                    + `<span class="suggestion-main">${escapeTooltip(name)}</span>`
-                    + `${metaHtml}`
-                    + `</span>`
-                    + `<span class="suggestion-tag">Produto</span>`
-                    + `</button>`;
-            };
+            let suggestionsCount = 0;
 
-            const buildFamilySuggestion = function(family) {
-                const count = familyCounts.get(family) || 0;
-                const countLabel = count === 1 ? '1 item' : `${count} itens`;
-                return `<button type="button" class="search-suggestion" data-suggestion-type="family" data-family="${escapeTooltip(family)}">`
-                    + `<span class="suggestion-icon" aria-hidden="true">🏷️</span>`
-                    + `<span class="suggestion-content">`
-                    + `<span class="suggestion-main">${escapeTooltip(family)}</span>`
-                    + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
-                    + `</span>`
-                    + `<span class="suggestion-tag">Filtrar família</span>`
-                    + `</button>`;
-            };
+            if (!shouldHideSuggestions) {
+                const maxSuggestions = 4;
 
-            const buildSupplierSuggestion = function(supplier) {
-                const count = supplierCounts.get(supplier) || 0;
-                const countLabel = count === 1 ? '1 item' : `${count} itens`;
-                return `<button type="button" class="search-suggestion" data-suggestion-type="supplier" data-supplier="${escapeTooltip(supplier)}">`
-                    + `<span class="suggestion-icon" aria-hidden="true">🏭</span>`
-                    + `<span class="suggestion-content">`
-                    + `<span class="suggestion-main">${escapeTooltip(supplier)}</span>`
-                    + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
-                    + `</span>`
-                    + `<span class="suggestion-tag">Filtrar fornecedor</span>`
-                    + `</button>`;
-            };
+                const buildProductSuggestion = function(product) {
+                    const code = (product.code || '').toString().trim();
+                    const name = (product.item || '').toString().trim() || code || 'Produto';
+                    const family = (product.family || '').toString().trim();
+                    const supplier = (product.supplier || '').toString().trim();
+                    const metaParts = [];
+                    if (code) { metaParts.push(`Código ${code}`); }
+                    if (family) { metaParts.push(family); }
+                    if (supplier) { metaParts.push(supplier); }
+                    const metaHtml = metaParts.length > 0
+                        ? `<span class="suggestion-meta">${escapeTooltip(metaParts.join(' • '))}</span>`
+                        : '';
+                    const targetTerm = code || name;
+                    return `<button type="button" class="search-suggestion" data-suggestion-type="product" data-search-term="${escapeTooltip(targetTerm)}" data-product-code="${escapeTooltip(code)}">`
+                        + `<span class="suggestion-icon" aria-hidden="true">📦</span>`
+                        + `<span class="suggestion-content">`
+                        + `<span class="suggestion-main">${escapeTooltip(name)}</span>`
+                        + `${metaHtml}`
+                        + `</span>`
+                        + `<span class="suggestion-tag">Produto</span>`
+                        + `</button>`;
+                };
 
-            productMatches.forEach(function(product) {
-                if (suggestionsCount >= maxSuggestions) {
-                    return;
+                const buildFamilySuggestion = function(family) {
+                    const count = familyCounts.get(family) || 0;
+                    const countLabel = count === 1 ? '1 item' : `${count} itens`;
+                    return `<button type="button" class="search-suggestion" data-suggestion-type="family" data-family="${escapeTooltip(family)}">`
+                        + `<span class="suggestion-icon" aria-hidden="true">🏷️</span>`
+                        + `<span class="suggestion-content">`
+                        + `<span class="suggestion-main">${escapeTooltip(family)}</span>`
+                        + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
+                        + `</span>`
+                        + `<span class="suggestion-tag">Filtrar família</span>`
+                        + `</button>`;
+                };
+
+                const buildSupplierSuggestion = function(supplier) {
+                    const count = supplierCounts.get(supplier) || 0;
+                    const countLabel = count === 1 ? '1 item' : `${count} itens`;
+                    return `<button type="button" class="search-suggestion" data-suggestion-type="supplier" data-supplier="${escapeTooltip(supplier)}">`
+                        + `<span class="suggestion-icon" aria-hidden="true">🏭</span>`
+                        + `<span class="suggestion-content">`
+                        + `<span class="suggestion-main">${escapeTooltip(supplier)}</span>`
+                        + `<span class="suggestion-meta">${escapeTooltip(countLabel)}</span>`
+                        + `</span>`
+                        + `<span class="suggestion-tag">Filtrar fornecedor</span>`
+                        + `</button>`;
+                };
+
+                productMatches.forEach(function(product) {
+                    if (suggestionsCount >= maxSuggestions) {
+                        return;
+                    }
+                    suggestionGroups.products.push(buildProductSuggestion(product));
+                    suggestionsCount += 1;
+                });
+
+                if (suggestionsCount < maxSuggestions) {
+                    familyMatches.forEach(function(family) {
+                        if (suggestionsCount >= maxSuggestions) {
+                            return;
+                        }
+                        suggestionGroups.families.push(buildFamilySuggestion(family));
+                        suggestionsCount += 1;
+                    });
                 }
-                suggestionGroups.products.push(buildProductSuggestion(product));
-                suggestionsCount += 1;
-            });
 
-            if (suggestionsCount < maxSuggestions) {
-                familyMatches.forEach(function(family) {
-                    if (suggestionsCount >= maxSuggestions) {
-                        return;
-                    }
-                    suggestionGroups.families.push(buildFamilySuggestion(family));
-                    suggestionsCount += 1;
-                });
+                if (suggestionsCount < maxSuggestions) {
+                    supplierMatches.forEach(function(supplier) {
+                        if (suggestionsCount >= maxSuggestions) {
+                            return;
+                        }
+                        suggestionGroups.suppliers.push(buildSupplierSuggestion(supplier));
+                        suggestionsCount += 1;
+                    });
+                }
+
+                if (suggestionGroups.products.length > 0) {
+                    htmlParts.push(`<div class="search-suggestion-group" data-group="products">`
+                        + `<span class="group-title">Produtos sugeridos</span>`
+                        + `<div class="search-suggestion-list">${suggestionGroups.products.join('')}</div>`
+                        + `</div>`);
+                }
+
+                if (suggestionGroups.families.length > 0) {
+                    htmlParts.push(`<div class="search-suggestion-group" data-group="families">`
+                        + `<span class="group-title">Famílias relacionadas</span>`
+                        + `<div class="search-suggestion-list">${suggestionGroups.families.join('')}</div>`
+                        + `</div>`);
+                }
+
+                if (suggestionGroups.suppliers.length > 0) {
+                    htmlParts.push(`<div class="search-suggestion-group" data-group="suppliers">`
+                        + `<span class="group-title">Fornecedores relacionados</span>`
+                        + `<div class="search-suggestion-list">${suggestionGroups.suppliers.join('')}</div>`
+                        + `</div>`);
+                }
             }
 
-            if (suggestionsCount < maxSuggestions) {
-                supplierMatches.forEach(function(supplier) {
-                    if (suggestionsCount >= maxSuggestions) {
-                        return;
-                    }
-                    suggestionGroups.suppliers.push(buildSupplierSuggestion(supplier));
-                    suggestionsCount += 1;
-                });
-            }
+            const resultsHtml = htmlParts.join('');
 
-            if (suggestionGroups.products.length > 0) {
-                suggestionsHtml += `<div class="search-suggestion-group" data-group="products">`
-                    + `<span class="group-title">Produtos sugeridos</span>`
-                    + `<div class="search-suggestion-list">${suggestionGroups.products.join('')}</div>`
-                    + `</div>`;
-            }
-
-            if (suggestionGroups.families.length > 0) {
-                suggestionsHtml += `<div class="search-suggestion-group" data-group="families">`
-                    + `<span class="group-title">Famílias relacionadas</span>`
-                    + `<div class="search-suggestion-list">${suggestionGroups.families.join('')}</div>`
-                    + `</div>`;
-            }
-
-            if (suggestionGroups.suppliers.length > 0) {
-                suggestionsHtml += `<div class="search-suggestion-group" data-group="suppliers">`
-                    + `<span class="group-title">Fornecedores relacionados</span>`
-                    + `<div class="search-suggestion-list">${suggestionGroups.suppliers.join('')}</div>`
-                    + `</div>`;
-            }
-
-            searchResultsCacheHtml = suggestionsHtml;
+            searchResultsCacheHtml = resultsHtml;
             searchResultsHidden = false;
             resultsDiv.classList.remove('is-hidden');
-            resultsDiv.innerHTML = suggestionsHtml;
+            resultsDiv.innerHTML = resultsHtml;
+
+            updateSearchSelectionDisplay();
         }
 
         function handleSearchSuggestionClick(event) {
@@ -4752,13 +5529,62 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
 
                 const searchInput = document.getElementById('globalSearch');
+                const rawCode = (button.getAttribute('data-product-code') || '').trim();
+                const normalizedCode = rawCode.toLowerCase();
+                let matchedProduct = null;
+
+                if (normalizedCode) {
+                    matchedProduct = allProductsData.find(function(product) {
+                        return (product.code || '').toString().trim().toLowerCase() === normalizedCode;
+                    });
+                }
+
+                if (!matchedProduct && term) {
+                    const normalizedTerm = term.toLowerCase();
+                    matchedProduct = allProductsData.find(function(product) {
+                        const codeValue = (product.code || '').toString().trim().toLowerCase();
+                        const nameValue = (product.item || '').toString().trim().toLowerCase();
+                        return codeValue === normalizedTerm || nameValue === normalizedTerm;
+                    });
+                }
+
+                selectedSearchProduct = matchedProduct || null;
+
                 if (searchInput) {
                     searchInput.value = term;
                     searchInput.focus();
                 }
 
-                searchTerm = term.toLowerCase();
                 performGlobalSearch();
+
+                if (matchedProduct && matchedProduct.code) {
+                    openProductHistory(matchedProduct.code);
+                }
+                return;
+            }
+
+            if (type === 'product-history') {
+                const productCode = (button.getAttribute('data-product-code') || '').trim();
+                const searchTermValue = (button.getAttribute('data-search-term') || '').trim();
+
+                if (!productCode) {
+                    return;
+                }
+
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput && searchTermValue) {
+                    searchInput.value = searchTermValue;
+                    searchInput.focus();
+                }
+
+                const normalizedCode = productCode.toLowerCase();
+                const matchedProduct = allProductsData.find(function(product) {
+                    return (product.code || '').toString().trim().toLowerCase() === normalizedCode;
+                });
+
+                selectedSearchProduct = matchedProduct || null;
+                performGlobalSearch();
+                openProductHistory(productCode);
                 return;
             }
 
@@ -4799,6 +5625,36 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
                 if (resultsDiv) {
                     const summaryHtml = `<div class="search-summary applied">Filtro de família "<em>${escapeTooltip(family)}</em>" aplicado.</div>`;
+                    resultsDiv.innerHTML = summaryHtml;
+                    searchResultsCacheHtml = summaryHtml;
+                    searchResultsHidden = false;
+                    resultsDiv.classList.remove('is-hidden');
+                }
+
+                return;
+            }
+
+            if (type === 'abc-class') {
+                const abcClass = (button.getAttribute('data-abc-class') || '').trim();
+                if (abcClass === '') {
+                    return;
+                }
+
+                resetSearchSelection();
+                selectedSearchProduct = null;
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                }
+
+                searchTerm = '';
+                filterByAdvancedStock(abcClass);
+                highlightSearchResults();
+
+                if (resultsDiv) {
+                    const classLabel = abcClass.replace('abc-', '').toUpperCase();
+                    const summaryHtml = `<div class="search-summary applied">Filtro ABC "<em>Classe ${escapeTooltip(classLabel)}</em>" aplicado.</div>`;
                     resultsDiv.innerHTML = summaryHtml;
                     searchResultsCacheHtml = summaryHtml;
                     searchResultsHidden = false;
@@ -4888,6 +5744,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const searchInput = document.getElementById('globalSearch');
             const resultsDiv = document.getElementById('searchResults');
 
+            activeSearchContext = null;
+            resetSearchSelection();
+
             if (searchInput) {
                 searchInput.value = '';
             }
@@ -4911,6 +5770,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const searchInput = document.getElementById('globalSearch');
             const resultsDiv = document.getElementById('searchResults');
 
+            activeSearchContext = null;
+            resetSearchSelection();
+
             if (searchInput) {
                 searchInput.value = '';
             }
@@ -4929,7 +5791,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function handleGlobalReset() {
-            if (searchTerm && searchTerm.trim() !== '') {
+            const hasContextSearch = Boolean(activeSearchContext && activeSearchContext.hasMeaning);
+            if (hasContextSearch || (searchTerm && searchTerm.trim() !== '')) {
                 clearSearch();
                 return;
             }
@@ -4940,8 +5803,17 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function highlightSearchResults() {
             const gaugeCards = document.querySelectorAll('.gauge-card');
             gaugeCards.forEach(function(card) {
-                const title = card.querySelector('.gauge-title').textContent.toLowerCase();
-                if (searchTerm && title.includes(searchTerm)) {
+                const titleElement = card.querySelector('.gauge-title');
+                const titleText = titleElement ? titleElement.textContent || '' : '';
+                let shouldHighlight = false;
+
+                if (activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.textMatchesContext === 'function') {
+                    shouldHighlight = window.searchIntelligence.textMatchesContext(titleText, activeSearchContext);
+                } else if (searchTerm) {
+                    shouldHighlight = titleText.toLowerCase().includes(searchTerm);
+                }
+
+                if (shouldHighlight) {
                     card.classList.add('highlighted');
                 } else {
                     card.classList.remove('highlighted');
@@ -4950,8 +5822,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const tableRows = document.querySelectorAll('#productsTableBody tr');
             tableRows.forEach(function(row) {
-                const rowText = row.textContent.toLowerCase();
-                if (searchTerm && rowText.includes(searchTerm)) {
+                const rowText = row.textContent || '';
+                let shouldHighlight = false;
+
+                if (activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.textMatchesContext === 'function') {
+                    shouldHighlight = window.searchIntelligence.textMatchesContext(rowText, activeSearchContext);
+                } else if (searchTerm) {
+                    shouldHighlight = rowText.toLowerCase().includes(searchTerm);
+                }
+
+                if (shouldHighlight) {
                     row.classList.add('highlighted');
                     row.classList.add('highlight-animation');
                 } else {
@@ -5628,34 +6508,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             applyAllFilters();
         }
 
-        function filterWarningLimit() {
-            const warningCard = document.querySelector('.prediction-card[data-prediction-filter="limit-warning"]');
-            const zero30Card = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
-            const zero60Card = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
-
-            resetAdvancedFilterSelection();
-
-            if (predictionFilter === 'limit-warning') {
-                predictionFilter = null;
-                currentFilter = 'all';
-                criticalFilterActive = false;
-                setPredictionCardActive(warningCard, false);
-            } else {
-                resetCoverageFilterChips();
-                resetPredictionRangeButtons();
-
-                predictionFilter = 'limit-warning';
-                currentFilter = 'limitWarning';
-                criticalFilterActive = false;
-                setPredictionCardActive(warningCard, true);
-            }
-
-            setPredictionCardActive(zero30Card, predictionFilter === 'zero30');
-            setPredictionCardActive(zero60Card, predictionFilter === 'zero60');
-            updateActiveButton(currentFilter === 'all' ? 'all' : null);
-            applyAllFilters();
-        }
-
         function filterByFamily() {
             const familyDropdown = document.getElementById('familyFilter');
             const rawValue = familyDropdown ? familyDropdown.value : '';
@@ -6003,10 +6855,17 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 slow: Number.isFinite(safeSegments.slow) ? safeSegments.slow : 0
             };
 
+            const segmentKeyMap = {
+                critical: 'critical',
+                low: 'low',
+                high: 'slow'
+            };
+
             const chips = document.querySelectorAll('.prediction-item[data-coverage-filter]');
             chips.forEach(function(chip) {
                 const key = chip.getAttribute('data-coverage-filter');
-                const count = counts[key] || 0;
+                const segmentKey = segmentKeyMap[key] || key;
+                const count = counts[segmentKey] || 0;
                 const counter = chip.querySelector('.filter-count');
                 if (counter) {
                     counter.textContent = formatChipCount(count);
@@ -6045,9 +6904,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return;
             }
 
-            const hasSearch = typeof searchTerm === 'string' && searchTerm.trim() !== '';
+            const hasSearch = Boolean((activeSearchContext && activeSearchContext.hasMeaning)
+                || (typeof searchTerm === 'string' && searchTerm.trim() !== ''));
             const predictiveFiltersActive = predictionFilter !== null
-                || ['critical', 'low', 'high', 'prediction30', 'prediction60', 'limitWarning'].includes(currentFilter)
+                || ['critical', 'low', 'high', 'prediction30', 'prediction60'].includes(currentFilter)
                 || criticalFilterActive
                 || (advancedStockFilter && advancedStockFilter !== '');
             const dimensionFiltersActive = Boolean(selectedFamily || selectedSupplier || currentEstablishment);
@@ -6079,26 +6939,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             let baseData = allProductsData.slice();
             const { urgentDays, warningDays } = getPredictionSettings();
 
-            if (predictionFilter === 'limit-warning') {
-                baseData = baseData.filter(function(p) {
-                    const prediction = getPrediction(p);
-                    if (!prediction) {
-                        return false;
-                    }
-
-                    if (prediction.status === 'warning') {
-                        return true;
-                    }
-
-                    if (prediction.status === 'unknown' || prediction.daysToDepletion === null) {
-                        return false;
-                    }
-
-                    return Number.isFinite(prediction.daysToDepletion)
-                        ? prediction.daysToDepletion > urgentDays && prediction.daysToDepletion <= warningDays
-                        : false;
-                });
-            } else if (predictionFilter === 'zero30') {
+            if (predictionFilter === 'zero30') {
                 baseData = baseData.filter(function(p) {
                     const coverage = getCoverageInfo(p);
                     if (coverage.outOfStock) {
@@ -6122,12 +6963,20 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
             }
 
-            if (searchTerm) {
+            if (activeSearchContext && window.searchIntelligence && typeof window.searchIntelligence.matchesProduct === 'function') {
                 baseData = baseData.filter(function(product) {
-                    return product.code.toLowerCase().includes(searchTerm) ||
-                        product.item.toLowerCase().includes(searchTerm) ||
-                        product.supplier.toLowerCase().includes(searchTerm) ||
-                        product.family.toLowerCase().includes(searchTerm);
+                    return window.searchIntelligence.matchesProduct(product, activeSearchContext);
+                });
+            } else if (searchTerm) {
+                baseData = baseData.filter(function(product) {
+                    const codeValue = (product.code || '').toString().toLowerCase();
+                    const itemValue = (product.item || '').toString().toLowerCase();
+                    const supplierValue = (product.supplier || '').toString().toLowerCase();
+                    const familyValue = (product.family || '').toString().toLowerCase();
+                    return codeValue.includes(searchTerm)
+                        || itemValue.includes(searchTerm)
+                        || supplierValue.includes(searchTerm)
+                        || familyValue.includes(searchTerm);
                 });
             }
 
@@ -6312,23 +7161,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const zeroIn30Element = document.getElementById('zeroIn30');
             const zeroIn60Element = document.getElementById('zeroIn60');
-            const warningBubble = document.getElementById('warningLimitCount');
-
-            if (warningBubble) {
-                const warningLabel = warningCount === 1 ? 'item' : 'itens';
-                const warningAria = warningCount === 1 ? 'item em atenção' : 'itens em atenção';
-                const numberSpan = warningBubble.querySelector('.bubble-number');
-                const labelSpan = warningBubble.querySelector('.bubble-label');
-                if (numberSpan) {
-                    numberSpan.textContent = warningCount;
-                }
-                if (labelSpan) {
-                    labelSpan.textContent = warningLabel;
-                } else {
-                    warningBubble.textContent = `${warningCount} ${warningLabel}`;
-                }
-                warningBubble.setAttribute('aria-label', `${warningCount} ${warningAria}`);
-            }
 
             if (zeroIn30Element) {
                 zeroIn30Element.textContent = urgentCount;
@@ -6382,9 +7214,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function toggleFamilyFilterSelection(family) {
-            const normalizedFamily = typeof family === 'string' ? family.trim() : '';
+            const rawFamily = typeof family === 'string' ? family.trim() : '';
             const dropdown = document.getElementById('familyFilter');
-            const shouldReset = !normalizedFamily || selectedFamily === normalizedFamily;
+            const currentNormalized = selectedFamily ? selectedFamily.toString().trim().toLowerCase() : '';
+            const candidateNormalized = rawFamily.toLowerCase();
+            const shouldReset = !rawFamily || currentNormalized === candidateNormalized;
 
             if (shouldReset) {
                 selectedFamily = null;
@@ -6392,23 +7226,25 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     dropdown.value = '';
                 }
             } else {
-                selectedFamily = normalizedFamily;
+                selectedFamily = rawFamily;
                 if (dropdown) {
-                    const hasOption = Array.from(dropdown.options || []).some(function(option) {
-                        return option.value === normalizedFamily;
+                    const matchingOption = Array.from(dropdown.options || []).find(function(option) {
+                        return option.value.toString().trim().toLowerCase() === candidateNormalized;
                     });
 
-                    if (!hasOption) {
+                    if (matchingOption) {
+                        dropdown.value = matchingOption.value;
+                    } else {
                         const option = document.createElement('option');
-                        option.value = normalizedFamily;
-                        option.textContent = normalizedFamily;
+                        option.value = rawFamily;
+                        option.textContent = rawFamily;
                         dropdown.appendChild(option);
+                        dropdown.value = rawFamily;
                     }
-
-                    dropdown.value = normalizedFamily;
                 }
             }
 
+            refreshFamilyChipSelection();
             criticalFilterActive = false;
             applyAllFilters();
         }
@@ -6575,14 +7411,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         ? entry.prediction.daysToDepletion
                         : null;
                     const metaChips = [];
-                    if (label) {
-                        metaChips.push(`<span>${label}</span>`);
-                    }
                     if (Number.isFinite(daysValue)) {
                         metaChips.push(`<span>${formatDaysText(daysValue)}</span>`);
-                    }
-                    if (entry && entry.coverageText) {
-                        metaChips.push(`<span>${escapeTooltip(entry.coverageText)}</span>`);
                     }
                     if (dateText) {
                         metaChips.push(`<span>${dateText}</span>`);
@@ -6765,6 +7595,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const unknownNote = unknownCount > 0
                 ? `<div class="timeline-note">⚠️ ${unknownCount} ${unknownCount === 1 ? 'item' : 'itens'} sem previsão calculada — revise histórico de vendas para gerar uma estimativa.</div>`
                 : '';
+
+            const shouldCompact = !hasAnyItems && unknownCount === 0;
+            if (shouldCompact) {
+                container.classList.add('is-empty-state');
+            } else {
+                container.classList.remove('is-empty-state');
+            }
 
             container.innerHTML = `${highlightsHtml}${boardWrapper}${unknownNote}`;
             initializePredictionTimelineInteractions(container);
