@@ -1091,6 +1091,8 @@
         .prediction-chart-helper {
             font-size: 12px;
             color: #4b5563;
+            margin-top: auto;
+            display: block;
         }
 
         .prediction-chart-detail {
@@ -1126,12 +1128,12 @@
         .prediction-chip-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid #dbe4f9;
-            background: #ffffff;
-            box-shadow: none;
+            gap: 12px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid #d0dcfa;
+            background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+            box-shadow: 0 10px 24px rgba(35, 59, 125, 0.08);
         }
 
         .prediction-chip-group .chip-group-title {
@@ -1143,33 +1145,35 @@
         }
 
         .prediction-chip-collection {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            align-items: stretch;
         }
 
         .prediction-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: stretch;
+            display: contents;
         }
 
         .prediction-item {
             display: inline-flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            padding: 6px 12px;
-            min-height: 0;
-            background: #f5f7ff;
-            border: 1px solid #c7d3ee;
-            border-radius: 12px;
+            gap: 12px;
+            padding: 12px 16px;
+            min-height: 72px;
+            width: 100%;
+            background: linear-gradient(135deg, #f2f5ff 0%, #eef2ff 100%);
+            border: 1px solid #c3cff0;
+            border-radius: 18px;
             color: #1F448C;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
+            box-shadow: 0 12px 24px rgba(35, 59, 125, 0.12);
             transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .prediction-item .filter-content {
@@ -1178,6 +1182,54 @@
             gap: 2px;
             text-align: left;
             line-height: 1.2;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .prediction-item .filter-title {
+            font-size: 13px;
+        }
+
+        .prediction-item .filter-count {
+            background: rgba(31, 68, 140, 0.12);
+            color: #1F2A52;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .prediction-item .filter-helper {
+            color: #4a5b91;
+            font-size: 11px;
+        }
+
+        .prediction-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+        }
+
+        .prediction-item::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            bottom: -14px;
+            right: -14px;
+            box-shadow: inset 0 0 0 1px rgba(195, 207, 240, 0.6);
+            pointer-events: none;
+        }
+
+        .prediction-item:nth-child(odd)::after {
+            left: -14px;
+            right: auto;
         }
 
         .prediction-item:hover {
@@ -1230,30 +1282,23 @@
         }
 
         .prediction-item .filter-title {
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .prediction-item .filter-count {
             font-size: 11px;
-            font-weight: 600;
-            color: #1F448C;
-            background: rgba(31, 68, 140, 0.1);
-            border-radius: 999px;
-            padding: 4px 10px;
-            line-height: 1;
+            font-weight: 700;
             align-self: center;
-            white-space: nowrap;
         }
 
         .prediction-item .filter-helper {
             display: block;
             font-size: 11px;
             font-weight: 500;
-            color: #5c6fa8;
         }
 
         .prediction-item .filter-helper.secondary {
-            color: #7b8ab8;
+            color: #3f4f86;
         }
 
         .prediction-timeline {
@@ -2725,7 +2770,7 @@
                 <div class="prediction-chip-groups">
                     <div class="prediction-chip-group" data-chip-group="coverage">
                         <span class="chip-group-title">Cobertura</span>
-                        <div class="prediction-chips" id="coverageQuickFilters">
+                        <div class="prediction-chip-collection" id="coverageQuickFilters">
                             <button class="prediction-item clickable" type="button" data-coverage-filter="critical" onclick="filterCriticalStock()" aria-pressed="false">
                                 <span class="filter-content">
                                     <span class="filter-title">Estoque crítico</span>
@@ -2752,68 +2797,48 @@
                     <div class="prediction-chip-group" data-chip-group="advanced">
                         <span class="chip-group-title">Filtros avançados</span>
                         <div class="prediction-chip-collection" id="advancedFilterChips">
-                            <div class="prediction-chips">
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="no-stock" onclick="filterByAdvancedStock('no-stock')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Sem estoque</span>
-                                        <span class="filter-helper">Produtos com ruptura imediata</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="no-stock">0 itens</span>
-                                </button>
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="over50" onclick="filterByAdvancedStock('over50')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Estoque &gt; 50 meses</span>
-                                        <span class="filter-helper">Cobertura extremamente alta</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="over50">0 itens</span>
-                                </button>
-                            </div>
-                            <div class="prediction-chips">
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="abc-a" onclick="filterByAdvancedStock('abc-a')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Classe A</span>
-                                        <span class="filter-helper secondary">Top 5% por venda</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="abc-a">0 itens</span>
-                                </button>
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="abc-b" onclick="filterByAdvancedStock('abc-b')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Classe B</span>
-                                        <span class="filter-helper secondary">Itens intermediários</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="abc-b">0 itens</span>
-                                </button>
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="abc-c" onclick="filterByAdvancedStock('abc-c')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Classe C</span>
-                                        <span class="filter-helper secondary">Cauda longa</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="abc-c">0 itens</span>
-                                </button>
-                            </div>
-                            <div class="prediction-chips intelligent-filters">
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="hot-demand" onclick="filterByAdvancedStock('hot-demand')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Alta demanda</span>
-                                        <span class="filter-helper">Venda ativa e &lt; 1,5M de cobertura</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="hot-demand">0 itens</span>
-                                </button>
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="top-sellers-risk" onclick="filterByAdvancedStock('top-sellers-risk')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Top sellers em risco</span>
-                                        <span class="filter-helper">Grandes receitas com &le; 2M</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="top-sellers-risk">0 itens</span>
-                                </button>
-                                <button class="prediction-item clickable" type="button" data-advanced-filter="stagnant-stock" onclick="filterByAdvancedStock('stagnant-stock')" aria-pressed="false">
-                                    <span class="filter-content">
-                                        <span class="filter-title">Estoque parado</span>
-                                        <span class="filter-helper">Cobertura &gt; 8M e baixo giro</span>
-                                    </span>
-                                    <span class="filter-count" data-advanced-count="stagnant-stock">0 itens</span>
-                                </button>
-                            </div>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="no-stock" onclick="filterByAdvancedStock('no-stock')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Sem estoque</span>
+                                    <span class="filter-helper">Produtos com ruptura imediata</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="no-stock">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="over50" onclick="filterByAdvancedStock('over50')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Estoque &gt; 50 meses</span>
+                                    <span class="filter-helper">Cobertura extremamente alta</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="over50">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-a" onclick="filterByAdvancedStock('abc-a')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe A</span>
+                                    <span class="filter-helper secondary">Top 5% por venda</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-a">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-b" onclick="filterByAdvancedStock('abc-b')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe B</span>
+                                    <span class="filter-helper secondary">Itens intermediários</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-b">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="abc-c" onclick="filterByAdvancedStock('abc-c')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Classe C</span>
+                                    <span class="filter-helper secondary">Cauda longa</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="abc-c">0 itens</span>
+                            </button>
+                            <button class="prediction-item clickable" type="button" data-advanced-filter="top-sellers-risk" onclick="filterByAdvancedStock('top-sellers-risk')" aria-pressed="false">
+                                <span class="filter-content">
+                                    <span class="filter-title">Top sellers em risco</span>
+                                    <span class="filter-helper">Grandes receitas com &le; 2M</span>
+                                </span>
+                                <span class="filter-count" data-advanced-count="top-sellers-risk">0 itens</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -5577,6 +5602,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
+            applyAllFilters();
+
             const families = Array.from(new Set(allProductsData.map(function(product) {
                 return (product.family || '').toString().trim();
             }).filter(function(value) { return value !== ''; }))).sort();
@@ -5788,8 +5815,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             searchResultsHidden = false;
             resultsDiv.classList.remove('is-hidden');
             resultsDiv.innerHTML = resultsHtml;
-
-            applyAllFilters();
             updateSearchSelectionDisplay();
         }
 
