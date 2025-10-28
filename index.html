@@ -7032,7 +7032,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 && activeRiskSelection.label === segment.label;
 
             if (isSameSelection) {
+                const expectedFilter = getPredictionFilterForBucket(bucket);
                 clearActiveRiskSelection();
+
+                if (expectedFilter === 'zero30' && predictionFilter === 'zero30') {
+                    filterZeroIn30();
+                } else if (expectedFilter === 'zero60' && predictionFilter === 'zero60') {
+                    filterZeroIn60();
+                } else if (expectedFilter === 'comfortable' && predictionFilter === 'comfortable') {
+                    filterComfortableCoverage();
+                }
                 return;
             }
 
@@ -7079,6 +7088,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 const segment = segments[index];
                 button.addEventListener('click', function(event) {
                     event.preventDefault();
+                    if (event.stopPropagation) {
+                        event.stopPropagation();
+                    }
                     handleRiskSegmentSelection(config, segment, index);
                 });
 
@@ -7088,6 +7100,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     }
 
                     event.preventDefault();
+                    if (event.stopPropagation) {
+                        event.stopPropagation();
+                    }
                     handleRiskSegmentSelection(config, segment, index);
                 });
             });
@@ -8200,105 +8215,137 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const datasetColors = colors.slice();
                     const labels = segments.map(function(segment) { return segment.label; });
                     let chart = riskChartInstances[config.chartId];
-                    if (!chart) {
-                        const context = canvas.getContext('2d');
-                        chart = new Chart(context, {
-                            type: 'doughnut',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    data: datasetData,
-                                    backgroundColor: datasetColors,
-                                    hoverBackgroundColor: datasetColors,
-                                    borderColor: '#ffffff',
-                                    hoverBorderColor: '#ffffff',
-                                    borderWidth: 2,
-                                    hoverOffset: 6
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                cutout: '70%',
-                                animation: {
-                                    animateRotate: true,
-                                    duration: 650
-                                },
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        enabled: false,
-                                        external: renderRiskChartTooltip
-                                    }
-                                }
-                            }
-                        });
-                        riskChartInstances[config.chartId] = chart;
-                        chart.$riskTooltipLeaveHandler = function() {
-                            if (activeRiskChartTooltip && activeRiskChartTooltip.chart === chart) {
-                                hideRiskChartTooltip();
-                            }
-                        };
-                        if (chart.canvas) {
-                            chart.canvas.addEventListener('mouseleave', chart.$riskTooltipLeaveHandler);
+
+                    if (chart) {
+                        if (chart.$riskTooltipLeaveHandler && chart.canvas) {
+                            chart.canvas.removeEventListener('mouseleave', chart.$riskTooltipLeaveHandler);
                         }
-                    } else {
-                        chart.data.labels = labels;
-                        chart.data.datasets[0].data = datasetData;
-                        chart.data.datasets[0].backgroundColor = datasetColors;
-                        chart.data.datasets[0].hoverBackgroundColor = datasetColors;
-                        chart.data.datasets[0].hoverBorderColor = '#ffffff';
-                        chart.options.plugins = chart.options.plugins || {};
-                        chart.options.plugins.tooltip = chart.options.plugins.tooltip || {};
-                        chart.options.plugins.tooltip.enabled = false;
-                        chart.options.plugins.tooltip.external = renderRiskChartTooltip;
+                        if (chart.$riskCanvasClickHandler && chart.canvas) {
+                            chart.canvas.removeEventListener('click', chart.$riskCanvasClickHandler);
+                        }
+                        chart.destroy();
+                        delete riskChartInstances[config.chartId];
+                        chart = null;
                     }
 
-                    chart.$riskSegments = segments;
-                    chart.$riskConfig = config;
-                    chart.$riskTotalSegmentsCount = totalSegmentsCount;
-                    chart.options.onHover = function(event, activeElements) {
-                        const nativeEvent = event && event.native ? event.native : null;
-                        if (!nativeEvent) {
-                            return;
-                        }
+                    const context = canvas.getContext('2d');
+                    let chartInstance;
+                    const chartConfig = {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: datasetData,
+                                backgroundColor: datasetColors,
+                                hoverBackgroundColor: datasetColors,
+                                borderColor: '#ffffff',
+                                hoverBorderColor: '#ffffff',
+                                borderWidth: 2,
+                                hoverOffset: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            animation: {
+                                animateRotate: true,
+                                duration: 650
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    enabled: false,
+                                    external: renderRiskChartTooltip
+                                }
+                            }
+                        },
+                        onHover: function(event, activeElements) {
+                            const nativeEvent = event && event.native ? event.native : event;
+                            const canvasElement = nativeEvent && nativeEvent.target ? nativeEvent.target : canvas;
+                            if (canvasElement && typeof canvasElement.style !== 'undefined') {
+                                canvasElement.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+                            }
+                        },
+                        onClick: function(event, activeElements, providedChart) {
+                            hideRiskChartTooltip();
 
-                        const canvasElement = nativeEvent.target;
-                        if (!canvasElement || typeof canvasElement.style === 'undefined') {
-                            return;
-                        }
+                            const chartRef = providedChart || chartInstance;
+                            if (!chartRef) {
+                                return;
+                            }
 
-                        canvasElement.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+                            let elements = activeElements;
+                            if (!elements || elements.length === 0) {
+                                elements = chartRef.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                            }
+
+                            if (!elements || elements.length === 0) {
+                                return;
+                            }
+
+                            const element = elements[0];
+                            const index = element && typeof element.index === 'number' ? element.index : null;
+                            if (index === null || !chartRef.$riskSegments || !chartRef.$riskSegments[index]) {
+                                return;
+                            }
+
+                            handleRiskSegmentSelection(config, chartRef.$riskSegments[index], index);
+                        }
                     };
 
-                    chart.options.onClick = function(event) {
-                        hideRiskChartTooltip();
+                    chartInstance = new Chart(context, chartConfig);
+                    chart = chartInstance;
+                    riskChartInstances[config.chartId] = chartInstance;
+                    chartInstance.$riskTooltipLeaveHandler = function() {
+                        if (activeRiskChartTooltip && activeRiskChartTooltip.chart === chart) {
+                            hideRiskChartTooltip();
+                        }
+                    };
+                    if (chartInstance.canvas) {
+                        chartInstance.canvas.addEventListener('mouseleave', chartInstance.$riskTooltipLeaveHandler);
+                    }
 
-                        if (!event) {
+                    chartInstance.$riskCanvasClickHandler = function(nativeEvent) {
+                        if (!chartInstance) {
                             return;
                         }
 
-                        const elements = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                        if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                            nativeEvent.stopPropagation();
+                        }
+                        if (nativeEvent && typeof nativeEvent.preventDefault === 'function') {
+                            nativeEvent.preventDefault();
+                        }
+
+                        const elements = chartInstance.getElementsAtEventForMode(nativeEvent, 'nearest', { intersect: true }, true);
                         if (!elements || elements.length === 0) {
                             return;
                         }
 
                         const element = elements[0];
                         const index = element && typeof element.index === 'number' ? element.index : null;
-                        if (index === null || !chart.$riskSegments || !chart.$riskSegments[index]) {
+                        if (index === null || !chartInstance.$riskSegments || !chartInstance.$riskSegments[index]) {
                             return;
                         }
 
-                        handleRiskSegmentSelection(config, chart.$riskSegments[index], index);
+                        handleRiskSegmentSelection(config, chartInstance.$riskSegments[index], index);
                     };
 
-                    if (selection && Number.isInteger(selection.index)) {
-                        chart.setActiveElements([{ datasetIndex: 0, index: selection.index }]);
-                    } else {
-                        chart.setActiveElements([]);
+                    if (chartInstance.canvas) {
+                        chartInstance.canvas.addEventListener('click', chartInstance.$riskCanvasClickHandler);
                     }
 
-                    chart.update();
+                    if (selection && Number.isInteger(selection.index)) {
+                        chartInstance.setActiveElements([{ datasetIndex: 0, index: selection.index }]);
+                    } else {
+                        chartInstance.setActiveElements([]);
+                    }
+
+                    chartInstance.$riskSegments = segments;
+                    chartInstance.$riskConfig = config;
+                    chartInstance.$riskTotalSegmentsCount = totalSegmentsCount;
+                    chartInstance.update();
                 }
 
                 const legendHtml = segments.map(function(segment, index) {
