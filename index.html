@@ -1278,19 +1278,15 @@
         .prediction-item::after {
             content: '';
             position: absolute;
-            width: 28px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            bottom: -14px;
-            right: -14px;
-            box-shadow: inset 0 0 0 1px rgba(195, 207, 240, 0.6);
+            inset: 2px;
+            border-radius: inherit;
+            background: radial-gradient(130% 130% at 100% 100%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 70%);
             pointer-events: none;
+            transition: background 0.2s ease;
         }
 
         .prediction-item:nth-child(odd)::after {
-            left: -14px;
-            right: auto;
+            background: radial-gradient(130% 130% at 0% 100%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 70%);
         }
 
         .prediction-item:hover {
@@ -3891,8 +3887,14 @@
             const percentText = percent >= 10 ? percent.toFixed(0) : percent.toFixed(1);
             const label = segment && segment.label ? segment.label : dataPoint.label;
             const itemLabel = count === 1 ? 'item' : 'itens';
-            const text = `${label}: ${count} ${itemLabel} (${percentText}%)`;
-            showRiskChartTooltip(chart, text, tooltip.caretX, tooltip.caretY, tooltip.yAlign);
+            const productTooltip = segment && typeof segment.productTooltip === 'string'
+                ? segment.productTooltip.trim()
+                : '';
+            const tooltipParts = [`${label}: ${count} ${itemLabel} (${percentText}%)`];
+            if (productTooltip) {
+                tooltipParts.push(productTooltip);
+            }
+            showRiskChartTooltip(chart, tooltipParts.join(' • '), tooltip.caretX, tooltip.caretY, tooltip.yAlign);
         }
 
         window.addEventListener('scroll', function() {
@@ -7953,6 +7955,88 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     return [];
                 }
 
+                const extractSegmentProductNames = function(segmentEntries) {
+                    if (!Array.isArray(segmentEntries)) {
+                        return [];
+                    }
+
+                    return segmentEntries.map(function(entry) {
+                        const product = entry && entry.product ? entry.product : null;
+                        if (!product) {
+                            return null;
+                        }
+
+                        const rawName = typeof product.item === 'string' && product.item.trim() !== ''
+                            ? product.item.trim()
+                            : null;
+
+                        if (rawName) {
+                            return rawName;
+                        }
+
+                        if (typeof product.code !== 'undefined' && product.code !== null) {
+                            const codeValue = product.code.toString().trim();
+                            if (codeValue !== '') {
+                                return `Código ${codeValue}`;
+                            }
+                        }
+
+                        return null;
+                    }).filter(function(name) {
+                        return typeof name === 'string' && name.trim() !== '';
+                    });
+                };
+
+                const buildSegmentProductTooltip = function(segmentEntries) {
+                    const names = extractSegmentProductNames(segmentEntries);
+                    if (names.length === 0) {
+                        return '';
+                    }
+
+                    const maxLength = 140;
+                    const selected = [];
+                    let currentLength = 0;
+                    let truncated = false;
+
+                    names.forEach(function(name) {
+                        if (truncated) {
+                            return;
+                        }
+
+                        const normalized = name.trim();
+                        if (normalized === '') {
+                            return;
+                        }
+
+                        const prefix = selected.length > 0 ? ', ' : '';
+                        const additionLength = prefix.length + normalized.length;
+
+                        if ((currentLength + additionLength) > maxLength) {
+                            if (selected.length === 0) {
+                                selected.push(normalized);
+                                currentLength += additionLength;
+                            }
+                            truncated = true;
+                            return;
+                        }
+
+                        selected.push(normalized);
+                        currentLength += additionLength;
+                    });
+
+                    if (selected.length === 0) {
+                        selected.push(names[0]);
+                        truncated = names.length > 1;
+                    }
+
+                    let text = selected.join(', ');
+                    if (truncated || selected.length < names.length) {
+                        text = text ? `${text}, (...)` : '(...)';
+                    }
+
+                    return text;
+                };
+
                 const aggregation = entries.reduce(function(acc, entry) {
                     const product = entry && entry.product ? entry.product : null;
                     const family = product && typeof product.family === 'string' && product.family.trim() !== ''
@@ -8062,6 +8146,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
                     segments = head;
                 }
+
+                segments.forEach(function(segment) {
+                    segment.productTooltip = buildSegmentProductTooltip(segment.entries);
+                });
 
                 return segments;
             };
@@ -8240,12 +8328,21 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         && selection.chartId === config.chartId
                         && Number.isInteger(selection.index)
                         && selection.index === index;
+                    const tooltipText = typeof segment.productTooltip === 'string'
+                        ? segment.productTooltip
+                        : '';
                     const classes = ['prediction-legend-item'];
                     if (isActive) {
                         classes.push('is-active');
                     }
+                    if (tooltipText) {
+                        classes.push('has-tooltip');
+                    }
+                    const tooltipAttr = tooltipText
+                        ? ` data-tooltip="${escapeTooltip(tooltipText)}"`
+                        : '';
 
-                    return `<div class="${classes.join(' ')}" data-chart-id="${escapeTooltip(config.chartId)}" data-segment-index="${index}" role="listitem">`
+                    return `<div class="${classes.join(' ')}" data-chart-id="${escapeTooltip(config.chartId)}" data-segment-index="${index}" role="listitem"${tooltipAttr}>`
                         + `<span class="prediction-legend-dot" style="background:${color}"></span>`
                         + `<div class="prediction-legend-meta">`
                         + `<strong>${escapeTooltip(segment.label)}</strong>`
@@ -8259,6 +8356,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
                 legendElement.innerHTML = legendHtml;
                 setupRiskLegendInteractions(legendElement);
+                initializeTooltips(legendElement);
             };
 
             updateRiskCard({
