@@ -871,14 +871,14 @@
             max-width: 620px;
         }
 
-        .prediction-grid {
+        .prediction-chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             align-items: stretch;
         }
 
-        .prediction-card {
+        .prediction-chart-card {
             background: #ffffff;
             border-radius: 12px;
             padding: 16px;
@@ -886,92 +886,102 @@
             box-shadow: 0 4px 10px rgba(31, 68, 140, 0.05);
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
             position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        .prediction-card.clickable {
+        button.prediction-chart-card {
+            font: inherit;
+            background: #ffffff;
+        }
+
+        .prediction-chart-card.button-like {
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .prediction-card.clickable:hover {
+        .prediction-chart-card.button-like:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 20px rgba(31, 68, 140, 0.12);
         }
 
-        .prediction-card.clickable.active {
+        .prediction-chart-card.active {
             border-color: #1F448C;
             box-shadow: 0 10px 26px rgba(31, 68, 140, 0.18);
         }
 
-        .prediction-card .card-label {
+        .prediction-chart-card:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.2);
+        }
+
+        .prediction-chart-title {
             font-size: 13px;
             font-weight: 600;
             color: #1F448C;
-            display: flex;
-            align-items: baseline;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .prediction-card .card-label-text {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            max-width: calc(100% - 48px);
         }
 
-        .prediction-card .card-bubble {
-            display: inline-flex;
+        .prediction-chart-pie {
+            --pie-percentage: 0;
+            --pie-color: #1F448C;
+            --pie-background: rgba(31, 68, 140, 0.12);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--pie-color) calc(var(--pie-percentage) * 1%), var(--pie-background) 0);
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            min-width: 36px;
-            padding: 3px 10px;
-            border-radius: 999px;
-            background: rgba(31, 68, 140, 0.12);
-            color: #1F448C;
-            border: 1px solid rgba(31, 68, 140, 0.16);
-            white-space: nowrap;
+            position: relative;
         }
 
-        .prediction-card .card-bubble .bubble-number {
-            font-size: 12px;
+        .prediction-chart-pie::after {
+            content: '';
+            position: absolute;
+            width: 78px;
+            height: 78px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 1px rgba(31, 68, 140, 0.08);
+        }
+
+        .prediction-chart-pie-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .prediction-chart-pie-value {
+            font-size: 24px;
             font-weight: 700;
+            color: #111827;
             line-height: 1;
         }
 
-        .prediction-card .card-bubble .bubble-label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: lowercase;
-            color: #1F448C;
-            line-height: 1;
-        }
-
-        .prediction-card .card-helper {
-            font-size: 12px;
+        .prediction-chart-pie-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             color: #6b7280;
         }
 
-        .prediction-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1F448C;
+        .prediction-chart-helper {
+            font-size: 12px;
+            color: #4b5563;
         }
 
-        .prediction-value.prediction-critical {
-            color: #d32f2f;
-        }
-
-        .prediction-value.prediction-warning {
-            color: #f57c00;
-        }
-
-        .prediction-value.prediction-good {
-            color: #2e7d32;
+        .prediction-chart-detail {
+            display: block;
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
         }
 
         .prediction-actions {
@@ -2591,17 +2601,38 @@
                 </div>
             </div>
 
-            <div class="prediction-grid">
-                <div class="prediction-card clickable" data-prediction-filter="zero30" onclick="filterZeroIn30()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterZeroIn30();}">
-                    <span class="card-label">Produtos que zeram em ≤ <span data-urgent-days>--</span> dias <span class="info-icon has-tooltip" tabindex="0" aria-label="Zera em curto prazo" data-tooltip="Clique para filtrar itens sem estoque ou que acabam dentro do limite urgente." data-tooltip-position="top">?</span></span>
-                    <div class="prediction-value" id="zeroIn30">--</div>
-                    <span class="card-helper">Inclui itens sem estoque e com ruptura imediata prevista.</span>
-                </div>
+            <div class="prediction-chart-grid" role="group" aria-label="Resumo preditivo por risco">
+                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="zero30" onclick="filterZeroIn30()" aria-pressed="false">
+                    <span class="prediction-chart-title">Ruptura urgente <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura urgente" data-tooltip="Clique para visualizar apenas os itens sem estoque ou com ruptura prevista dentro do limite urgente configurado." data-tooltip-position="top">?</span></span>
+                    <div class="prediction-chart-pie" id="urgentRiskPie" role="img" aria-label="Distribuição de itens com ruptura urgente">
+                        <div class="prediction-chart-pie-content">
+                            <span class="prediction-chart-pie-value" id="urgentRiskValue">--</span>
+                            <span class="prediction-chart-pie-label">itens</span>
+                        </div>
+                    </div>
+                    <span class="prediction-chart-helper" id="urgentRiskHelper">Itens que zeram em até <span data-urgent-days>--</span> dias. <span class="prediction-chart-detail" id="urgentRiskDetail"></span></span>
+                </button>
 
-                <div class="prediction-card clickable" data-prediction-filter="zero60" onclick="filterZeroIn60()" role="button" tabindex="0" aria-pressed="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterZeroIn60();}">
-                    <span class="card-label">Produtos que zeram entre <span data-warning-start>--</span> e <span data-warning-days>--</span> dias <span class="info-icon has-tooltip" tabindex="0" aria-label="Zera em médio prazo" data-tooltip="Clique para filtrar itens que ficam sem estoque logo após o limite urgente." data-tooltip-position="top">?</span></span>
-                    <div class="prediction-value" id="zeroIn60">--</div>
-                    <span class="card-helper">Priorize pedidos para evitar ruptura nos próximos meses.</span>
+                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="zero60" onclick="filterZeroIn60()" aria-pressed="false">
+                    <span class="prediction-chart-title">Em atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura em atenção" data-tooltip="Clique para visualizar itens que entram em ruptura logo após o limite urgente configurado." data-tooltip-position="top">?</span></span>
+                    <div class="prediction-chart-pie" id="warningRiskPie" role="img" aria-label="Distribuição de itens em atenção">
+                        <div class="prediction-chart-pie-content">
+                            <span class="prediction-chart-pie-value" id="warningRiskValue">--</span>
+                            <span class="prediction-chart-pie-label">itens</span>
+                        </div>
+                    </div>
+                    <span class="prediction-chart-helper" id="warningRiskHelper">Cobertura entre <span data-warning-start>--</span> e <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="warningRiskDetail"></span></span>
+                </button>
+
+                <div class="prediction-chart-card" id="comfortableRiskCard">
+                    <span class="prediction-chart-title">Cobertura confortável <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura confortável" data-tooltip="Resumo dos itens com cobertura acima do limite de atenção configurado. Este bloco não aplica filtros ao ser clicado." data-tooltip-position="top">?</span></span>
+                    <div class="prediction-chart-pie" id="comfortableRiskPie" role="img" aria-label="Distribuição de itens com cobertura confortável">
+                        <div class="prediction-chart-pie-content">
+                            <span class="prediction-chart-pie-value" id="comfortableRiskValue">--</span>
+                            <span class="prediction-chart-pie-label">itens</span>
+                        </div>
+                    </div>
+                    <span class="prediction-chart-helper" id="comfortableRiskHelper">Cobertura superior a <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="comfortableRiskDetail"></span></span>
                 </div>
             </div>
 
@@ -4818,7 +4849,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         <strong>${escapeTooltip(productName)}</strong>
                         ${metaHtml}
                     </div>
-                    <button type="button" class="link-button selection-clear" onclick="clearSearchSelection()">Limpar</button>
                 </div>`;
             container.classList.add('is-visible');
         }
@@ -4827,12 +4857,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             selectedSearchProduct = null;
             updateSearchSelectionDisplay();
         }
-
-        function clearSearchSelection() {
-            clearSearch();
-        }
-
-        window.clearSearchSelection = clearSearchSelection;
 
         function formatAssistantFocusLabel(context) {
             if (!context) {
@@ -5397,6 +5421,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             if (!shouldHideSuggestions) {
                 const maxSuggestions = 4;
+                const hasCodeCandidates = Boolean(activeSearchContext && Array.isArray(activeSearchContext.codeCandidates) && activeSearchContext.codeCandidates.length > 0);
+                const desiredEntity = activeSearchContext && activeSearchContext.intentMeta
+                    ? activeSearchContext.intentMeta.desiredEntity
+                    : null;
+                const allowFamilySuggestions = desiredEntity === 'family' || (!hasCodeCandidates && !desiredEntity);
+                const allowSupplierSuggestions = desiredEntity === 'supplier' || (!hasCodeCandidates && !desiredEntity);
 
                 const buildProductSuggestion = function(product) {
                     const code = (product.code || '').toString().trim();
@@ -5455,7 +5485,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     suggestionsCount += 1;
                 });
 
-                if (suggestionsCount < maxSuggestions) {
+                if (suggestionsCount < maxSuggestions && allowFamilySuggestions) {
                     familyMatches.forEach(function(family) {
                         if (suggestionsCount >= maxSuggestions) {
                             return;
@@ -5465,7 +5495,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     });
                 }
 
-                if (suggestionsCount < maxSuggestions) {
+                if (suggestionsCount < maxSuggestions && allowSupplierSuggestions) {
                     supplierMatches.forEach(function(supplier) {
                         if (suggestionsCount >= maxSuggestions) {
                             return;
@@ -5557,9 +5587,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
                 performGlobalSearch();
 
-                if (matchedProduct && matchedProduct.code) {
-                    openProductHistory(matchedProduct.code);
-                }
                 return;
             }
 
@@ -6382,7 +6409,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function resetPredictionRangeButtons() {
-            const rangeButtons = document.querySelectorAll('.prediction-card[data-prediction-filter]');
+            const rangeButtons = document.querySelectorAll('[data-prediction-filter]');
             rangeButtons.forEach(function(button) {
                 setPredictionCardActive(button, false);
             });
@@ -6564,8 +6591,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterZeroIn30() {
-            const item30 = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
-            const item60 = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+            const item30 = document.querySelector('[data-prediction-filter="zero30"]');
+            const item60 = document.querySelector('[data-prediction-filter="zero60"]');
 
             resetAdvancedFilterSelection();
 
@@ -6591,8 +6618,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterZeroIn60() {
-            const item30 = document.querySelector('.prediction-card[data-prediction-filter="zero30"]');
-            const item60 = document.querySelector('.prediction-card[data-prediction-filter="zero60"]');
+            const item30 = document.querySelector('[data-prediction-filter="zero30"]');
+            const item60 = document.querySelector('[data-prediction-filter="zero60"]');
 
             resetAdvancedFilterSelection();
 
@@ -7159,22 +7186,137 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             });
 
-            const zeroIn30Element = document.getElementById('zeroIn30');
-            const zeroIn60Element = document.getElementById('zeroIn60');
+            const totalItems = filteredData.length;
+            const stableCount = timelineBuckets.stable.length;
+            const unknownCount = timelineBuckets.unknown.length;
 
-            if (zeroIn30Element) {
-                zeroIn30Element.textContent = urgentCount;
-                zeroIn30Element.className = urgentCount > 0
-                    ? 'prediction-value prediction-critical'
-                    : 'prediction-value prediction-good';
-            }
+            const formatPercentLabel = function(count) {
+                if (!Number.isFinite(count) || count <= 0 || totalItems <= 0) {
+                    return null;
+                }
 
-            if (zeroIn60Element) {
-                zeroIn60Element.textContent = warningCount;
-                zeroIn60Element.className = warningCount > 0
-                    ? 'prediction-value prediction-warning'
-                    : 'prediction-value prediction-good';
-            }
+                const percentValue = (count / totalItems) * 100;
+                const label = percentValue >= 10 ? percentValue.toFixed(0) : percentValue.toFixed(1);
+                return { value: percentValue, label: `${label}%` };
+            };
+
+            const updateRiskPie = function(config) {
+                const pieElement = document.getElementById(config.pieId);
+                const valueElement = document.getElementById(config.valueId);
+                const detailElement = document.getElementById(config.detailId);
+                const percentData = formatPercentLabel(config.count);
+                const percentValue = percentData ? percentData.value : 0;
+
+                if (pieElement) {
+                    pieElement.style.setProperty('--pie-percentage', totalItems > 0 ? percentValue.toFixed(2) : 0);
+                    pieElement.style.setProperty('--pie-color', config.color);
+                    pieElement.style.setProperty('--pie-background', config.background);
+
+                    if (typeof config.ariaLabel === 'function') {
+                        pieElement.setAttribute('aria-label', config.ariaLabel(config.count, percentValue, totalItems));
+                    }
+                }
+
+                if (valueElement) {
+                    valueElement.textContent = totalItems > 0 ? config.count : '--';
+                }
+
+                if (detailElement) {
+                    const detailText = typeof config.detailBuilder === 'function'
+                        ? config.detailBuilder(config.count, percentData ? percentData.label : null, totalItems, unknownCount)
+                        : '';
+                    detailElement.textContent = detailText || '';
+                }
+            };
+
+            updateRiskPie({
+                pieId: 'urgentRiskPie',
+                valueId: 'urgentRiskValue',
+                detailId: 'urgentRiskDetail',
+                count: urgentCount,
+                color: '#d64545',
+                background: 'rgba(214, 69, 69, 0.18)',
+                ariaLabel: function(count, percent) {
+                    if (totalItems <= 0) {
+                        return 'Sem dados de ruptura urgente nos filtros atuais';
+                    }
+
+                    const labelPercent = percent ? `${percent.toFixed(1)}%` : '0%';
+                    return `${count} de ${totalItems} itens com ruptura urgente (${labelPercent})`;
+                },
+                detailBuilder: function(count, percentLabel) {
+                    if (totalItems <= 0) {
+                        return '';
+                    }
+
+                    if (count <= 0) {
+                        return 'Nenhum item crítico nos filtros atuais.';
+                    }
+
+                    return percentLabel ? `${percentLabel} dos itens filtrados.` : '';
+                }
+            });
+
+            updateRiskPie({
+                pieId: 'warningRiskPie',
+                valueId: 'warningRiskValue',
+                detailId: 'warningRiskDetail',
+                count: warningCount,
+                color: '#f59e0b',
+                background: 'rgba(245, 158, 11, 0.18)',
+                ariaLabel: function(count, percent) {
+                    if (totalItems <= 0) {
+                        return 'Sem dados de ruptura em atenção nos filtros atuais';
+                    }
+
+                    const labelPercent = percent ? `${percent.toFixed(1)}%` : '0%';
+                    return `${count} de ${totalItems} itens em atenção (${labelPercent})`;
+                },
+                detailBuilder: function(count, percentLabel) {
+                    if (totalItems <= 0) {
+                        return '';
+                    }
+
+                    if (count <= 0) {
+                        return 'Nenhum item em atenção neste momento.';
+                    }
+
+                    return percentLabel ? `${percentLabel} dos itens avaliados.` : '';
+                }
+            });
+
+            updateRiskPie({
+                pieId: 'comfortableRiskPie',
+                valueId: 'comfortableRiskValue',
+                detailId: 'comfortableRiskDetail',
+                count: stableCount,
+                color: '#16a34a',
+                background: 'rgba(22, 163, 74, 0.18)',
+                ariaLabel: function(count, percent) {
+                    if (totalItems <= 0) {
+                        return 'Sem dados de cobertura confortável nos filtros atuais';
+                    }
+
+                    const labelPercent = percent ? `${percent.toFixed(1)}%` : '0%';
+                    return `${count} de ${totalItems} itens com cobertura confortável (${labelPercent})`;
+                },
+                detailBuilder: function(count, percentLabel, total, unknown) {
+                    if (total <= 0) {
+                        return '';
+                    }
+
+                    if (count <= 0) {
+                        if (unknown > 0) {
+                            const label = unknown === 1 ? 'item' : 'itens';
+                            return `${unknown} ${label} sem dados suficientes para previsão.`;
+                        }
+
+                        return 'Nenhum item com cobertura confortável.';
+                    }
+
+                    return percentLabel ? `${percentLabel} dos itens analisados.` : '';
+                }
+            });
 
             const sortByDays = function(list) {
                 return list.sort(function(a, b) {

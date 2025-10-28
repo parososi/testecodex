@@ -247,6 +247,21 @@
         let score = 0;
         const matchedTerms = new Set();
         const codeCandidates = context.codeCandidates || [];
+        const focusTokens = Array.isArray(context.focusTokens) ? context.focusTokens : [];
+        const numericTokens = new Set();
+        const matchedNumericTokens = new Set();
+
+        focusTokens.forEach(function(token) {
+            if (token && /\d/.test(token)) {
+                numericTokens.add(token);
+            }
+        });
+
+        codeCandidates.forEach(function(candidate) {
+            if (candidate && /\d/.test(candidate)) {
+                numericTokens.add(candidate);
+            }
+        });
 
         codeCandidates.forEach(function(candidate) {
             if (!candidate) {
@@ -256,12 +271,15 @@
             if (index.codeCompact === candidate) {
                 score += 160;
                 matchedTerms.add(candidate);
+                matchedNumericTokens.add(candidate);
             } else if (index.codeCompact.includes(candidate)) {
                 score += 110;
                 matchedTerms.add(candidate);
+                matchedNumericTokens.add(candidate);
             } else if (index.item.includes(candidate)) {
                 score += 70;
                 matchedTerms.add(candidate);
+                matchedNumericTokens.add(candidate);
             }
         });
 
@@ -285,6 +303,10 @@
                 if (startsWithToken) {
                     score += 10;
                 }
+
+                if (/\d/.test(token)) {
+                    matchedNumericTokens.add(token);
+                }
             }
 
             if (index.family.includes(token)) {
@@ -300,6 +322,10 @@
             if (!matched && index.codeCompact.includes(token)) {
                 matched = true;
                 score += 35;
+
+                if (/\d/.test(token)) {
+                    matchedNumericTokens.add(token);
+                }
             }
 
             if (matched) {
@@ -320,7 +346,14 @@
             }
             if (!index.item.includes(highlight) && index.codeCompact.includes(highlight)) {
                 score += 8;
+                if (/\d/.test(highlight)) {
+                    matchedNumericTokens.add(highlight);
+                }
             }
+        }
+
+        if (numericTokens.size > 0 && matchedNumericTokens.size === 0) {
+            return 0;
         }
 
         return score;
