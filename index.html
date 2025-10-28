@@ -984,32 +984,11 @@
             align-items: flex-start;
         }
 
-        button.prediction-chart-card {
-            font: inherit;
-            background: #ffffff;
-        }
-
-        .prediction-chart-card.button-like {
-            cursor: pointer;
-        }
-
-        .prediction-chart-card.button-like:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
-            border-color: #b9c8ee;
-            z-index: 2;
-        }
-
         .prediction-chart-card.active {
             border-color: #1F448C;
             box-shadow: 0 16px 36px rgba(31, 68, 140, 0.22);
             background: linear-gradient(135deg, rgba(31, 68, 140, 0.08), rgba(31, 68, 140, 0));
             z-index: 3;
-        }
-
-        .prediction-chart-card:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.18);
         }
 
         .prediction-chart-title {
@@ -1103,18 +1082,9 @@
             padding: 6px 0;
             background: transparent;
             text-align: left;
-            transition: color 0.2s ease, transform 0.2s ease;
-            cursor: pointer;
+            transition: color 0.2s ease;
+            cursor: default;
             width: 100%;
-        }
-
-        button.prediction-legend-item {
-            font: inherit;
-        }
-
-        .prediction-legend-item:hover {
-            color: #1f448c;
-            transform: translateX(2px);
         }
 
         .prediction-legend-item.is-active {
@@ -1122,19 +1092,11 @@
             font-weight: 600;
         }
 
-        .prediction-legend-item:hover strong,
         .prediction-legend-item.is-active strong {
             color: #1f448c;
         }
 
-        .prediction-legend-item:hover .prediction-legend-stat,
         .prediction-legend-item.is-active .prediction-legend-stat {
-            color: #1f448c;
-        }
-
-        .prediction-legend-item:focus-visible {
-            outline: 2px solid rgba(31, 68, 140, 0.45);
-            outline-offset: 2px;
             color: #1f448c;
         }
 
@@ -1147,7 +1109,6 @@
             transition: transform 0.2s ease;
         }
 
-        .prediction-legend-item:hover .prediction-legend-dot,
         .prediction-legend-item.is-active .prediction-legend-dot {
             transform: scale(1.25);
         }
@@ -2958,9 +2919,9 @@
             </div>
 
             <div class="prediction-chart-grid" role="group" aria-label="Resumo preditivo por risco">
-                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="zero30" onclick="filterZeroIn30()" aria-pressed="false">
+                <div class="prediction-chart-card" data-prediction-filter="zero30">
                     <div class="prediction-chart-header">
-                        <span class="prediction-chart-title">Ruptura urgente <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura urgente" data-tooltip="Clique para visualizar apenas os itens sem estoque ou com ruptura prevista dentro do limite urgente configurado." data-tooltip-position="top">?</span></span>
+                        <span class="prediction-chart-title">Ruptura urgente <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura urgente" data-tooltip="Resumo dos itens sem estoque ou com ruptura prevista dentro do limite urgente configurado." data-tooltip-position="top">?</span></span>
                     </div>
                     <div class="prediction-chart-body">
                         <div class="prediction-chart-visual">
@@ -2975,11 +2936,11 @@
                     </div>
                     <div class="prediction-chart-empty" id="urgentRiskEmpty" hidden>Sem itens com previsão para exibir.</div>
                     <span class="prediction-chart-helper" id="urgentRiskHelper">Itens que zeram em até <span data-urgent-days>--</span> dias. <span class="prediction-chart-detail" id="urgentRiskDetail"></span></span>
-                </button>
+                </div>
 
-                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="zero60" onclick="filterZeroIn60()" aria-pressed="false">
+                <div class="prediction-chart-card" data-prediction-filter="zero60">
                     <div class="prediction-chart-header">
-                        <span class="prediction-chart-title">Em atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura em atenção" data-tooltip="Clique para visualizar itens que entram em ruptura logo após o limite urgente configurado." data-tooltip-position="top">?</span></span>
+                        <span class="prediction-chart-title">Em atenção <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura em atenção" data-tooltip="Resumo dos itens que entram em ruptura logo após o limite urgente configurado." data-tooltip-position="top">?</span></span>
                     </div>
                     <div class="prediction-chart-body">
                         <div class="prediction-chart-visual">
@@ -2994,11 +2955,11 @@
                     </div>
                     <div class="prediction-chart-empty" id="warningRiskEmpty" hidden>Sem itens com previsão para exibir.</div>
                     <span class="prediction-chart-helper" id="warningRiskHelper">Cobertura entre <span data-warning-start>--</span> e <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="warningRiskDetail"></span></span>
-                </button>
+                </div>
 
-                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="comfortable" onclick="filterComfortableCoverage()" aria-pressed="false" id="comfortableRiskCard">
+                <div class="prediction-chart-card" data-prediction-filter="comfortable" id="comfortableRiskCard">
                     <div class="prediction-chart-header">
-                        <span class="prediction-chart-title">Cobertura confortável <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura confortável" data-tooltip="Clique para visualizar apenas os itens com cobertura confortável acima do limite configurado." data-tooltip-position="top">?</span></span>
+                        <span class="prediction-chart-title">Cobertura confortável <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura confortável" data-tooltip="Resumo dos itens com cobertura confortável acima do limite configurado." data-tooltip-position="top">?</span></span>
                     </div>
                     <div class="prediction-chart-body">
                         <div class="prediction-chart-visual">
@@ -3013,7 +2974,7 @@
                     </div>
                     <div class="prediction-chart-empty" id="comfortableRiskEmpty" hidden>Sem itens com previsão para exibir.</div>
                     <span class="prediction-chart-helper" id="comfortableRiskHelper">Cobertura superior a <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="comfortableRiskDetail"></span></span>
-                </button>
+                </div>
             </div>
 
         </div>
@@ -6941,10 +6902,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             if (isActive) {
                 card.classList.add('active');
-                card.setAttribute('aria-pressed', 'true');
+                card.dataset.active = 'true';
             } else {
                 card.classList.remove('active');
-                card.setAttribute('aria-pressed', 'false');
+                delete card.dataset.active;
             }
         }
 
@@ -7007,10 +6968,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
                 if (isActive) {
                     button.classList.add('is-active');
-                    button.setAttribute('aria-pressed', 'true');
                 } else {
                     button.classList.remove('is-active');
-                    button.setAttribute('aria-pressed', 'false');
+                    if (button.hasAttribute('aria-pressed')) {
+                        button.setAttribute('aria-pressed', 'false');
+                    }
                 }
             });
         }
@@ -7073,39 +7035,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             applyAllFilters();
         }
 
-        function setupRiskLegendInteractions(legendElement, segments, config) {
-            if (!legendElement || !Array.isArray(segments) || segments.length === 0) {
+        function setupRiskLegendInteractions(legendElement) {
+            if (!legendElement) {
                 return;
             }
 
-            const buttons = legendElement.querySelectorAll('.prediction-legend-item');
-            buttons.forEach(function(button) {
-                const index = Number(button.getAttribute('data-segment-index'));
-                if (!Number.isInteger(index) || !segments[index]) {
-                    return;
-                }
-
-                const segment = segments[index];
-                button.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    if (event.stopPropagation) {
-                        event.stopPropagation();
-                    }
-                    handleRiskSegmentSelection(config, segment, index);
-                });
-
-                button.addEventListener('keydown', function(event) {
-                    if (event.key !== 'Enter' && event.key !== ' ') {
-                        return;
-                    }
-
-                    event.preventDefault();
-                    if (event.stopPropagation) {
-                        event.stopPropagation();
-                    }
-                    handleRiskSegmentSelection(config, segment, index);
-                });
-            });
+            legendElement.setAttribute('role', 'list');
         }
 
         function resetPredictionRangeButtons() {
@@ -8260,37 +8195,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                 }
                             }
                         },
-                        onHover: function(event, activeElements) {
+                        onHover: function(event) {
                             const nativeEvent = event && event.native ? event.native : event;
                             const canvasElement = nativeEvent && nativeEvent.target ? nativeEvent.target : canvas;
                             if (canvasElement && typeof canvasElement.style !== 'undefined') {
-                                canvasElement.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+                                canvasElement.style.cursor = 'default';
                             }
-                        },
-                        onClick: function(event, activeElements, providedChart) {
-                            hideRiskChartTooltip();
-
-                            const chartRef = providedChart || chartInstance;
-                            if (!chartRef) {
-                                return;
-                            }
-
-                            let elements = activeElements;
-                            if (!elements || elements.length === 0) {
-                                elements = chartRef.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
-                            }
-
-                            if (!elements || elements.length === 0) {
-                                return;
-                            }
-
-                            const element = elements[0];
-                            const index = element && typeof element.index === 'number' ? element.index : null;
-                            if (index === null || !chartRef.$riskSegments || !chartRef.$riskSegments[index]) {
-                                return;
-                            }
-
-                            handleRiskSegmentSelection(config, chartRef.$riskSegments[index], index);
                         }
                     };
 
@@ -8304,36 +8214,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     };
                     if (chartInstance.canvas) {
                         chartInstance.canvas.addEventListener('mouseleave', chartInstance.$riskTooltipLeaveHandler);
-                    }
-
-                    chartInstance.$riskCanvasClickHandler = function(nativeEvent) {
-                        if (!chartInstance) {
-                            return;
-                        }
-
-                        if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
-                            nativeEvent.stopPropagation();
-                        }
-                        if (nativeEvent && typeof nativeEvent.preventDefault === 'function') {
-                            nativeEvent.preventDefault();
-                        }
-
-                        const elements = chartInstance.getElementsAtEventForMode(nativeEvent, 'nearest', { intersect: true }, true);
-                        if (!elements || elements.length === 0) {
-                            return;
-                        }
-
-                        const element = elements[0];
-                        const index = element && typeof element.index === 'number' ? element.index : null;
-                        if (index === null || !chartInstance.$riskSegments || !chartInstance.$riskSegments[index]) {
-                            return;
-                        }
-
-                        handleRiskSegmentSelection(config, chartInstance.$riskSegments[index], index);
-                    };
-
-                    if (chartInstance.canvas) {
-                        chartInstance.canvas.addEventListener('click', chartInstance.$riskCanvasClickHandler);
                     }
 
                     if (selection && Number.isInteger(selection.index)) {
@@ -8365,7 +8245,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         classes.push('is-active');
                     }
 
-                    return `<button type="button" class="${classes.join(' ')}" data-chart-id="${escapeTooltip(config.chartId)}" data-segment-index="${index}" aria-pressed="${isActive ? 'true' : 'false'}">`
+                    return `<div class="${classes.join(' ')}" data-chart-id="${escapeTooltip(config.chartId)}" data-segment-index="${index}" role="listitem">`
                         + `<span class="prediction-legend-dot" style="background:${color}"></span>`
                         + `<div class="prediction-legend-meta">`
                         + `<strong>${escapeTooltip(segment.label)}</strong>`
@@ -8374,11 +8254,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         + `</div>`
                         + `<span class="prediction-legend-stat">${segment.count} ${itemLabel} • ${percentText}%</span>`
                         + `</div>`
-                        + `</button>`;
+                        + `</div>`;
                 }).join('');
 
                 legendElement.innerHTML = legendHtml;
-                setupRiskLegendInteractions(legendElement, segments, config);
+                setupRiskLegendInteractions(legendElement);
             };
 
             updateRiskCard({
