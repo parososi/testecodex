@@ -530,29 +530,71 @@
         }
         
         .controls {
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
         }
-        
+
         .control-group {
             display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #dbe2f5;
+            background: linear-gradient(180deg, #f9fbff 0%, #f4f6ff 100%);
+            box-shadow: 0 4px 12px rgba(31, 68, 140, 0.08);
+        }
+
+        .control-group label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #41507c;
+        }
+
+        .control-group select,
+        .control-group button {
+            width: 100%;
+        }
+
+        .control-actions {
+            flex-direction: row;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
+        }
+
+        .control-actions button {
+            flex: 1 1 0;
+            width: auto;
+        }
+
+        @media (max-width: 720px) {
+            .control-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-actions button {
+                width: 100%;
+            }
         }
         
         button {
             background-color: #1F448C;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            font-size: 13px;
+            transition: all 0.25s ease;
             white-space: nowrap;
         }
         
@@ -592,12 +634,14 @@
         }
         
         select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-            min-width: 180px;
+            padding: 8px 10px;
+            border: 1px solid #d0dcfa;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            min-width: 0;
+            background-color: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(31, 68, 140, 0.04);
         }
         
         select:focus {
@@ -990,11 +1034,15 @@
             height: 160px;
             margin: 0 auto;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .prediction-chart-visual canvas {
             width: 100% !important;
             height: 100% !important;
+            display: block;
         }
 
         .prediction-chart-center {
@@ -1115,25 +1163,25 @@
         .prediction-actions {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         .prediction-chip-groups {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
         }
 
         .prediction-chip-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 16px 18px;
-            border-radius: 14px;
-            border: 1px solid #d0dcfa;
-            background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
-            box-shadow: 0 10px 24px rgba(35, 59, 125, 0.08);
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #d6def6;
+            background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+            box-shadow: 0 6px 18px rgba(35, 59, 125, 0.08);
         }
 
         .prediction-chip-group .chip-group-title {
@@ -1146,8 +1194,8 @@
 
         .prediction-chip-collection {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+            gap: 10px;
             align-items: stretch;
         }
 
@@ -1159,18 +1207,19 @@
             display: inline-flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 12px 16px;
-            min-height: 72px;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px 12px;
+            min-height: 0;
             width: 100%;
-            background: linear-gradient(135deg, #f2f5ff 0%, #eef2ff 100%);
-            border: 1px solid #c3cff0;
-            border-radius: 18px;
+            background: linear-gradient(135deg, #f4f7ff 0%, #eef2ff 100%);
+            border: 1px solid #c7d2f6;
+            border-radius: 14px;
             color: #1F448C;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 12px 24px rgba(35, 59, 125, 0.12);
+            box-shadow: 0 6px 16px rgba(35, 59, 125, 0.1);
             transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
             position: relative;
             overflow: hidden;
@@ -1187,17 +1236,18 @@
         }
 
         .prediction-item .filter-title {
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .prediction-item .filter-count {
             background: rgba(31, 68, 140, 0.12);
             color: #1F2A52;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 999px;
             font-size: 11px;
             font-weight: 700;
             white-space: nowrap;
+            align-self: center;
         }
 
         .prediction-item .filter-helper {
@@ -1282,7 +1332,7 @@
         }
 
         .prediction-item .filter-title {
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .prediction-item .filter-count {
@@ -2558,19 +2608,16 @@
             }
             
             .controls {
-                flex-direction: column;
-                align-items: stretch;
+                grid-template-columns: 1fr;
             }
-            
+
             .control-group {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
+                padding: 12px;
             }
-            
-            .control-group label {
-                font-weight: bold;
-                margin-bottom: 5px;
+
+            .control-actions {
+                flex-direction: column;
+                gap: 10px;
             }
             
             .summary-stats {
@@ -2618,6 +2665,22 @@
             
             th, td {
                 padding: 6px 4px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .prediction-chip-collection {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .prediction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .prediction-item .filter-count {
+                align-self: flex-start;
             }
         }
 
@@ -2726,7 +2789,7 @@
                 </select>
             </div>
 
-            <div class="control-group">
+            <div class="control-group control-actions">
                 <button onclick="showExportModal()">📤 Exportar</button>
                 <button onclick="updateData()">🔄 Atualizar</button>
             </div>
@@ -2903,7 +2966,6 @@
                 </div>
             </div>
 
-            <div class="prediction-timeline" id="predictionTimeline" aria-live="polite"></div>
         </div>
 
         <div class="pareto-section">
@@ -7971,6 +8033,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             const maxPreviewItems = 8;
+            const urgentEntries = Array.isArray(buckets && buckets.urgent) ? buckets.urgent : [];
+            const warningEntries = Array.isArray(buckets && buckets.warning) ? buckets.warning : [];
+            const stableEntries = Array.isArray(buckets && buckets.stable) ? buckets.stable : [];
+            const unknownEntries = Array.isArray(buckets && buckets.unknown) ? buckets.unknown : [];
+            const urgentCount = urgentEntries.length;
+            const warningCount = warningEntries.length;
             const formatDaysText = function(value) {
                 if (!Number.isFinite(value)) {
                     return '--';
@@ -8006,7 +8074,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const highlights = [];
             const withDays = ['urgent', 'warning'].reduce(function(acc, key) {
-                const entries = Array.isArray(buckets[key]) ? buckets[key] : [];
+                const entries = key === 'urgent' ? urgentEntries : warningEntries;
                 entries.forEach(function(entry) {
                     const days = entry && entry.prediction ? entry.prediction.daysToDepletion : null;
                     if (Number.isFinite(days)) {
@@ -8044,7 +8112,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
             }
 
-            const slowCandidates = (buckets.stable || []).filter(function(entry) {
+            const slowCandidates = stableEntries.filter(function(entry) {
                 return Number.isFinite(entry && entry.coverageMonths)
                     && entry.coverageMonths >= coverageSegmentThresholds.lowUpper;
             });
@@ -8127,10 +8195,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             };
 
             const combinedEntries = [];
-            (Array.isArray(timelineBuckets.urgent) ? timelineBuckets.urgent : []).forEach(function(entry) {
+            urgentEntries.forEach(function(entry) {
                 combinedEntries.push({ entry: entry, severity: 'urgent' });
             });
-            (Array.isArray(timelineBuckets.warning) ? timelineBuckets.warning : []).forEach(function(entry) {
+            warningEntries.forEach(function(entry) {
                 combinedEntries.push({ entry: entry, severity: 'warning' });
             });
 
@@ -8255,7 +8323,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 + `</div>`
                 + `</div>`;
 
-            const unknownCount = Array.isArray(buckets.unknown) ? buckets.unknown.length : 0;
+            const unknownCount = unknownEntries.length;
             const unknownNote = unknownCount > 0
                 ? `<div class="timeline-note">⚠️ ${unknownCount} ${unknownCount === 1 ? 'item' : 'itens'} sem previsão calculada — revise histórico de vendas para gerar uma estimativa.</div>`
                 : '';

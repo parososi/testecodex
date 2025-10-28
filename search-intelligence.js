@@ -283,6 +283,9 @@
                 score += 70;
                 matchedTerms.add(candidate);
                 matchedNumericTokens.add(candidate);
+                if (!matchedPrimaryCode && /\d/.test(candidate)) {
+                    matchedPrimaryCode = true;
+                }
             }
         });
 
