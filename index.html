@@ -3194,6 +3194,8 @@
         let tooltipElement = null;
         let activeTooltipTarget = null;
         let tooltipHideTimeout = null;
+        let riskChartTooltipElement = null;
+        let activeRiskChartTooltip = null;
 
         const monthDetectionPatterns = Object.freeze([
             { order: 0, keywords: ['JANEIRO', 'JAN'] },
@@ -3793,16 +3795,159 @@
             elements.forEach(bindTooltip);
         }
 
+        function ensureRiskChartTooltipElement() {
+            if (!riskChartTooltipElement) {
+                riskChartTooltipElement = document.createElement('div');
+                riskChartTooltipElement.className = 'tooltip-bubble prediction-chart-tooltip';
+                riskChartTooltipElement.setAttribute('role', 'tooltip');
+                riskChartTooltipElement.setAttribute('aria-hidden', 'true');
+                riskChartTooltipElement.dataset.position = 'top';
+                document.body.appendChild(riskChartTooltipElement);
+            }
+
+            return riskChartTooltipElement;
+        }
+
+        function hideRiskChartTooltip() {
+            if (riskChartTooltipElement) {
+                riskChartTooltipElement.classList.remove('visible');
+                riskChartTooltipElement.setAttribute('aria-hidden', 'true');
+            }
+
+            activeRiskChartTooltip = null;
+        }
+
+        function positionRiskChartTooltip() {
+            if (!activeRiskChartTooltip || !riskChartTooltipElement || !activeRiskChartTooltip.chart) {
+                return;
+            }
+
+            const chart = activeRiskChartTooltip.chart;
+            const canvas = chart.canvas;
+            if (!canvas) {
+                return;
+            }
+
+            const canvasRect = canvas.getBoundingClientRect();
+            const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+            const scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const pointerLeft = scrollX + canvasRect.left + activeRiskChartTooltip.caretX;
+            const pointerTop = scrollY + canvasRect.top + activeRiskChartTooltip.caretY;
+
+            riskChartTooltipElement.style.maxWidth = `min(320px, ${Math.max(200, viewportWidth - 32)}px)`;
+
+            const tooltipRect = riskChartTooltipElement.getBoundingClientRect();
+            const minTop = scrollY + 8;
+            const maxTop = scrollY + viewportHeight - tooltipRect.height - 8;
+            const preferred = activeRiskChartTooltip.preferredPosition === 'bottom' ? 'bottom' : 'top';
+
+            const computeTop = function(position) {
+                return position === 'top'
+                    ? pointerTop - tooltipRect.height - 16
+                    : pointerTop + 16;
+            };
+
+            let position = preferred;
+            let top = computeTop(position);
+
+            if (top < minTop) {
+                position = 'bottom';
+                top = computeTop(position);
+            }
+
+            if (top > maxTop) {
+                position = 'top';
+                top = computeTop(position);
+            }
+
+            top = Math.min(Math.max(top, minTop), maxTop);
+
+            let left = pointerLeft - (tooltipRect.width / 2);
+            const minLeft = scrollX + 8;
+            const maxLeft = scrollX + viewportWidth - tooltipRect.width - 8;
+            left = Math.min(Math.max(left, minLeft), maxLeft);
+
+            riskChartTooltipElement.dataset.position = position;
+            riskChartTooltipElement.style.top = `${top}px`;
+            riskChartTooltipElement.style.left = `${left}px`;
+
+            const arrowLeft = pointerLeft - left;
+            riskChartTooltipElement.style.setProperty('--tooltip-arrow-left', `${Math.min(Math.max(arrowLeft, 12), tooltipRect.width - 12)}px`);
+        }
+
+        function showRiskChartTooltip(chart, text, caretX, caretY, preferredPosition) {
+            if (!chart || !text) {
+                hideRiskChartTooltip();
+                return;
+            }
+
+            const element = ensureRiskChartTooltipElement();
+            element.textContent = text;
+            element.setAttribute('aria-hidden', 'false');
+            element.classList.add('visible');
+
+            activeRiskChartTooltip = {
+                chart: chart,
+                caretX: caretX,
+                caretY: caretY,
+                preferredPosition: preferredPosition === 'bottom' ? 'bottom' : 'top'
+            };
+
+            positionRiskChartTooltip();
+        }
+
+        function renderRiskChartTooltip(context) {
+            if (!context || !context.chart) {
+                hideRiskChartTooltip();
+                return;
+            }
+
+            const tooltip = context.tooltip;
+            if (!tooltip || tooltip.opacity === 0) {
+                hideRiskChartTooltip();
+                return;
+            }
+
+            const dataPoint = tooltip.dataPoints && tooltip.dataPoints[0] ? tooltip.dataPoints[0] : null;
+            if (!dataPoint) {
+                hideRiskChartTooltip();
+                return;
+            }
+
+            const chart = context.chart;
+            const segmentIndex = dataPoint.dataIndex;
+            const segment = chart.$riskSegments && Number.isInteger(segmentIndex)
+                ? chart.$riskSegments[segmentIndex]
+                : null;
+            const total = Number.isFinite(chart.$riskTotalSegmentsCount)
+                ? chart.$riskTotalSegmentsCount
+                : 0;
+            const value = Number.isFinite(dataPoint.parsed) ? dataPoint.parsed : dataPoint.raw;
+            const count = Number.isFinite(value) ? value : 0;
+            const percent = total > 0 ? (count / total) * 100 : 0;
+            const percentText = percent >= 10 ? percent.toFixed(0) : percent.toFixed(1);
+            const label = segment && segment.label ? segment.label : dataPoint.label;
+            const itemLabel = count === 1 ? 'item' : 'itens';
+            const text = `${label}: ${count} ${itemLabel} (${percentText}%)`;
+            showRiskChartTooltip(chart, text, tooltip.caretX, tooltip.caretY, tooltip.yAlign);
+        }
+
         window.addEventListener('scroll', function() {
             if (activeTooltipTarget) {
                 positionTooltip(activeTooltipTarget);
             }
+
+            positionRiskChartTooltip();
         }, true);
 
         window.addEventListener('resize', function() {
             if (activeTooltipTarget) {
                 positionTooltip(activeTooltipTarget);
             }
+
+            positionRiskChartTooltip();
         });
 
         // Função de log para debug
@@ -6819,9 +6964,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function clearActiveRiskSelection(options) {
             const opts = options || {};
             if (!activeRiskSelection) {
+                hideRiskChartTooltip();
                 return;
             }
 
+            hideRiskChartTooltip();
             activeRiskSelection = null;
             updateRiskSelectionStyles();
 
@@ -6872,6 +7019,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             if (!config || !segment) {
                 return;
             }
+
+            hideRiskChartTooltip();
 
             const codes = Array.isArray(segment.codes) ? segment.codes.filter(Boolean) : [];
             const chartId = config.chartId || '';
@@ -7915,10 +8064,52 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 if (segments.length > riskChartMaxSegments) {
                     const head = segments.slice(0, riskChartMaxSegments - 1);
                     const remainder = segments.slice(riskChartMaxSegments - 1);
-                    const othersCount = remainder.reduce(function(sum, segment) {
-                        return sum + segment.count;
-                    }, 0);
-                    head.push({ label: 'Outros', count: othersCount });
+                    const aggregated = remainder.reduce(function(acc, segment) {
+                        if (!segment) {
+                            return acc;
+                        }
+
+                        const count = Number.isFinite(segment.count) ? segment.count : 0;
+                        acc.count += count;
+
+                        if (Array.isArray(segment.entries)) {
+                            acc.entries = acc.entries.concat(segment.entries);
+                        }
+
+                        if (Array.isArray(segment.codes)) {
+                            segment.codes.forEach(function(code) {
+                                if (code) {
+                                    acc.codes.add(code);
+                                }
+                            });
+                        }
+
+                        if (Array.isArray(segment.rawCodes)) {
+                            segment.rawCodes.forEach(function(code) {
+                                if (code) {
+                                    acc.rawCodes.add(code);
+                                }
+                            });
+                        }
+
+                        return acc;
+                    }, {
+                        count: 0,
+                        entries: [],
+                        codes: new Set(),
+                        rawCodes: new Set()
+                    });
+
+                    head.push({
+                        label: 'Outros',
+                        count: aggregated.count,
+                        entries: aggregated.entries,
+                        codes: Array.from(aggregated.codes),
+                        rawCodes: Array.from(aggregated.rawCodes),
+                        matchType: 'mixed',
+                        normalizedLabel: 'outros'
+                    });
+
                     segments = head;
                 }
 
@@ -7968,7 +8159,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         emptyElement.hidden = false;
                     }
                     if (riskChartInstances[config.chartId]) {
-                        riskChartInstances[config.chartId].destroy();
+                        const chartInstance = riskChartInstances[config.chartId];
+                        if (chartInstance && chartInstance.$riskTooltipLeaveHandler && chartInstance.canvas) {
+                            chartInstance.canvas.removeEventListener('mouseleave', chartInstance.$riskTooltipLeaveHandler);
+                        }
+
+                        if (activeRiskChartTooltip && activeRiskChartTooltip.chart === chartInstance) {
+                            hideRiskChartTooltip();
+                        }
+
+                        chartInstance.destroy();
                         delete riskChartInstances[config.chartId];
                     }
                     return;
@@ -8009,7 +8209,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                 datasets: [{
                                     data: datasetData,
                                     backgroundColor: datasetColors,
+                                    hoverBackgroundColor: datasetColors,
                                     borderColor: '#ffffff',
+                                    hoverBorderColor: '#ffffff',
                                     borderWidth: 2,
                                     hoverOffset: 6
                                 }]
@@ -8025,31 +8227,36 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                 plugins: {
                                     legend: { display: false },
                                     tooltip: {
-                                        displayColors: false,
-                                        callbacks: {
-                                            label: function(context) {
-                                                const value = context.parsed;
-                                                const percent = totalSegmentsCount > 0
-                                                    ? (value / totalSegmentsCount) * 100
-                                                    : 0;
-                                                const percentText = percent >= 10 ? percent.toFixed(0) : percent.toFixed(1);
-                                                const itemLabel = value === 1 ? 'item' : 'itens';
-                                                return `${context.label}: ${value} ${itemLabel} (${percentText}%)`;
-                                            }
-                                        }
+                                        enabled: false,
+                                        external: renderRiskChartTooltip
                                     }
                                 }
                             }
                         });
                         riskChartInstances[config.chartId] = chart;
+                        chart.$riskTooltipLeaveHandler = function() {
+                            if (activeRiskChartTooltip && activeRiskChartTooltip.chart === chart) {
+                                hideRiskChartTooltip();
+                            }
+                        };
+                        if (chart.canvas) {
+                            chart.canvas.addEventListener('mouseleave', chart.$riskTooltipLeaveHandler);
+                        }
                     } else {
                         chart.data.labels = labels;
                         chart.data.datasets[0].data = datasetData;
                         chart.data.datasets[0].backgroundColor = datasetColors;
+                        chart.data.datasets[0].hoverBackgroundColor = datasetColors;
+                        chart.data.datasets[0].hoverBorderColor = '#ffffff';
+                        chart.options.plugins = chart.options.plugins || {};
+                        chart.options.plugins.tooltip = chart.options.plugins.tooltip || {};
+                        chart.options.plugins.tooltip.enabled = false;
+                        chart.options.plugins.tooltip.external = renderRiskChartTooltip;
                     }
 
                     chart.$riskSegments = segments;
                     chart.$riskConfig = config;
+                    chart.$riskTotalSegmentsCount = totalSegmentsCount;
                     chart.options.onHover = function(event, activeElements) {
                         const nativeEvent = event && event.native ? event.native : null;
                         if (!nativeEvent) {
@@ -8065,6 +8272,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     };
 
                     chart.options.onClick = function(event) {
+                        hideRiskChartTooltip();
+
                         if (!event) {
                             return;
                         }
@@ -8135,7 +8344,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 entries: timelineBuckets.urgent,
                 count: urgentCount,
                 bucket: 'urgent',
-                palette: ['#d64545', '#ef8c8c', '#f4b4b4', '#f9d7d7', '#fdecec'],
+                palette: ['#7f1d1d', '#b91c1c', '#dc2626', '#ef4444', '#f87171'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
                         return 'Sem dados de ruptura urgente nos filtros atuais';
@@ -8167,7 +8376,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 entries: timelineBuckets.warning,
                 count: warningCount,
                 bucket: 'warning',
-                palette: ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7'],
+                palette: ['#92400e', '#b45309', '#d97706', '#f59e0b', '#fbbf24'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
                         return 'Sem dados de ruptura em atenção nos filtros atuais';
@@ -8199,7 +8408,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 entries: timelineBuckets.stable,
                 count: stableCount,
                 bucket: 'comfortable',
-                palette: ['#16a34a', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'],
+                palette: ['#0b4f3a', '#0e6f4b', '#128f5c', '#16af6d', '#1ac07a'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
                         return 'Sem dados de cobertura confortável nos filtros atuais';
