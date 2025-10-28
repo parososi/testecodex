@@ -263,6 +263,7 @@
             }
         });
 
+        let matchedPrimaryCode = false;
         codeCandidates.forEach(function(candidate) {
             if (!candidate) {
                 return;
@@ -272,10 +273,12 @@
                 score += 160;
                 matchedTerms.add(candidate);
                 matchedNumericTokens.add(candidate);
+                matchedPrimaryCode = true;
             } else if (index.codeCompact.includes(candidate)) {
                 score += 110;
                 matchedTerms.add(candidate);
                 matchedNumericTokens.add(candidate);
+                matchedPrimaryCode = true;
             } else if (index.item.includes(candidate)) {
                 score += 70;
                 matchedTerms.add(candidate);
@@ -353,6 +356,10 @@
         }
 
         if (numericTokens.size > 0 && matchedNumericTokens.size === 0) {
+            return 0;
+        }
+
+        if ((codeCandidates && codeCandidates.length > 0) && !matchedPrimaryCode) {
             return 0;
         }
 
