@@ -972,7 +972,10 @@
             flex-direction: column;
             gap: 14px;
             text-align: left;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+            position: relative;
+            overflow: visible;
+            min-height: 100%;
         }
 
         .prediction-chart-header {
@@ -994,11 +997,14 @@
             transform: translateY(-2px);
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
             border-color: #b9c8ee;
+            z-index: 2;
         }
 
         .prediction-chart-card.active {
             border-color: #1F448C;
             box-shadow: 0 16px 36px rgba(31, 68, 140, 0.22);
+            background: linear-gradient(135deg, rgba(31, 68, 140, 0.08), rgba(31, 68, 140, 0));
+            z-index: 3;
         }
 
         .prediction-chart-card:focus-visible {
@@ -1024,7 +1030,7 @@
         @media (min-width: 768px) {
             .prediction-chart-body {
                 flex-direction: row;
-                align-items: center;
+                align-items: flex-start;
             }
         }
 
@@ -1092,6 +1098,44 @@
             gap: 10px;
             font-size: 12px;
             color: #475569;
+            border: none;
+            border-radius: 0;
+            padding: 6px 0;
+            background: transparent;
+            text-align: left;
+            transition: color 0.2s ease, transform 0.2s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button.prediction-legend-item {
+            font: inherit;
+        }
+
+        .prediction-legend-item:hover {
+            color: #1f448c;
+            transform: translateX(2px);
+        }
+
+        .prediction-legend-item.is-active {
+            color: #1f448c;
+            font-weight: 600;
+        }
+
+        .prediction-legend-item:hover strong,
+        .prediction-legend-item.is-active strong {
+            color: #1f448c;
+        }
+
+        .prediction-legend-item:hover .prediction-legend-stat,
+        .prediction-legend-item.is-active .prediction-legend-stat {
+            color: #1f448c;
+        }
+
+        .prediction-legend-item:focus-visible {
+            outline: 2px solid rgba(31, 68, 140, 0.45);
+            outline-offset: 2px;
+            color: #1f448c;
         }
 
         .prediction-legend-dot {
@@ -1100,6 +1144,12 @@
             border-radius: 999px;
             margin-top: 4px;
             flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .prediction-legend-item:hover .prediction-legend-dot,
+        .prediction-legend-item.is-active .prediction-legend-dot {
+            transform: scale(1.25);
         }
 
         .prediction-legend-meta {
@@ -2946,9 +2996,9 @@
                     <span class="prediction-chart-helper" id="warningRiskHelper">Cobertura entre <span data-warning-start>--</span> e <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="warningRiskDetail"></span></span>
                 </button>
 
-                <div class="prediction-chart-card" id="comfortableRiskCard">
+                <button type="button" class="prediction-chart-card button-like" data-prediction-filter="comfortable" onclick="filterComfortableCoverage()" aria-pressed="false" id="comfortableRiskCard">
                     <div class="prediction-chart-header">
-                        <span class="prediction-chart-title">Cobertura confortável <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura confortável" data-tooltip="Resumo dos itens com cobertura acima do limite de atenção configurado. Este bloco não aplica filtros ao ser clicado." data-tooltip-position="top">?</span></span>
+                        <span class="prediction-chart-title">Cobertura confortável <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura confortável" data-tooltip="Clique para visualizar apenas os itens com cobertura confortável acima do limite configurado." data-tooltip-position="top">?</span></span>
                     </div>
                     <div class="prediction-chart-body">
                         <div class="prediction-chart-visual">
@@ -2963,7 +3013,7 @@
                     </div>
                     <div class="prediction-chart-empty" id="comfortableRiskEmpty" hidden>Sem itens com previsão para exibir.</div>
                     <span class="prediction-chart-helper" id="comfortableRiskHelper">Cobertura superior a <span data-warning-days>--</span> dias. <span class="prediction-chart-detail" id="comfortableRiskDetail"></span></span>
-                </div>
+                </button>
             </div>
 
         </div>
@@ -3139,6 +3189,7 @@
         });
         const riskChartInstances = {};
         const riskChartMaxSegments = 5;
+        let activeRiskSelection = null;
         let abcClassificationMap = new Map();
         let tooltipElement = null;
         let activeTooltipTarget = null;
@@ -6752,6 +6803,147 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
         }
 
+        function getPredictionFilterForBucket(bucket) {
+            switch (bucket) {
+                case 'urgent':
+                    return 'zero30';
+                case 'warning':
+                    return 'zero60';
+                case 'comfortable':
+                    return 'comfortable';
+                default:
+                    return null;
+            }
+        }
+
+        function clearActiveRiskSelection(options) {
+            const opts = options || {};
+            if (!activeRiskSelection) {
+                return;
+            }
+
+            activeRiskSelection = null;
+            updateRiskSelectionStyles();
+
+            if (!opts.silent) {
+                applyAllFilters();
+            }
+        }
+
+        function updateRiskSelectionStyles() {
+            Object.keys(riskChartInstances).forEach(function(chartId) {
+                const chart = riskChartInstances[chartId];
+                if (!chart || typeof chart.setActiveElements !== 'function') {
+                    return;
+                }
+
+                const selection = activeRiskSelection && activeRiskSelection.chartId === chartId
+                    ? activeRiskSelection
+                    : null;
+
+                if (selection && Number.isInteger(selection.index)) {
+                    chart.setActiveElements([{ datasetIndex: 0, index: selection.index }]);
+                } else {
+                    chart.setActiveElements([]);
+                }
+
+                chart.update('none');
+            });
+
+            document.querySelectorAll('.prediction-legend-item').forEach(function(button) {
+                const chartId = button.getAttribute('data-chart-id');
+                const index = Number(button.getAttribute('data-segment-index'));
+                const isActive = !!activeRiskSelection
+                    && activeRiskSelection.chartId === chartId
+                    && Number.isInteger(activeRiskSelection.index)
+                    && activeRiskSelection.index === index;
+
+                if (isActive) {
+                    button.classList.add('is-active');
+                    button.setAttribute('aria-pressed', 'true');
+                } else {
+                    button.classList.remove('is-active');
+                    button.setAttribute('aria-pressed', 'false');
+                }
+            });
+        }
+
+        function handleRiskSegmentSelection(config, segment, index) {
+            if (!config || !segment) {
+                return;
+            }
+
+            const codes = Array.isArray(segment.codes) ? segment.codes.filter(Boolean) : [];
+            const chartId = config.chartId || '';
+            const bucket = config.bucket || '';
+
+            const isSameSelection = !!activeRiskSelection
+                && activeRiskSelection.chartId === chartId
+                && activeRiskSelection.bucket === bucket
+                && activeRiskSelection.label === segment.label;
+
+            if (isSameSelection) {
+                clearActiveRiskSelection();
+                return;
+            }
+
+            activeRiskSelection = {
+                bucket: bucket,
+                chartId: chartId,
+                label: segment.label,
+                normalizedLabel: segment.normalizedLabel,
+                codes: codes,
+                index: index
+            };
+
+            const expectedFilter = getPredictionFilterForBucket(bucket);
+            if (expectedFilter === 'zero30' && predictionFilter !== 'zero30') {
+                filterZeroIn30();
+                return;
+            }
+
+            if (expectedFilter === 'zero60' && predictionFilter !== 'zero60') {
+                filterZeroIn60();
+                return;
+            }
+
+            if (expectedFilter === 'comfortable' && predictionFilter !== 'comfortable') {
+                filterComfortableCoverage();
+                return;
+            }
+
+            applyAllFilters();
+        }
+
+        function setupRiskLegendInteractions(legendElement, segments, config) {
+            if (!legendElement || !Array.isArray(segments) || segments.length === 0) {
+                return;
+            }
+
+            const buttons = legendElement.querySelectorAll('.prediction-legend-item');
+            buttons.forEach(function(button) {
+                const index = Number(button.getAttribute('data-segment-index'));
+                if (!Number.isInteger(index) || !segments[index]) {
+                    return;
+                }
+
+                const segment = segments[index];
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    handleRiskSegmentSelection(config, segment, index);
+                });
+
+                button.addEventListener('keydown', function(event) {
+                    if (event.key !== 'Enter' && event.key !== ' ') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    handleRiskSegmentSelection(config, segment, index);
+                });
+            });
+        }
+
         function resetPredictionRangeButtons() {
             const rangeButtons = document.querySelectorAll('[data-prediction-filter]');
             rangeButtons.forEach(function(button) {
@@ -6937,6 +7129,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function filterZeroIn30() {
             const item30 = document.querySelector('[data-prediction-filter="zero30"]');
             const item60 = document.querySelector('[data-prediction-filter="zero60"]');
+            const comfortable = document.querySelector('[data-prediction-filter="comfortable"]');
 
             resetAdvancedFilterSelection();
 
@@ -6946,6 +7139,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 criticalFilterActive = false;
                 setPredictionCardActive(item30, false);
                 setPredictionCardActive(item60, false);
+                setPredictionCardActive(comfortable, false);
+                clearActiveRiskSelection({ silent: true });
             } else {
                 resetCoverageFilterChips();
                 resetPredictionRangeButtons();
@@ -6955,6 +7150,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 currentFilter = 'prediction30';
                 setPredictionCardActive(item30, true);
                 setPredictionCardActive(item60, false);
+                setPredictionCardActive(comfortable, false);
             }
 
             updateActiveButton(currentFilter === 'all' ? 'all' : null);
@@ -6964,6 +7160,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function filterZeroIn60() {
             const item30 = document.querySelector('[data-prediction-filter="zero30"]');
             const item60 = document.querySelector('[data-prediction-filter="zero60"]');
+            const comfortable = document.querySelector('[data-prediction-filter="comfortable"]');
 
             resetAdvancedFilterSelection();
 
@@ -6973,6 +7170,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 criticalFilterActive = false;
                 setPredictionCardActive(item60, false);
                 setPredictionCardActive(item30, false);
+                setPredictionCardActive(comfortable, false);
+                clearActiveRiskSelection({ silent: true });
             } else {
                 resetCoverageFilterChips();
                 resetPredictionRangeButtons();
@@ -6982,6 +7181,38 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 currentFilter = 'prediction60';
                 setPredictionCardActive(item30, false);
                 setPredictionCardActive(item60, true);
+                setPredictionCardActive(comfortable, false);
+            }
+
+            updateActiveButton(currentFilter === 'all' ? 'all' : null);
+            applyAllFilters();
+        }
+
+        function filterComfortableCoverage() {
+            const item30 = document.querySelector('[data-prediction-filter="zero30"]');
+            const item60 = document.querySelector('[data-prediction-filter="zero60"]');
+            const comfortable = document.querySelector('[data-prediction-filter="comfortable"]');
+
+            resetAdvancedFilterSelection();
+
+            if (predictionFilter === 'comfortable') {
+                predictionFilter = null;
+                currentFilter = 'all';
+                criticalFilterActive = false;
+                setPredictionCardActive(comfortable, false);
+                setPredictionCardActive(item30, false);
+                setPredictionCardActive(item60, false);
+                clearActiveRiskSelection({ silent: true });
+            } else {
+                resetCoverageFilterChips();
+                resetPredictionRangeButtons();
+
+                predictionFilter = 'comfortable';
+                criticalFilterActive = false;
+                currentFilter = 'comfortable';
+                setPredictionCardActive(item30, false);
+                setPredictionCardActive(item60, false);
+                setPredictionCardActive(comfortable, true);
             }
 
             updateActiveButton(currentFilter === 'all' ? 'all' : null);
@@ -7476,6 +7707,26 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
+            if (activeRiskSelection) {
+                const expectedFilter = getPredictionFilterForBucket(activeRiskSelection.bucket);
+                if (expectedFilter !== predictionFilter) {
+                    activeRiskSelection = null;
+                    updateRiskSelectionStyles();
+                }
+            }
+
+            if (activeRiskSelection && Array.isArray(activeRiskSelection.codes) && activeRiskSelection.codes.length > 0) {
+                const selectedCodes = new Set(activeRiskSelection.codes);
+                baseData = baseData.filter(function(product) {
+                    if (!product || typeof product.code === 'undefined' || product.code === null) {
+                        return false;
+                    }
+
+                    const codeValue = product.code.toString().trim().toLowerCase();
+                    return codeValue !== '' && selectedCodes.has(codeValue);
+                });
+            }
+
             filteredData = baseData;
             updateAdvancedFilterChips(advancedSegments);
             updateCoverageQuickFilters(coverageSegments);
@@ -7611,13 +7862,47 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const fallback = product && typeof product.supplier === 'string' && product.supplier.trim() !== ''
                         ? product.supplier.trim()
                         : 'Sem família';
-                    const key = family || fallback;
-                    acc[key] = (acc[key] || 0) + 1;
+                    const key = (family || fallback || 'Sem família').toString();
+                    if (!acc[key]) {
+                        acc[key] = {
+                            label: key,
+                            count: 0,
+                            entries: [],
+                            codes: new Set(),
+                            normalizedCodes: new Set(),
+                            matchType: family ? 'family' : 'supplier'
+                        };
+                    }
+
+                    const group = acc[key];
+                    group.count += 1;
+                    group.entries.push(entry);
+                    if (family) {
+                        group.matchType = 'family';
+                    }
+
+                    const productCode = product && typeof product.code !== 'undefined' && product.code !== null
+                        ? product.code.toString().trim()
+                        : '';
+                    if (productCode !== '') {
+                        group.codes.add(productCode);
+                        group.normalizedCodes.add(productCode.toLowerCase());
+                    }
+
                     return acc;
                 }, {});
 
                 let segments = Object.keys(aggregation).map(function(label) {
-                    return { label: label, count: aggregation[label] };
+                    const group = aggregation[label];
+                    return {
+                        label: group.label,
+                        count: group.count,
+                        matchType: group.matchType,
+                        codes: Array.from(group.normalizedCodes),
+                        rawCodes: Array.from(group.codes),
+                        entries: group.entries.slice(),
+                        normalizedLabel: group.label.toString().trim().toLowerCase()
+                    };
                 });
 
                 segments.sort(function(a, b) {
@@ -7694,6 +7979,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
 
                 const segments = buildRiskSegments(entries);
+                const selection = activeRiskSelection && activeRiskSelection.bucket === config.bucket
+                    ? activeRiskSelection
+                    : null;
                 const totalSegmentsCount = segments.reduce(function(sum, segment) {
                     return sum + segment.count;
                 }, 0);
@@ -7713,7 +8001,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const labels = segments.map(function(segment) { return segment.label; });
                     let chart = riskChartInstances[config.chartId];
                     if (!chart) {
-                        chart = new Chart(canvas.getContext('2d'), {
+                        const context = canvas.getContext('2d');
+                        chart = new Chart(context, {
                             type: 'doughnut',
                             data: {
                                 labels: labels,
@@ -7757,8 +8046,50 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         chart.data.labels = labels;
                         chart.data.datasets[0].data = datasetData;
                         chart.data.datasets[0].backgroundColor = datasetColors;
-                        chart.update();
                     }
+
+                    chart.$riskSegments = segments;
+                    chart.$riskConfig = config;
+                    chart.options.onHover = function(event, activeElements) {
+                        const nativeEvent = event && event.native ? event.native : null;
+                        if (!nativeEvent) {
+                            return;
+                        }
+
+                        const canvasElement = nativeEvent.target;
+                        if (!canvasElement || typeof canvasElement.style === 'undefined') {
+                            return;
+                        }
+
+                        canvasElement.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+                    };
+
+                    chart.options.onClick = function(event) {
+                        if (!event) {
+                            return;
+                        }
+
+                        const elements = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                        if (!elements || elements.length === 0) {
+                            return;
+                        }
+
+                        const element = elements[0];
+                        const index = element && typeof element.index === 'number' ? element.index : null;
+                        if (index === null || !chart.$riskSegments || !chart.$riskSegments[index]) {
+                            return;
+                        }
+
+                        handleRiskSegmentSelection(config, chart.$riskSegments[index], index);
+                    };
+
+                    if (selection && Number.isInteger(selection.index)) {
+                        chart.setActiveElements([{ datasetIndex: 0, index: selection.index }]);
+                    } else {
+                        chart.setActiveElements([]);
+                    }
+
+                    chart.update();
                 }
 
                 const legendHtml = segments.map(function(segment, index) {
@@ -7769,7 +8100,16 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     const itemLabel = segment.count === 1 ? 'item' : 'itens';
                     const color = colors[index];
                     const progressWidth = percent > 0 ? Math.max(percent, 6) : 0;
-                    return `<div class="prediction-legend-item">`
+                    const isActive = selection
+                        && selection.chartId === config.chartId
+                        && Number.isInteger(selection.index)
+                        && selection.index === index;
+                    const classes = ['prediction-legend-item'];
+                    if (isActive) {
+                        classes.push('is-active');
+                    }
+
+                    return `<button type="button" class="${classes.join(' ')}" data-chart-id="${escapeTooltip(config.chartId)}" data-segment-index="${index}" aria-pressed="${isActive ? 'true' : 'false'}">`
                         + `<span class="prediction-legend-dot" style="background:${color}"></span>`
                         + `<div class="prediction-legend-meta">`
                         + `<strong>${escapeTooltip(segment.label)}</strong>`
@@ -7778,10 +8118,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         + `</div>`
                         + `<span class="prediction-legend-stat">${segment.count} ${itemLabel} • ${percentText}%</span>`
                         + `</div>`
-                        + `</div>`;
+                        + `</button>`;
                 }).join('');
 
                 legendElement.innerHTML = legendHtml;
+                setupRiskLegendInteractions(legendElement, segments, config);
             };
 
             updateRiskCard({
@@ -7793,6 +8134,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 detailId: 'urgentRiskDetail',
                 entries: timelineBuckets.urgent,
                 count: urgentCount,
+                bucket: 'urgent',
                 palette: ['#d64545', '#ef8c8c', '#f4b4b4', '#f9d7d7', '#fdecec'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
@@ -7824,6 +8166,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 detailId: 'warningRiskDetail',
                 entries: timelineBuckets.warning,
                 count: warningCount,
+                bucket: 'warning',
                 palette: ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
@@ -7855,6 +8198,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 detailId: 'comfortableRiskDetail',
                 entries: timelineBuckets.stable,
                 count: stableCount,
+                bucket: 'comfortable',
                 palette: ['#16a34a', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'],
                 ariaLabel: function(count, percent) {
                     if (totalItems <= 0) {
