@@ -1846,6 +1846,38 @@
             return value !== null && typeof value !== 'undefined' && String(value).trim() !== '';
         }
 
+        function isForecastMonthLabel(label) {
+            if (!label) {
+                return false;
+            }
+
+            const normalized = label.toString().trim().toUpperCase();
+            return /^F\s/.test(normalized);
+        }
+
+        function stripForecastPrefix(label) {
+            if (!label) {
+                return '';
+            }
+
+            return label.toString().replace(/^\s*F\s*/i, '').trim();
+        }
+
+        function partitionMonthlyValues(values) {
+            const imports = [];
+            const forecasts = [];
+
+            (Array.isArray(values) ? values : []).forEach(function(entry) {
+                if (isForecastMonthLabel(entry && entry.label)) {
+                    forecasts.push(entry);
+                } else {
+                    imports.push(entry);
+                }
+            });
+
+            return { imports, forecasts };
+        }
+
         function sortMonthlyValues(values) {
             if (!Array.isArray(values)) {
                 return [];
@@ -4744,16 +4776,27 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const aggregatedMonthly = (Array.isArray(product.monthlyValues) && product.monthlyValues.length > 0)
                 ? sortMonthlyValues(cloneMonthlyValues(product.monthlyValues))
                 : buildFallbackMonthlyValues(product);
+            const monthlyPartitions = partitionMonthlyValues(aggregatedMonthly);
+            const importMonthly = monthlyPartitions.imports;
+            const forecastMonthly = monthlyPartitions.forecasts;
 
             const historyEntries = Array.isArray(product.importHistory)
                 ? product.importHistory.map(normalizeHistoryEntry)
                 : [];
 
-            const monthlyRows = aggregatedMonthly.length > 0
-                ? aggregatedMonthly.map(function(entry) {
+            const monthlyRows = importMonthly.length > 0
+                ? importMonthly.map(function(entry) {
                     return `<tr><td>${escapeTooltip(entry.label || 'Mês')}</td><td>${formatHistoryDisplayValue(entry)}</td></tr>`;
                 }).join('')
                 : '<tr><td colspan="2">Sem dados mensais importados.</td></tr>';
+
+            const forecastRows = forecastMonthly.length > 0
+                ? forecastMonthly.map(function(entry) {
+                    const cleanedLabel = stripForecastPrefix(entry.label || 'Mês');
+                    const displayLabel = cleanedLabel || (entry.label || 'Mês');
+                    return `<tr><td>${escapeTooltip(displayLabel)}</td><td>${formatHistoryDisplayValue(entry)}</td></tr>`;
+                }).join('')
+                : '<tr><td colspan="2">Sem previsões de vendas informadas.</td></tr>';
 
             const formatMetric = function(value, decimals) {
                 const numeric = Number(value);
@@ -4810,11 +4853,21 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const historySections = historyEntries.length > 0
                 ? historyEntries.map(function(entry, index) {
                     const sectionTitle = entry.sheetName ? escapeTooltip(entry.sheetName) : `Registro ${index + 1}`;
-                    const monthsRows = entry.months.length > 0
-                        ? entry.months.map(function(monthEntry) {
+                    const entryMonthlyPartitions = partitionMonthlyValues(entry.months || []);
+                    const entryImportMonths = entryMonthlyPartitions.imports;
+                    const entryForecastMonths = entryMonthlyPartitions.forecasts;
+                    const monthsRows = entryImportMonths.length > 0
+                        ? entryImportMonths.map(function(monthEntry) {
                             return `<tr><td>${escapeTooltip(monthEntry.label || 'Mês')}</td><td>${formatHistoryDisplayValue(monthEntry)}</td></tr>`;
                         }).join('')
                         : '<tr><td colspan="2">Sem valores informados.</td></tr>';
+                    const historicalForecastRows = entryForecastMonths.length > 0
+                        ? entryForecastMonths.map(function(monthEntry) {
+                            const cleanedLabel = stripForecastPrefix(monthEntry.label || 'Mês');
+                            const displayLabel = cleanedLabel || (monthEntry.label || 'Mês');
+                            return `<tr><td>${escapeTooltip(displayLabel)}</td><td>${formatHistoryDisplayValue(monthEntry)}</td></tr>`;
+                        }).join('')
+                        : '';
                     const totals = entry.totals || {};
                     const totalsMetricsList = [
                         { label: 'Estoque 1-4', value: totals.stock14 },
@@ -4862,6 +4915,15 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                                         <tbody>${monthsRows}</tbody>
                                     </table>
                                 </div>
+                                ${historicalForecastRows
+                                    ? `<div class="history-months">
+                                        <h5>Sales Forecast</h5>
+                                        <table class="history-month-table">
+                                            <thead><tr><th>Mês</th><th>Volume</th></tr></thead>
+                                            <tbody>${historicalForecastRows}</tbody>
+                                        </table>
+                                    </div>`
+                                    : ''}
                             </div>
                         </article>
                     `;
@@ -4896,6 +4958,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         <table class="history-month-table">
                             <thead><tr><th>Mês</th><th>Volume</th></tr></thead>
                             <tbody>${monthlyRows}</tbody>
+                        </table>
+                    </section>
+                    <section class="history-overview">
+                        <h2 class="history-section-title">Sales Forecast</h2>
+                        <table class="history-month-table">
+                            <thead><tr><th>Mês</th><th>Volume</th></tr></thead>
+                            <tbody>${forecastRows}</tbody>
                         </table>
                     </section>
                     <section class="history-overview">
