@@ -1,4 +1,4 @@
-// Dados do Dashboard de Estoque v1.3 - Gerado em 02/12/2025, 11:35:20
+// Dados do Dashboard de Estoque v1.3 - Gerado em 02/12/2025, 17:58:15
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
 console.log('Carregando data.js v1.3...');
 
@@ -17,7 +17,6 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0.9,
-    "fCobertura": 45,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -28,6 +27,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 5500,
+        "rawValue": "5,500"
       }
     ],
     "importHistory": [
@@ -43,6 +47,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 5500,
+            "rawValue": "5,500"
           }
         ],
         "totals": {
@@ -71,7 +80,6 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.1,
-    "fCobertura": 0.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -82,6 +90,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 4000,
+        "rawValue": "4000"
       }
     ],
     "importHistory": [
@@ -97,6 +110,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 4000,
+            "rawValue": "4000"
           }
         ],
         "totals": {
@@ -122,7 +140,7 @@ window.stockData = [
     "stockMonths": 13.8,
     "vendas4M": 1620,
     "media3M": 540,
-    "novembro": 1000,
+    "novembro": 0,
     "dezembro": 0,
     "cobertura": 10.3,
     "monthlyValues": [
@@ -132,19 +150,14 @@ window.stockData = [
         "rawValue": "0"
       },
       {
-        "label": "F NOVEMBRO (25)",
-        "value": 1000,
-        "rawValue": "1000"
-      },
-      {
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
       },
       {
         "label": "F DEZEMBRO (25)",
-        "value": 1500,
-        "rawValue": "1500"
+        "value": 1520,
+        "rawValue": "1520"
       }
     ],
     "importHistory": [
@@ -157,19 +170,14 @@ window.stockData = [
             "rawValue": "0"
           },
           {
-            "label": "F NOVEMBRO (25)",
-            "value": 1000,
-            "rawValue": "1000"
-          },
-          {
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           },
           {
             "label": "F DEZEMBRO (25)",
-            "value": 1500,
-            "rawValue": "1500"
+            "value": 1520,
+            "rawValue": "1520"
           }
         ],
         "totals": {
@@ -208,6 +216,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1600,
+        "rawValue": "1600"
       }
     ],
     "importHistory": [
@@ -223,6 +236,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1600,
+            "rawValue": "1600"
           }
         ],
         "totals": {
@@ -261,6 +279,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1020,
+        "rawValue": "1020"
       }
     ],
     "importHistory": [
@@ -276,6 +299,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1020,
+            "rawValue": "1020"
           }
         ],
         "totals": {
@@ -314,6 +342,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1520,
+        "rawValue": "1520"
       }
     ],
     "importHistory": [
@@ -329,6 +362,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1520,
+            "rawValue": "1520"
           }
         ],
         "totals": {
@@ -367,6 +405,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1040,
+        "rawValue": "1040"
       }
     ],
     "importHistory": [
@@ -382,6 +425,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1040,
+            "rawValue": "1040"
           }
         ],
         "totals": {
@@ -420,6 +468,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -433,6 +486,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -473,6 +531,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 100,
+        "rawValue": "100"
       }
     ],
     "importHistory": [
@@ -488,6 +551,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 100,
+            "rawValue": "100"
           }
         ],
         "totals": {
@@ -526,6 +594,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -539,6 +612,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -576,11 +654,6 @@ window.stockData = [
         "rawValue": "0"
       },
       {
-        "label": "F NOVEMBRO (25)",
-        "value": 0,
-        "rawValue": "0"
-      },
-      {
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
@@ -597,11 +670,6 @@ window.stockData = [
         "months": [
           {
             "label": "JANEIRO (26)",
-            "value": 0,
-            "rawValue": "0"
-          },
-          {
-            "label": "F NOVEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           },
@@ -652,6 +720,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -665,6 +738,74 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          }
+        ],
+        "totals": {
+          "stock14": 0,
+          "stock9013": 0,
+          "stock9015": 0,
+          "totalStock": 0,
+          "vendas4M": 1,
+          "media3M": 0,
+          "cobertura": 0
+        }
+      }
+    ]
+  },
+  {
+    "code": "245.36.7",
+    "supplier": "HOSHINE",
+    "family": "BORRACHA SILICONE",
+    "item": "HOSHINE 5242G",
+    "stock14": 0,
+    "stock9013": 0,
+    "stock9015": 0,
+    "stockMonths": 0,
+    "vendas4M": 1,
+    "media3M": 0,
+    "novembro": 0,
+    "dezembro": 0,
+    "cobertura": 0,
+    "monthlyValues": [
+      {
+        "label": "JANEIRO (26)",
+        "value": 960,
+        "rawValue": "960"
+      },
+      {
+        "label": "DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
+      }
+    ],
+    "importHistory": [
+      {
+        "sheetName": "Estoque",
+        "months": [
+          {
+            "label": "JANEIRO (26)",
+            "value": 960,
+            "rawValue": "960"
+          },
+          {
+            "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -705,6 +846,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 54000,
         "rawValue": "54,000"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 4000,
+        "rawValue": "4000"
       }
     ],
     "importHistory": [
@@ -720,6 +866,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 54000,
             "rawValue": "54,000"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 4000,
+            "rawValue": "4000"
           }
         ],
         "totals": {
@@ -758,6 +909,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 2400,
+        "rawValue": "2400"
       }
     ],
     "importHistory": [
@@ -773,6 +929,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 2400,
+            "rawValue": "2400"
           }
         ],
         "totals": {
@@ -811,6 +972,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1600,
+        "rawValue": "1600"
       }
     ],
     "importHistory": [
@@ -826,6 +992,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1600,
+            "rawValue": "1600"
           }
         ],
         "totals": {
@@ -864,6 +1035,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -877,6 +1053,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -917,6 +1098,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 325,
+        "rawValue": "325"
       }
     ],
     "importHistory": [
@@ -932,6 +1118,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 325,
+            "rawValue": "325"
           }
         ],
         "totals": {
@@ -970,6 +1161,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 700,
+        "rawValue": "700"
       }
     ],
     "importHistory": [
@@ -985,6 +1181,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 700,
+            "rawValue": "700"
           }
         ],
         "totals": {
@@ -1023,6 +1224,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1200,
+        "rawValue": "1200"
       }
     ],
     "importHistory": [
@@ -1038,6 +1244,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1200,
+            "rawValue": "1200"
           }
         ],
         "totals": {
@@ -1076,6 +1287,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 1625,
+        "rawValue": "1625"
       }
     ],
     "importHistory": [
@@ -1091,6 +1307,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 1625,
+            "rawValue": "1625"
           }
         ],
         "totals": {
@@ -1129,6 +1350,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 550,
+        "rawValue": "550"
       }
     ],
     "importHistory": [
@@ -1144,6 +1370,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 550,
+            "rawValue": "550"
           }
         ],
         "totals": {
@@ -1182,6 +1413,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1195,6 +1431,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1235,6 +1476,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 300,
+        "rawValue": "300"
       }
     ],
     "importHistory": [
@@ -1250,6 +1496,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 300,
+            "rawValue": "300"
           }
         ],
         "totals": {
@@ -1288,6 +1539,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 50,
+        "rawValue": "50"
       }
     ],
     "importHistory": [
@@ -1303,6 +1559,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 50,
+            "rawValue": "50"
           }
         ],
         "totals": {
@@ -1341,6 +1602,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 350,
+        "rawValue": "350"
       }
     ],
     "importHistory": [
@@ -1356,6 +1622,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 350,
+            "rawValue": "350"
           }
         ],
         "totals": {
@@ -1394,6 +1665,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 16000,
         "rawValue": "16,000"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 3125,
+        "rawValue": "3125"
       }
     ],
     "importHistory": [
@@ -1409,6 +1685,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 16000,
             "rawValue": "16,000"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 3125,
+            "rawValue": "3125"
           }
         ],
         "totals": {
@@ -1447,6 +1728,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 8000,
         "rawValue": "8,000"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 500,
+        "rawValue": "500"
       }
     ],
     "importHistory": [
@@ -1462,6 +1748,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 8000,
             "rawValue": "8,000"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 500,
+            "rawValue": "500"
           }
         ],
         "totals": {
@@ -1500,6 +1791,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1513,6 +1809,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1553,6 +1854,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 200,
+        "rawValue": "200"
       }
     ],
     "importHistory": [
@@ -1568,6 +1874,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 200,
+            "rawValue": "200"
           }
         ],
         "totals": {
@@ -1606,6 +1917,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1619,6 +1935,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1659,6 +1980,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1672,6 +1998,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1712,6 +2043,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 150,
+        "rawValue": "150"
       }
     ],
     "importHistory": [
@@ -1727,6 +2063,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 150,
+            "rawValue": "150"
           }
         ],
         "totals": {
@@ -1765,6 +2106,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 175,
+        "rawValue": "175"
       }
     ],
     "importHistory": [
@@ -1780,6 +2126,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 175,
+            "rawValue": "175"
           }
         ],
         "totals": {
@@ -1818,6 +2169,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1831,6 +2187,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1871,6 +2232,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -1884,6 +2250,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -1924,6 +2295,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 4000,
+        "rawValue": "4000"
       }
     ],
     "importHistory": [
@@ -1939,6 +2315,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 4000,
+            "rawValue": "4000"
           }
         ],
         "totals": {
@@ -1977,6 +2358,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 8500,
+        "rawValue": "8500"
       }
     ],
     "importHistory": [
@@ -1992,6 +2378,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 8500,
+            "rawValue": "8500"
           }
         ],
         "totals": {
@@ -2030,6 +2421,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 500,
+        "rawValue": "500"
       }
     ],
     "importHistory": [
@@ -2045,6 +2441,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 500,
+            "rawValue": "500"
           }
         ],
         "totals": {
@@ -2083,6 +2484,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2096,6 +2502,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2136,6 +2547,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 600,
+        "rawValue": "600.0"
       }
     ],
     "importHistory": [
@@ -2151,6 +2567,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 600,
+            "rawValue": "600.0"
           }
         ],
         "totals": {
@@ -2189,6 +2610,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 100,
+        "rawValue": "100"
       }
     ],
     "importHistory": [
@@ -2204,6 +2630,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 100,
+            "rawValue": "100"
           }
         ],
         "totals": {
@@ -2242,6 +2673,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2255,6 +2691,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2295,6 +2736,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2308,6 +2754,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2348,6 +2799,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 200,
+        "rawValue": "200"
       }
     ],
     "importHistory": [
@@ -2363,6 +2819,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 200,
+            "rawValue": "200"
           }
         ],
         "totals": {
@@ -2401,6 +2862,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2414,6 +2880,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2454,6 +2925,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2467,6 +2943,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2507,6 +2988,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 25,
+        "rawValue": "25"
       }
     ],
     "importHistory": [
@@ -2522,6 +3008,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 25,
+            "rawValue": "25"
           }
         ],
         "totals": {
@@ -2560,6 +3051,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2573,6 +3069,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2613,6 +3114,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2626,6 +3132,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2666,6 +3177,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 250,
+        "rawValue": "250"
       }
     ],
     "importHistory": [
@@ -2681,6 +3197,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 250,
+            "rawValue": "250"
           }
         ],
         "totals": {
@@ -2719,6 +3240,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 200,
+        "rawValue": "200"
       }
     ],
     "importHistory": [
@@ -2734,6 +3260,11 @@ window.stockData = [
             "label": "DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
+            "value": 200,
+            "rawValue": "200"
           }
         ],
         "totals": {
@@ -2772,6 +3303,11 @@ window.stockData = [
         "label": "DEZEMBRO (25)",
         "value": 0,
         "rawValue": "0"
+      },
+      {
+        "label": "F DEZEMBRO (25)",
+        "value": 0,
+        "rawValue": "0"
       }
     ],
     "importHistory": [
@@ -2785,6 +3321,11 @@ window.stockData = [
           },
           {
             "label": "DEZEMBRO (25)",
+            "value": 0,
+            "rawValue": "0"
+          },
+          {
+            "label": "F DEZEMBRO (25)",
             "value": 0,
             "rawValue": "0"
           }
@@ -2805,12 +3346,12 @@ window.stockData = [
 
 // Metadados
 window.stockMetadata = {
-    lastUpdate: "2025-12-02T14:35:20.943Z",
-    totalProducts: 52,
+    lastUpdate: "2025-12-02T20:58:15.809Z",
+    totalProducts: 53,
     generatedBy: "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
     version: "1.3.0",
     sourceFile: "Atualização Slow 02-12.xlsx",
-    sheetName: "Estoque (52)",
+    sheetName: "Estoque (53)",
     source: "Atualização Slow 02-12.xlsx · Estoque"
 };
 
