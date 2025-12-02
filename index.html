@@ -1463,14 +1463,6 @@
                     <div class="stat-label"><span class="label-text">Total de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Total de produtos" data-tooltip="Quantidade total de SKUs únicos visíveis após aplicar filtros de busca e estabelecimento." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="avgStockMonths">--</div>
-                    <div class="stat-label"><span class="label-text">Média de Estoque</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura convertendo automaticamente para dias, meses ou anos conforme o volume disponível." data-tooltip-position="top">?</span></div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalCoverage">--</div>
-                    <div class="stat-label"><span class="label-text">Cobertura Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura total" data-tooltip="Soma da cobertura dos itens, exibida automaticamente em dias, meses ou anos conforme a grandeza." data-tooltip-position="top">?</span></div>
-                </div>
-                <div class="stat-item">
                     <div class="stat-value" id="totalStockValue">--</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis convertida para quilogramas para facilitar a leitura." data-tooltip-position="top">?</span></div>
                 </div>
@@ -2434,7 +2426,7 @@
             return Math.round(value).toLocaleString('pt-BR');
         }
 
-        function formatCoverageDisplay(value) {
+        function formatCoverageDisplay(value, inputUnit = 'months') {
             if (!Number.isFinite(value)) {
                 return {
                     displayValue: '--',
@@ -2443,17 +2435,26 @@
                 };
             }
 
-            if (value === 0) {
+            const normalizedUnit = typeof inputUnit === 'string'
+                ? inputUnit.toLowerCase()
+                : 'months';
+
+            const totalDays = normalizedUnit === 'days'
+                ? value
+                : value * 30;
+            const months = totalDays / 30;
+            const absDays = Math.abs(totalDays);
+            const absMonths = Math.abs(months);
+
+            if (absDays === 0) {
+                const zeroUnitLabel = normalizedUnit === 'days' ? 'dias' : 'meses';
+                const zeroUnitType = normalizedUnit === 'days' ? 'days' : 'months';
                 return {
                     displayValue: '0',
-                    unitLabel: 'meses',
-                    unitType: 'months'
+                    unitLabel: zeroUnitLabel,
+                    unitType: zeroUnitType
                 };
             }
-
-            const months = value;
-            const totalDays = months * 30;
-            const absDays = Math.abs(totalDays);
 
             const formatNumber = function(number, maxFractionDigits) {
                 if (!Number.isFinite(number)) {
@@ -2485,7 +2486,7 @@
                 return Math.abs(Math.abs(number) - 1) < 1e-6;
             };
 
-            if (absDays >= 365) {
+            if (absMonths > 12) {
                 const years = months / 12;
                 return {
                     displayValue: formatNumber(years, 1),
@@ -2494,7 +2495,7 @@
                 };
             }
 
-            if (absDays >= 30) {
+            if (absDays > 31) {
                 return {
                     displayValue: formatNumber(months, 1),
                     unitLabel: Math.abs(months) >= 2 ? 'meses' : 'mês',
@@ -4481,19 +4482,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
         function updateSummary() {
             const total = filteredData.length;
-            const coverageValues = filteredData
-                .map(function(p) {
-                    const coverage = getCoverageValue(p);
-                    return Number.isFinite(coverage) ? coverage : null;
-                })
-                .filter(function(value) { return value !== null; })
-                .sort(function(a, b) { return a - b; });
-
-            const totalCoverage = coverageValues.reduce(function(sum, value) {
-                return sum + value;
-            }, 0);
-
-            const avgStock = coverageValues.length > 0 ? totalCoverage / coverageValues.length : 0;
             const families = new Set(filteredData.map(function(p) {
                 return p.family;
             })).size;
@@ -4503,8 +4491,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
             document.getElementById('totalProducts').textContent = total;
-            document.getElementById('avgStockMonths').textContent = coverageValues.length > 0 ? formatCoverageStat(avgStock) : '--';
-            document.getElementById('totalCoverage').textContent = coverageValues.length > 0 ? formatCoverageStat(totalCoverage) : '--';
             document.getElementById('totalStockValue').textContent = formatStockInKg(safeTotalStock);
             document.getElementById('totalFamilies').textContent = families;
         }
@@ -5059,17 +5045,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             const hasStockMonths = Number.isFinite(product.stockMonths);
-            const monthsCoverage = hasStockMonths ? product.stockMonths : (coverage.daysToDepletion / 30);
-            const formattedMonths = monthsCoverage !== null ? formatStatValue(monthsCoverage) : '--';
             const daysToDepletion = Math.max(1, Math.round(hasStockMonths ? product.stockMonths * 30 : coverage.daysToDepletion));
             const estimatedDate = new Date(Date.now() + daysToDepletion * 86400000);
             const formattedDate = estimatedDate.toLocaleDateString('pt-BR');
-            const monthsText = monthsCoverage !== null ? `${formattedMonths} meses` : 'cobertura indefinida';
-            const baseDetail = `Ruptura estimada para ${formattedDate} (cobertura aproximada de ${monthsText}).`;
+            const durationInfo = formatCoverageDisplay(daysToDepletion, 'days');
+            const durationText = durationInfo.displayValue !== '--'
+                ? `${durationInfo.displayValue} ${durationInfo.unitLabel}`.trim()
+                : `${daysToDepletion} dias`;
+            const baseDetail = `Ruptura estimada para ${formattedDate} (cobertura aproximada de ${durationText}).`;
 
             if (daysToDepletion <= urgentDays) {
-                const label = `Em ${daysToDepletion} dias`;
-                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${daysToDepletion} dias).`;
+                const label = `Em ${durationText}`;
+                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${durationText}).`;
                 return {
                     label,
                     detail: `${baseDetail} Recomendado acionar reposição imediata.`,
@@ -5078,8 +5065,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             if (daysToDepletion <= warningDays) {
-                const label = `Em ${daysToDepletion} dias`;
-                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${daysToDepletion} dias).`;
+                const label = `Em ${durationText}`;
+                const fullText = `Ruptura estimada em ${formattedDate} (aproximadamente ${durationText}).`;
                 return {
                     label,
                     detail: `${baseDetail} Planeje reposição para evitar ruptura no curto prazo.`,
@@ -5087,8 +5074,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 };
             }
 
-            const stableLabel = `${formattedMonths} meses`;
-            const fullText = `Ruptura estimada em ${formattedDate} (cobertura aproximada de ${monthsText}).`;
+            const stableLabel = durationText;
+            const fullText = `Ruptura estimada em ${formattedDate} (cobertura aproximada de ${durationText}).`;
             return {
                 label: stableLabel,
                 detail: `${baseDetail} Estoque confortável considerando o ritmo de consumo atual.`,
