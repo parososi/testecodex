@@ -1,0 +1,3063 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Estoque com Análise Preditiva</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 300px;
+            height: 60px;
+        }
+        
+        .company-logo img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #1F448C;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .search-results {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #1F448C;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        button:hover {
+            background-color: #163666;
+            transform: translateY(-1px);
+        }
+        
+        button.active {
+            background-color: #2196F3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        button.btn-auto-save {
+            background-color: #28a745;
+            position: relative;
+        }
+
+        button.btn-auto-save:hover {
+            background-color: #218838;
+        }
+
+        button.btn-auto-save.ready {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        .btn-download-highlight {
+            background-color: #28a745 !important;
+            box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Easter Egg Styles - Terminal Retrô Amarelo */
+        .easter-egg-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(3px);
+        }
+
+        .easter-egg-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            max-width: 800px;
+            height: 550px;
+            background: #1a1a0f;
+            border: 3px solid #ffcc00;
+            border-radius: 15px;
+            padding: 25px;
+            font-family: 'Courier New', monospace;
+            color: #ffcc00;
+            box-shadow: 
+                0 0 30px #ffcc00,
+                inset 0 0 30px rgba(255, 204, 0, 0.1),
+                0 0 0 1px #332a00;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .terminal-header {
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 0 0 5px #ffcc00;
+        }
+
+        .terminal-body {
+            height: calc(100% - 100px);
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+
+        /* Remover barra de rolagem */
+        .terminal-body::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .terminal-line {
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.4s ease-in forwards;
+            text-shadow: 0 0 3px #ffcc00;
+        }
+
+        .command-prompt {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+
+        .command-output {
+            color: #ffdd44;
+            margin-left: 25px;
+        }
+
+        .command-success {
+            color: #ffcc00;
+            text-shadow: 0 0 5px #ffcc00;
+        }
+
+        .command-info {
+            color: #ffdd77;
+        }
+
+        .command-error {
+            color: #ff8844;
+            text-shadow: 0 0 3px #ff8844;
+        }
+
+        .cursor {
+            background-color: #ffcc00;
+            animation: blink 1s infinite;
+        }
+
+        .typing-line {
+            border-right: 3px solid #ffcc00;
+            padding-right: 8px;
+            animation: blink 1.2s infinite;
+        }
+
+        .terminal-close-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            font-size: 11px;
+            color: #996600;
+            opacity: 0;
+            animation: fadeIn 1s ease-in 10s forwards;
+            text-shadow: 0 0 2px #996600;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .terminal-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, 
+                rgba(255, 204, 0, 0.05) 0%, 
+                transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Efeito de linhas de varredura CRT */
+        .easter-egg-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%, 
+                rgba(0, 0, 0, 0.03) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            min-width: 180px;
+        }
+        
+        select:focus {
+            border-color: #1F448C;
+            outline: none;
+        }
+        
+        .import-section {
+            background: #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .import-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+        
+        .import-header:hover {
+            background-color: #d1e7fd;
+        }
+        
+        .import-content {
+            padding: 0 15px 15px 15px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        .import-content.expanded {
+            display: block !important;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+        
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .file-input {
+            margin: 10px 0;
+        }
+        
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .analytics-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .prediction-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .prediction-item.clickable {
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .prediction-item.clickable:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .prediction-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid #1F448C;
+        }
+        
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .prediction-label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .prediction-value {
+            color: #1F448C;
+            font-weight: bold;
+        }
+        
+        .prediction-critical {
+            color: #dc3545;
+        }
+        
+        .prediction-warning {
+            color: #ffc107;
+        }
+        
+        .prediction-good {
+            color: #28a745;
+        }
+        
+        .gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .gauge-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .gauge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            border-color: #1F448C;
+        }
+        
+        .gauge-card.selected {
+            border: 2px solid #1F448C;
+            background-color: #f8f9ff;
+            box-shadow: 0 4px 16px rgba(31, 68, 140, 0.3);
+        }
+        
+        .gauge-card.highlighted {
+            border: 2px solid #1F448C;
+            box-shadow: 0 4px 16px rgba(31, 68, 140, 0.3);
+        }
+        
+        .gauge {
+            position: relative;
+            width: 240px;
+            height: 140px;
+            margin: 0 auto;
+        }
+        
+        .gauge-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .gauge-value {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .gauge-label {
+            position: absolute;
+            top: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .products-table {
+            margin-top: 30px;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            padding: 12px 8px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        tr.highlighted {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #1F448C;
+        }
+        
+        .status-critical {
+            background-color: #ffebee !important;
+            color: #c62828;
+            font-weight: bold;
+        }
+        
+        .status-warning {
+            background-color: #fff8e1 !important;
+            color: #f57c00;
+        }
+        
+        .status-good {
+            background-color: #e8f5e8 !important;
+            color: #2e7d32;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .stat-item.clickable {
+            cursor: pointer;
+        }
+        
+        .stat-item.clickable:hover {
+            background-color: #ffebee;
+            border-color: #f44336;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1F448C;
+        }
+        
+        .stat-value.critical {
+            color: #f44336;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .warning-message {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+
+        .info-message {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #bee5eb;
+        }
+
+        .offline-notice {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .browser-mode-indicator {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .download-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        @keyframes gaugeAnimation {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .gauge-card.animating {
+            animation: gaugeAnimation 0.6s ease-out;
+        }
+
+        @keyframes highlight {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(31, 68, 140, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .highlight-animation {
+            animation: highlight 1s ease-in-out;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .header h1 {
+                min-width: auto;
+                margin-bottom: 10px;
+            }
+            
+            .company-logo {
+                justify-content: center;
+                font-size: 20px;
+            }
+            
+            .search-input {
+                min-width: 200px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .control-group label {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .gauges-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .gauge {
+                width: 200px;
+                height: 120px;
+            }
+            
+            .table-container {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+
+            .easter-egg-content {
+                width: 95%;
+                height: 80%;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .gauge {
+                width: 180px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Estoque com Análise Preditiva - Borracha</h1>
+            <div class="company-logo">
+                <img src="https://usiquimica.com.br/wp-content/uploads/2022/05/usiquimica-logo-horizontal-1.png" alt="USIQUÍMICA" />
+            </div>
+        </div>
+        
+        <div class="import-section">
+            <div class="import-header" onclick="toggleImportSection()">
+                <h3>📊 Importar Dados da Planilha</h3>
+                <span class="toggle-icon" id="toggleIcon">▼</span>
+            </div>
+            <div class="import-content" id="importContent">
+                <div class="offline-notice">
+                    <strong>🌐 Modo Offline</strong> - Este dashboard funciona sem servidor! 
+                    Importe suas planilhas e compartilhe os arquivos atualizados com sua equipe.
+                    <div class="browser-mode-indicator" id="browserModeIndicator">
+                        🔍 Detectando modo do navegador...
+                    </div>
+                </div>
+                
+                <div class="file-input">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" />
+                    <button onclick="importData()">Importar Planilha</button>
+                    <button onclick="tryAutoSave()" id="autoSaveBtn" class="btn-auto-save" style="display: none;">✨ Configurar Pasta</button>
+                    <button onclick="reconfigureAutoSave()" id="reconfigBtn" style="display: none; background-color: #6c757d;">🔧 Reconfigurar</button>
+                    <button onclick="openTemplateGenerator()" style="background-color: #28a745;">📋 Template</button>
+                </div>
+                <div id="importMessages"></div>
+                <div id="lastUpdateInfo" style="font-size: 12px; color: #666; margin: 10px 0;"></div>
+                <div id="debugInfo" class="debug-info" style="display: none;"></div>
+                <small>Formatos aceitos: Excel (.xlsx, .xls) ou CSV. A planilha deve conter as colunas: CÓDIGO, FORNECEDOR, FAMÍLIA, ITEM, 1-4, 90-13, 90-15, ESTOQUE EM MESES, VENDAS 4M</small>
+                
+                <div class="download-section">
+                    <h4>📋 Compartilhar Dados</h4>
+                    <p>Após importar, baixe o arquivo de dados atualizado e compartilhe com sua equipe:</p>
+                    <button onclick="downloadDataFile()" style="background-color: #28a745; font-size: 16px; padding: 10px 20px;">💾 Baixar data.js Atualizado</button>
+                    <button onclick="testAutoSave()" id="testBtn" style="display: none; background-color: #17a2b8; margin-left: 10px;">🧪 Testar</button>
+                    <button onclick="runDiagnostic()" style="background-color: #6c757d; margin-left: 10px;">🔍 Diagnóstico</button>
+                    <button onclick="toggleDebug()" style="background-color: #ffc107; margin-left: 10px;">🐛 Debug</button>
+                    <br><br>
+                    <div style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc;">
+                        <strong>📝 Como compartilhar seus dados:</strong><br>
+                        1. Clique em "💾 Baixar data.js Atualizado" após importar<br>
+                        2. Substitua o arquivo <code>data.js</code> na pasta compartilhada<br>
+                        3. Todos que acessarem o dashboard verão os dados atualizados
+                    </div>
+                    <br>
+                    <details>
+                        <summary style="cursor: pointer; color: #0066cc; font-weight: bold;">🚀 Quer salvamento automático? Clique aqui!</summary>
+                        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                            <p><strong>Para ativar o salvamento automático, use um servidor web local:</strong></p>
+                            
+                            <p><strong>Método 1 - Live Server (VS Code):</strong></p>
+                            <ol>
+                                <li>Abra a pasta do projeto no VS Code</li>
+                                <li>Instale a extensão "Live Server"</li>
+                                <li>Clique direito no index.html → "Open with Live Server"</li>
+                                <li>Acesse http://localhost:5500</li>
+                            </ol>
+                            
+                            <p><strong>Método 2 - Python (já instalado no Windows):</strong></p>
+                            <ol>
+                                <li>Abra o Prompt de Comando na pasta do projeto</li>
+                                <li>Execute: <code>python -m http.server 8000</code></li>
+                                <li>Acesse http://localhost:8000</li>
+                            </ol>
+                            
+                            <p><strong>Método 3 - Node.js:</strong></p>
+                            <ol>
+                                <li>Instale: <code>npm install -g http-server</code></li>
+                                <li>Execute: <code>http-server</code> na pasta do projeto</li>
+                                <li>Acesse http://localhost:8080</li>
+                            </ol>
+                            
+                            <p style="color: #28a745;"><strong>✨ Com servidor local, o botão "Configurar Pasta" aparecerá e você terá salvamento automático!</strong></p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="globalSearch" 
+                    class="search-input" 
+                    placeholder="🔍 Buscar por código ou nome do produto..."
+                />
+                <button class="clear-search" onclick="clearSearch()">🗑️ Limpar</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Filtrar por:</label>
+                <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">Todos</button>
+                <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">Estoque Crítico (&lt;2m)</button>
+                <button onclick="filterLowStock()" class="filter-btn" data-filter="low">Estoque Baixo (2-6m)</button>
+                <button onclick="filterHighStock()" class="filter-btn" data-filter="high">Slow Moving (&gt;6m)</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Família:</label>
+                <select id="familyFilter" onchange="filterByFamily()">
+                    <option value="">Todas as Famílias</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Fornecedor:</label>
+                <select id="supplierFilter" onchange="filterBySupplier()">
+                    <option value="">Todos os Fornecedores</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Estabelecimento:</label>
+                <select id="establishmentFilter" onchange="filterByEstablishment()">
+                    <option value="">Todos os Estabelecimentos</option>
+                    <option value="1-4">1-4 (GUARULHOS)</option>
+                    <option value="90-13">90-13 (ITAJAÍ)</option>
+                    <option value="90-15">90-15 (GARUVA)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="showExportModal()">📤 Exportar</button>
+                <button onclick="updateData()">🔄 Atualizar</button>
+            </div>
+        </div>
+
+        <div class="analytics-section">
+            <h3>🔮 Análise Preditiva</h3>
+            <div class="prediction-card" style="max-width: 600px; margin: 0 auto;">
+                <h4>⚠️ Alertas Preditivos</h4>
+                <div id="predictionAlerts">
+                    <div class="prediction-item clickable" onclick="filterZeroIn30()" title="Clique para filtrar produtos">
+                        <span class="prediction-label">Produtos zerando em 30 dias:</span>
+                        <span class="prediction-value prediction-critical" id="zeroIn30">0</span>
+                    </div>
+                    <div class="prediction-item clickable" onclick="filterZeroIn60()" title="Clique para filtrar produtos">
+                        <span class="prediction-label">Produtos zerando em 60 dias:</span>
+                        <span class="prediction-value prediction-warning" id="zeroIn60">0</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="prediction-label">Ponto de reposição ideal:</span>
+                        <span class="prediction-value prediction-good" id="reorderPoint">3-4 meses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h3>Resumo Geral</h3>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Total de Produtos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgStockMonths">0.0</div>
+                    <div class="stat-label">Média de Estoque (meses)</div>
+                </div>
+                <div class="stat-item clickable" onclick="filterCriticalStock()" title="Clique para ver produtos críticos (<2 meses)">
+                    <div class="stat-value critical" id="criticalCount">0</div>
+                    <div class="stat-label">Produtos Críticos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFamilies">0</div>
+                    <div class="stat-label">Famílias de Produtos</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="gauges-container" id="gaugesContainer">
+        </div>
+        
+        <div class="products-table">
+            <div class="table-header">
+                <h3>Detalhes dos Produtos</h3>
+                <span id="tableCount">0 produtos exibidos</span>
+            </div>
+            <div class="table-container">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Fornecedor</th>
+                            <th>Família</th>
+                            <th>Item</th>
+                            <th>Est. 1-4</th>
+                            <th>Est. 90-13</th>
+                            <th>Est. 90-15</th>
+                            <th>Total</th>
+                            <th>Vendas 4M</th>
+                            <th>Meses</th>
+                            <th>Previsão</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Easter Egg Modal - Terminal Retrô -->
+    <div id="easterEggModal" class="easter-egg-modal">
+        <div class="easter-egg-content">
+            <div class="terminal-glow"></div>
+            <div class="terminal-header">
+                ╔═══════════════════════════════════════════════════════════╗<br>
+                ║                STOCK DASHBOARD SYSTEM v1.1              ║<br>
+                ║              Criado por Paulo Roberto S.S.             ║<br>
+                ║                    YouTube: @parososi - 2025             ║<br>
+                ╚═══════════════════════════════════════════════════════════╝
+            </div>
+            <div class="terminal-body" id="terminalBody">
+                <!-- Comandos serão inseridos aqui dinamicamente -->
+            </div>
+            <div class="terminal-close-hint">Press ANY KEY to exit...</div>
+        </div>
+    </div>
+
+    <!-- Modal de Exportação -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Exportar Dados</h2>
+                <span class="close" onclick="closeExportModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="fileName">Nome do arquivo:</label>
+                <input type="text" id="fileName" value="estoque_dados" placeholder="Digite o nome do arquivo">
+            </div>
+            <div class="form-group">
+                <label for="fileFormat">Formato:</label>
+                <select id="fileFormat">
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="csv">CSV (.csv)</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeExportModal()">Cancelar</button>
+                <button onclick="confirmExport()">Exportar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inclusão das bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        // Variáveis globais
+        let allProductsData = [];
+        let filteredData = [];
+        let currentFilter = 'all';
+        let currentEstablishment = '';
+        let searchTerm = '';
+        let predictionFilter = null;
+        let selectedFamily = null;
+        let selectedSupplier = null;
+        let fileSystemSupported = false;
+        let directoryHandle = null;
+        let criticalFilterActive = false;
+        let debugMode = false;
+        
+        // Easter Egg Variables
+        let typedKeys = '';
+        let lastKeyTime = 0;
+        const easterEggSequence = 'pauloroberto';
+        const maxTimeBetweenKeys = 5000; // 5 segundos
+        let terminalAnimation = null;
+        let infiniteLoopRunning = false;
+
+        // Terminal Commands Database - Versão infinita
+        const terminalCommands = [
+            { 
+                cmd: '$ initializing_dashboard_system...', 
+                output: ['Loading modules...', 'Stock analyzer [OK]', 'Predictive engine [OK]', 'Database connector [OK]'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ checking_dependencies', 
+                output: ['✓ react.js v18.2.0', '✓ chart.js v3.9.1', '✓ xlsx.js v0.18.5', '✓ lodash.js v4.17.21'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ connecting_to_database...', 
+                output: ['Establishing connection...', 'Authentication successful', 'Schema validation [PASSED]'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ running_stock_analysis', 
+                output: ['Analyzing 56 products...', 'Critical items detected: 12', 'Low stock warnings: 8', 'Recommendations generated'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ npm run build', 
+                output: ['Building production bundle...', 'Optimizing assets...', 'Bundle size: 847KB', 'Build completed successfully!'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ git status', 
+                output: ['On branch main', 'Your branch is up to date with origin/main', 'nothing to commit, working tree clean'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ docker ps', 
+                output: ['CONTAINER ID   IMAGE        COMMAND      STATUS', '9f8e7a2b1c3d   dashboard    "npm start"  Up 2 hours', '4d5f6g7h8i9j   postgres     "postgres"   Up 3 hours'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ curl -X GET api/health', 
+                output: ['{"status": "healthy",', ' "uptime": "72:14:35",', ' "version": "1.1.0",', ' "database": "connected"}'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ tail -f dashboard.log', 
+                output: ['[INFO] User imported 56 products', '[INFO] Predictive analysis completed', '[INFO] Export generated successfully', '[INFO] All systems operational'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ whoami', 
+                output: ['paulo_roberto'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ cat .signature', 
+                output: ['━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '  Criado com ❤️ por Paulo Roberto S.S.', '  YouTube: @parososi', '  Ano: 2025', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'], 
+                type: 'success' 
+            },
+            // Comandos adicionais para loop infinito
+            { 
+                cmd: '$ system_monitor --watch', 
+                output: ['CPU: 12%', 'RAM: 2.1GB / 16GB', 'Network: ↑ 45KB/s ↓ 128KB/s', 'Disk I/O: 89 ops/sec'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ ps aux | grep dashboard', 
+                output: ['root  1234  0.5  2.1  dashboard_core', 'root  1235  0.2  1.8  dashboard_ui', 'root  1236  0.1  0.9  dashboard_api'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ netstat -tulpn | grep :3000', 
+                output: ['tcp 0 0 0.0.0.0:3000 0.0.0.0:* LISTEN 1234/dashboard'], 
+                type: 'success' 
+            },
+            { 
+                cmd: '$ uptime', 
+                output: ['12:34:56 up 3 days, 14:25, 1 user, load average: 0.25, 0.31, 0.28'], 
+                type: 'info' 
+            },
+            { 
+                cmd: '$ fortune', 
+                output: ['"The best way to predict the future is to create it." - Peter Drucker'], 
+                type: 'success' 
+            }
+        ];
+
+        // Easter Egg Functions
+        function handleEasterEgg(key) {
+            const currentTime = Date.now();
+            
+            // Reset if too much time has passed
+            if (currentTime - lastKeyTime > maxTimeBetweenKeys / easterEggSequence.length) {
+                typedKeys = '';
+            }
+            
+            lastKeyTime = currentTime;
+            typedKeys += key.toLowerCase();
+            
+            // Keep only the last N characters to match sequence length
+            if (typedKeys.length > easterEggSequence.length) {
+                typedKeys = typedKeys.slice(-easterEggSequence.length);
+            }
+            
+            // Check if sequence matches
+            if (typedKeys === easterEggSequence) {
+                showEasterEgg();
+                typedKeys = ''; // Reset
+            }
+        }
+
+        function showEasterEgg() {
+            const modal = document.getElementById('easterEggModal');
+            const terminalBody = document.getElementById('terminalBody');
+            
+            // Clear terminal and show modal
+            terminalBody.innerHTML = '';
+            modal.style.display = 'block';
+            infiniteLoopRunning = true;
+            
+            // Start terminal animation
+            startTerminalAnimation();
+            
+            // Add click and keydown handlers to close
+            const closeHandler = function() {
+                modal.style.display = 'none';
+                infiniteLoopRunning = false;
+                if (terminalAnimation) {
+                    clearTimeout(terminalAnimation);
+                    terminalAnimation = null;
+                }
+                modal.removeEventListener('click', closeHandler);
+                document.removeEventListener('keydown', closeHandler);
+            };
+            
+            modal.addEventListener('click', closeHandler);
+            document.addEventListener('keydown', closeHandler);
+        }
+
+        function startTerminalAnimation() {
+            const terminalBody = document.getElementById('terminalBody');
+            let commandIndex = 0;
+
+            function executeNextCommand() {
+                if (!infiniteLoopRunning) return;
+
+                const command = terminalCommands[commandIndex];
+                
+                // Add command line with typing effect
+                setTimeout(() => {
+                    if (!infiniteLoopRunning) return;
+                    addTerminalLine(command.cmd, 'command-prompt');
+                    
+                    // Add output lines
+                    command.output.forEach((outputLine, index) => {
+                        setTimeout(() => {
+                            if (!infiniteLoopRunning) return;
+                            const className = `command-output command-${command.type}`;
+                            addTerminalLine(outputLine, className);
+                        }, (index + 1) * 300);
+                    });
+                    
+                    // Move to next command
+                    setTimeout(() => {
+                        if (!infiniteLoopRunning) return;
+                        commandIndex++;
+                        
+                        // Se chegou ao final, reinicia (loop infinito)
+                        if (commandIndex >= terminalCommands.length) {
+                            commandIndex = 0;
+                            // Adiciona uma linha em branco antes de reiniciar
+                            addTerminalLine('', '');
+                            setTimeout(() => {
+                                addTerminalLine('$ === SYSTEM RESTART ===', 'command-info');
+                                setTimeout(executeNextCommand, 1000);
+                            }, 500);
+                        } else {
+                            executeNextCommand();
+                        }
+                    }, (command.output.length + 1) * 300 + 800);
+                    
+                }, 200);
+            }
+
+            executeNextCommand();
+        }
+
+        function addTerminalLine(text, className = '') {
+            if (!infiniteLoopRunning) return;
+            
+            const terminalBody = document.getElementById('terminalBody');
+            const line = document.createElement('div');
+            line.className = `terminal-line ${className}`;
+            
+            // Simular efeito de digitação para algumas linhas
+            if (className.includes('command-prompt')) {
+                line.innerHTML = '';
+                let charIndex = 0;
+                
+                const typeChar = () => {
+                    if (charIndex < text.length && infiniteLoopRunning) {
+                        line.innerHTML += text[charIndex];
+                        charIndex++;
+                        setTimeout(typeChar, 30 + Math.random() * 50);
+                    }
+                };
+                
+                typeChar();
+            } else {
+                line.textContent = text;
+            }
+            
+            terminalBody.appendChild(line);
+            
+            // Auto scroll to bottom
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+            
+            // Limpar linhas antigas para evitar sobrecarga
+            const maxLines = 25;
+            const lines = terminalBody.children;
+            if (lines.length > maxLines) {
+                const linesToRemove = lines.length - maxLines;
+                for (let i = 0; i < linesToRemove; i++) {
+                    if (lines[0]) {
+                        terminalBody.removeChild(lines[0]);
+                    }
+                }
+            }
+        }
+
+        // Add keydown event listener for easter egg
+        document.addEventListener('keydown', function(event) {
+            // Don't trigger if modal is open
+            if (document.getElementById('easterEggModal').style.display === 'block') {
+                return;
+            }
+            handleEasterEgg(event.key);
+        });
+
+        // Função de log para debug
+        function debugLog(message, type) {
+            type = type || 'info';
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            
+            console.log(logMessage);
+            
+            if (debugMode) {
+                const debugDiv = document.getElementById('debugInfo');
+                if (debugDiv) {
+                    debugDiv.innerHTML += logMessage + '<br>';
+                    debugDiv.scrollTop = debugDiv.scrollHeight;
+                }
+            }
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.style.display = debugMode ? 'block' : 'none';
+                if (debugMode) {
+                    debugDiv.innerHTML = '<strong>🐛 DEBUG MODE ATIVADO</strong><br>';
+                    debugLog('Debug mode ativado');
+                }
+            }
+        }
+
+        // Detectar suporte ao File System Access API com logs detalhados
+        function detectBrowserCapabilities() {
+            debugLog('Iniciando detecção de capacidades do navegador');
+            
+            try {
+                // Verificar protocolo
+                const isFileProtocol = location.protocol === 'file:';
+                const isHttps = location.protocol === 'https:';
+                const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                
+                debugLog(`Protocolo atual: ${location.protocol}`);
+                debugLog(`É file://: ${isFileProtocol}`);
+                debugLog(`É HTTPS: ${isHttps}`);
+                debugLog(`É localhost: ${isLocalhost}`);
+                
+                // Verificar se a API existe
+                const hasAPI = 'showDirectoryPicker' in window;
+                debugLog(`showDirectoryPicker disponível: ${hasAPI}`);
+                
+                // Verificar navegador
+                const userAgent = navigator.userAgent;
+                const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Edg');
+                const isEdge = userAgent.includes('Edg');
+                debugLog(`Navegador detectado - Chrome: ${isChrome}, Edge: ${isEdge}`);
+                
+                // File System API só funciona em contextos seguros (não file://)
+                const isSecureContext = !isFileProtocol && (isHttps || isLocalhost);
+                fileSystemSupported = hasAPI && isSecureContext && (isChrome || isEdge);
+                debugLog(`File System API suportado: ${fileSystemSupported}`);
+                
+                const indicator = document.getElementById('browserModeIndicator');
+                
+                if (!indicator) {
+                    debugLog('Elemento browserModeIndicator não encontrado', 'warn');
+                    return;
+                }
+                
+                if (isFileProtocol) {
+                    // Caso especial para file://
+                    indicator.innerHTML = `
+                        <div style="text-align: left;">
+                            🔍 <strong>Modo Arquivo Local</strong> - Salvamento automático não disponível<br>
+                            💡 <strong>Para ativar salvamento automático:</strong><br>
+                            • Use um servidor web local (Live Server, http-server, etc.)<br>
+                            • Ou acesse via https://seu-site.com<br>
+                            • Use o botão "💾 Baixar data.js" para salvar manualmente
+                        </div>
+                    `;
+                    indicator.style.background = '#e7f3ff';
+                    indicator.style.color = '#0066cc';
+                    indicator.style.padding = '12px';
+                    indicator.style.borderLeft = '4px solid #0066cc';
+                    debugLog('Modo file:// detectado - salvamento automático desabilitado');
+                    
+                } else if (fileSystemSupported) {
+                    indicator.innerHTML = '✨ Salvamento automático disponível! (Chrome/Edge + Servidor Web)';
+                    indicator.style.background = '#d4edda';
+                    indicator.style.color = '#155724';
+                    
+                    // Mostrar botões após detecção
+                    setTimeout(function() {
+                        const autoSaveBtn = document.getElementById('autoSaveBtn');
+                        const testBtn = document.getElementById('testBtn');
+                        
+                        if (autoSaveBtn) {
+                            autoSaveBtn.style.display = 'inline-block';
+                            autoSaveBtn.classList.add('ready');
+                            debugLog('Botão autoSave mostrado');
+                        } else {
+                            debugLog('Botão autoSave não encontrado', 'error');
+                        }
+                        
+                        if (testBtn) {
+                            testBtn.style.display = 'inline-block';
+                            debugLog('Botão test mostrado');
+                        }
+                    }, 300);
+                } else {
+                    let reason = '';
+                    let solution = '';
+                    
+                    if (!hasAPI) {
+                        reason = 'API não suportada neste navegador';
+                        solution = 'Use Chrome ou Edge atualizado';
+                    } else if (!isSecureContext) {
+                        reason = 'Requer conexão segura (HTTPS ou localhost)';
+                        solution = 'Use um servidor web local ou HTTPS';
+                    } else if (!isChrome && !isEdge) {
+                        reason = 'Navegador não suportado';
+                        solution = 'Use Chrome ou Edge';
+                    }
+                    
+                    indicator.innerHTML = `
+                        <div style="text-align: left;">
+                            ⚠️ <strong>Salvamento automático não disponível</strong><br>
+                            🔍 <strong>Motivo:</strong> ${reason}<br>
+                            💡 <strong>Solução:</strong> ${solution}<br>
+                            📥 Use o botão "💾 Baixar data.js" para salvar manualmente
+                        </div>
+                    `;
+                    indicator.style.background = '#fff3cd';
+                    indicator.style.color = '#856404';
+                    indicator.style.padding = '12px';
+                    indicator.style.borderLeft = '4px solid #ffc107';
+                    debugLog(`Salvamento automático não disponível: ${reason}`);
+                }
+            } catch (error) {
+                debugLog(`Erro na detecção de capacidades: ${error.message}`, 'error');
+                fileSystemSupported = false;
+            }
+        }
+
+        // Função principal para configurar pasta
+        function tryAutoSave() {
+            debugLog('=== TENTATIVA DE CONFIGURAÇÃO DE PASTA ===');
+            debugLog(`fileSystemSupported: ${fileSystemSupported}`);
+            debugLog(`Protocolo atual: ${location.protocol}`);
+            debugLog(`directoryHandle existe: ${!!directoryHandle}`);
+            debugLog(`Dados disponíveis: ${allProductsData.length} produtos`);
+            
+            if (location.protocol === 'file:') {
+                const msg = `
+                    ⚠️ Salvamento automático não funciona com arquivos locais (file://)
+                    
+                    💡 Para ativar esta funcionalidade:
+                    • Use um servidor web local (Live Server, Python, etc.)
+                    • Acesse via http://localhost ou https://
+                    
+                    📥 Por enquanto, use "💾 Baixar data.js" para salvar manualmente
+                `;
+                showMessage(msg, 'warning');
+                debugLog('Tentativa de uso em protocolo file:// - não suportado', 'warn');
+                
+                // Destacar o botão de download manual
+                const downloadBtn = document.querySelector('button[onclick="downloadDataFile()"]');
+                if (downloadBtn) {
+                    downloadBtn.style.animation = 'pulse 2s infinite';
+                    setTimeout(() => {
+                        downloadBtn.style.animation = '';
+                    }, 5000);
+                }
+                return;
+            }
+            
+            if (!fileSystemSupported) {
+                const msg = '❌ Salvamento automático não suportado neste navegador/ambiente.';
+                showMessage(msg, 'error');
+                debugLog(msg, 'error');
+                return;
+            }
+
+            if (allProductsData.length === 0) {
+                const msg = '⚠️ Nenhum dado para salvar. Importe uma planilha primeiro.';
+                showMessage(msg, 'warning');
+                debugLog(msg, 'warn');
+                return;
+            }
+
+            debugLog('Solicitando seleção de pasta ao usuário');
+            
+            // Tentar obter pasta
+            window.showDirectoryPicker({
+                mode: 'readwrite',
+                startIn: 'documents'
+            }).then(function(handle) {
+                debugLog('Pasta selecionada com sucesso');
+                directoryHandle = handle;
+                
+                showMessage('✅ Pasta configurada! Salvando arquivo...', 'success');
+                updateUI();
+                
+                // Salvar imediatamente
+                return saveDataAutomatically();
+                
+            }).then(function(success) {
+                if (success) {
+                    showMessage('✨ Arquivo data.js salvo automaticamente na pasta selecionada!', 'success');
+                    debugLog('Salvamento automático concluído com sucesso');
+                } else {
+                    showMessage('❌ Erro ao salvar o arquivo. Verifique as permissões.', 'error');
+                    debugLog('Falha no salvamento automático', 'error');
+                }
+            }).catch(function(error) {
+                if (error.name === 'AbortError') {
+                    debugLog('Usuário cancelou a seleção de pasta');
+                    showMessage('❌ Seleção de pasta cancelada pelo usuário.', 'info');
+                } else {
+                    debugLog(`Erro no processo: ${error.message}`, 'error');
+                    showMessage(`❌ Erro: ${error.message}`, 'error');
+                }
+            });
+        }
+
+        function reconfigureAutoSave() {
+            debugLog('Reconfigurando pasta para salvamento automático');
+            directoryHandle = null; // Resetar handle
+            tryAutoSave(); // Solicitar nova pasta
+        }
+
+        function saveDataAutomatically() {
+            return new Promise(function(resolve, reject) {
+                debugLog('=== INICIANDO SALVAMENTO AUTOMÁTICO ===');
+                
+                if (!directoryHandle) {
+                    debugLog('directoryHandle não configurado', 'error');
+                    resolve(false);
+                    return;
+                }
+                
+                if (allProductsData.length === 0) {
+                    debugLog('Nenhum dado para salvar', 'error');
+                    resolve(false);
+                    return;
+                }
+
+                try {
+                    debugLog('Gerando conteúdo do arquivo data.js');
+                    const dataContent = saveDataToFile(allProductsData);
+                    debugLog(`Conteúdo gerado: ${dataContent.length} caracteres`);
+                    
+                    // Verificar permissão de escrita
+                    debugLog('Verificando permissões de escrita');
+                    directoryHandle.requestPermission({ mode: 'readwrite' }).then(function(permission) {
+                        debugLog(`Permissão obtida: ${permission}`);
+                        
+                        if (permission !== 'granted') {
+                            throw new Error('Permissão de escrita negada');
+                        }
+                        
+                        debugLog('Criando/obtendo arquivo data.js');
+                        return directoryHandle.getFileHandle('data.js', { create: true });
+                        
+                    }).then(function(fileHandle) {
+                        debugLog('Arquivo obtido, criando stream de escrita');
+                        return fileHandle.createWritable();
+                        
+                    }).then(function(writable) {
+                        debugLog('Escrevendo conteúdo no arquivo');
+                        return writable.write(dataContent).then(function() {
+                            debugLog('Fechando arquivo');
+                            return writable.close();
+                        });
+                        
+                    }).then(function() {
+                        debugLog('Arquivo salvo com sucesso!');
+                        
+                        // Atualizar timestamp local
+                        localStorage.setItem('stockDataTimestamp', Date.now().toString());
+                        updateUI();
+                        
+                        resolve(true);
+                        
+                    }).catch(function(error) {
+                        debugLog(`Erro no salvamento: ${error.message}`, 'error');
+                        reject(error);
+                    });
+                    
+                } catch (error) {
+                    debugLog(`Erro na geração do conteúdo: ${error.message}`, 'error');
+                    reject(error);
+                }
+            });
+        }
+
+        function testAutoSave() {
+            debugLog('=== TESTE DE SALVAMENTO ===');
+            
+            if (!fileSystemSupported) {
+                showMessage('❌ Salvamento automático não suportado neste navegador.', 'error');
+                return;
+            }
+            
+            if (!directoryHandle) {
+                showMessage('⚠️ Configure uma pasta primeiro clicando em "✨ Configurar Pasta".', 'warning');
+                return;
+            }
+            
+            if (allProductsData.length === 0) {
+                showMessage('⚠️ Nenhum dado para testar. Importe uma planilha primeiro.', 'warning');
+                return;
+            }
+            
+            saveDataAutomatically().then(function(success) {
+                if (success) {
+                    showMessage('✅ Teste realizado! Arquivo salvo com sucesso.', 'success');
+                } else {
+                    showMessage('❌ Falha no teste de salvamento.', 'error');
+                }
+            }).catch(function(error) {
+                showMessage(`❌ Erro no teste: ${error.message}`, 'error');
+            });
+        }
+
+        function updateUI() {
+            debugLog('Atualizando interface do usuário');
+            
+            try {
+                const lastUpdateDiv = document.getElementById('lastUpdateInfo');
+                if (!lastUpdateDiv) {
+                    debugLog('Elemento lastUpdateInfo não encontrado', 'warn');
+                    return;
+                }
+                
+                let infoText = '';
+                
+                // Informações de última atualização
+                if (typeof window.stockMetadata !== 'undefined' && window.stockMetadata.lastUpdate) {
+                    const date = new Date(window.stockMetadata.lastUpdate);
+                    const formattedDate = date.toLocaleString('pt-BR');
+                    infoText = `📅 Última atualização: ${formattedDate}`;
+                } else {
+                    const storedData = localStorage.getItem('stockDataTimestamp');
+                    if (storedData) {
+                        const date = new Date(parseInt(storedData));
+                        const formattedDate = date.toLocaleString('pt-BR');
+                        infoText = `📅 Última atualização: ${formattedDate}`;
+                    } else {
+                        infoText = '📅 Nenhuma importação realizada ainda';
+                    }
+                }
+                
+                // Status da pasta configurada
+                if (fileSystemSupported && directoryHandle) {
+                    const autoSaveBtn = document.getElementById('autoSaveBtn');
+                    const reconfigBtn = document.getElementById('reconfigBtn');
+                    const testBtn = document.getElementById('testBtn');
+                    
+                    if (autoSaveBtn) {
+                        autoSaveBtn.textContent = '✨ Salvar na Pasta';
+                        autoSaveBtn.classList.remove('ready');
+                    }
+                    if (reconfigBtn) reconfigBtn.style.display = 'inline-block';
+                    if (testBtn) testBtn.style.display = 'inline-block';
+                    
+                    infoText += '<br>🗂️ <span style="color: #28a745; font-weight: bold;">Pasta configurada - salvamento automático ativo!</span>';
+                } else if (fileSystemSupported) {
+                    infoText += '<br>⚙️ <span style="color: #1F448C;">Clique em "✨ Configurar Pasta" para ativar salvamento automático</span>';
+                }
+                
+                lastUpdateDiv.innerHTML = infoText;
+                debugLog('Interface atualizada com sucesso');
+                
+            } catch (error) {
+                debugLog(`Erro ao atualizar interface: ${error.message}`, 'error');
+            }
+        }
+
+        // Carregar dados ao inicializar
+        function loadData() {
+            debugLog('=== CARREGANDO DADOS ===');
+            
+            // Primeiro verifica se há dados no window.stockData
+            if (typeof window.stockData !== 'undefined' && Array.isArray(window.stockData) && window.stockData.length > 0) {
+                allProductsData = window.stockData;
+                debugLog(`Dados carregados do data.js: ${allProductsData.length} produtos`);
+                showMessage(`✅ ${allProductsData.length} produtos carregados do data.js`, 'success');
+            } else {
+                // Se não houver dados no window.stockData, tenta localStorage
+                const storedData = localStorage.getItem('stockData');
+                if (storedData) {
+                    try {
+                        allProductsData = JSON.parse(storedData);
+                        debugLog(`Dados carregados do localStorage: ${allProductsData.length} produtos`);
+                        showMessage(`✅ ${allProductsData.length} produtos carregados do backup local`, 'info');
+                    } catch (e) {
+                        debugLog(`Erro ao parsear dados do localStorage: ${e.message}`, 'error');
+                        allProductsData = [];
+                    }
+                } else {
+                    allProductsData = [];
+                    debugLog('Nenhum dado encontrado');
+                }
+            }
+
+            if (allProductsData.length === 0) {
+                showMessage('⚠️ Nenhum dado encontrado. Importe uma planilha para começar.', 'info');
+            }
+
+            initializeDashboard();
+        }
+
+        function initializeDashboard() {
+            debugLog('Inicializando dashboard');
+            
+            try {
+                populateFamilyFilter();
+                populateSupplierFilter();
+                showAllProducts();
+                updatePredictiveAnalysis();
+                updateUI();
+                
+                debugLog('Dashboard inicializado com sucesso');
+            } catch (error) {
+                debugLog(`Erro ao inicializar dashboard: ${error.message}`, 'error');
+                showMessage('⚠️ Dashboard carregado com problemas. Use o diagnóstico para mais detalhes.', 'warning');
+            }
+        }
+
+        function saveDataToFile(data) {
+            try {
+                debugLog('Gerando arquivo data.js');
+                
+                const processedData = data.map(function(product) {
+                    return {
+                        code: product.code || '',
+                        supplier: product.supplier || '',
+                        family: product.family || '',
+                        item: product.item || '',
+                        stock14: product.stock14 || 0,
+                        stock9013: product.stock9013 || 0,
+                        stock9015: product.stock9015 || 0,
+                        stockMonths: product.stockMonths || 0,
+                        vendas4M: product.vendas4M || 0
+                    };
+                });
+
+                const dataContent = `// Dados do Dashboard de Estoque - Gerado em ${new Date().toLocaleString('pt-BR')}
+// Substitua este arquivo na pasta compartilhada para atualizar os dados
+console.log('Carregando data.js...');
+
+window.stockData = ${JSON.stringify(processedData, null, 2)};
+
+// Metadados
+window.stockMetadata = {
+    lastUpdate: "${new Date().toISOString()}",
+    totalProducts: ${processedData.length},
+    generatedBy: "Dashboard de Estoque v1.1",
+    version: "1.1.0"
+};
+
+console.log('data.js carregado com', window.stockData.length, 'produtos');`;
+                
+                debugLog(`Arquivo gerado: ${dataContent.length} caracteres`);
+                return dataContent;
+            } catch (error) {
+                debugLog(`Erro ao gerar arquivo: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function importData() {
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) {
+                showMessage('❌ Por favor, selecione um arquivo primeiro.', 'error');
+                return;
+            }
+
+            debugLog(`Importando arquivo: ${file.name} (${file.size} bytes)`);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    const fileName = file.name.toLowerCase();
+                    
+                    if (fileName.endsWith('.csv')) {
+                        data = processCSV(e.target.result);
+                    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                        const workbook = XLSX.read(e.target.result, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        data = processExcelData(jsonData);
+                    } else {
+                        throw new Error('Formato de arquivo não suportado');
+                    }
+
+                    if (data.length === 0) {
+                        throw new Error('Nenhum produto válido encontrado na planilha');
+                    }
+
+                    allProductsData = data;
+                    debugLog(`Dados importados: ${data.length} produtos`);
+                    
+                    // Salvar no localStorage como backup
+                    localStorage.setItem('stockData', JSON.stringify(data));
+                    localStorage.setItem('stockDataTimestamp', Date.now().toString());
+                    
+                    showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.`, 'success');
+                    
+                    // Tentar salvamento automático se disponível
+                    if (fileSystemSupported && directoryHandle) {
+                        debugLog('Tentando salvamento automático após importação');
+                        saveDataAutomatically().then(function(success) {
+                            if (success) {
+                                showMessage('✨ Arquivo data.js atualizado automaticamente!', 'success');
+                            }
+                        }).catch(function(error) {
+                            debugLog(`Erro no salvamento automático: ${error.message}`, 'error');
+                            showMessage('⚠️ Dados importados, mas erro no salvamento automático. Use "💾 Baixar data.js".', 'warning');
+                        });
+                    } else if (fileSystemSupported) {
+                        showMessage('💡 Dica: Clique em "✨ Configurar Pasta" para ativar salvamento automático!', 'info');
+                    }
+                    
+                    initializeDashboard();
+                    
+                } catch (error) {
+                    debugLog(`Erro ao processar arquivo: ${error.message}`, 'error');
+                    showMessage(`❌ Erro ao processar arquivo: ${error.message}`, 'error');
+                }
+            };
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function openTemplateGenerator() {
+            try {
+                window.open('gerador_template.html', '_blank');
+            } catch (error) {
+                debugLog(`Erro ao abrir gerador de template: ${error.message}`, 'error');
+                showMessage('❌ Erro ao abrir gerador de template', 'error');
+            }
+        }
+
+        function runDiagnostic() {
+            debugLog('=== EXECUTANDO DIAGNÓSTICO COMPLETO ===');
+            console.clear();
+            
+            const report = [];
+            report.push('🔍 DIAGNÓSTICO COMPLETO DO DASHBOARD');
+            report.push('=====================================');
+            
+            // 1. Verificar dados
+            report.push('\n📊 DADOS:');
+            report.push(`- window.stockData existe: ${typeof window.stockData !== 'undefined'}`);
+            report.push(`- É array: ${Array.isArray(window.stockData)}`);
+            report.push(`- Quantidade: ${window.stockData ? window.stockData.length : 0}`);
+            report.push(`- allProductsData: ${allProductsData ? allProductsData.length : 'undefined'}`);
+            
+            // 2. Verificar elementos DOM
+            report.push('\n🎯 ELEMENTOS DOM:');
+            const elementos = ['importContent', 'toggleIcon', 'browserModeIndicator', 'autoSaveBtn', 'testBtn', 'lastUpdateInfo', 'excelFile'];
+            elementos.forEach(function(id) {
+                const el = document.getElementById(id);
+                const exists = !!el;
+                const visible = el ? el.offsetHeight > 0 : false;
+                report.push(`- ${id}: ${exists ? '✅' : '❌'} ${exists ? (visible ? '(visível)' : '(oculto)') : ''}`);
+            });
+            
+            // 3. Verificar capacidades do navegador
+            report.push('\n🌐 NAVEGADOR:');
+            report.push(`- UserAgent: ${navigator.userAgent}`);
+            report.push(`- Protocolo: ${location.protocol}`);
+            report.push(`- Hostname: ${location.hostname}`);
+            report.push(`- URL completa: ${location.href}`);
+            report.push(`- showDirectoryPicker: ${'showDirectoryPicker' in window ? '✅' : '❌'}`);
+            report.push(`- fileSystemSupported: ${fileSystemSupported ? '✅' : '❌'}`);
+            report.push(`- directoryHandle: ${directoryHandle ? '✅ Configurado' : '❌ Não configurado'}`);
+            
+            // 4. Verificar localStorage
+            report.push('\n💾 ARMAZENAMENTO LOCAL:');
+            const storedData = localStorage.getItem('stockData');
+            const storedTimestamp = localStorage.getItem('stockDataTimestamp');
+            report.push(`- Dados salvos: ${storedData ? 'Sim' : 'Não'}`);
+            report.push(`- Timestamp: ${storedTimestamp ? new Date(parseInt(storedTimestamp)).toLocaleString('pt-BR') : 'Não'}`);
+            
+            // 5. Verificar funcionalidades
+            report.push('\n⚙️ FUNCIONALIDADES:');
+            report.push(`- Import section expanded: ${document.getElementById('importContent')?.classList.contains('expanded') ? 'Sim' : 'Não'}`);
+            report.push(`- Debug mode: ${debugMode ? 'Ativo' : 'Inativo'}`);
+            
+            // 6. Instruções específicas para protocolo file://
+            if (location.protocol === 'file:') {
+                report.push('\n🚀 INSTRUÇÕES PARA SALVAMENTO AUTOMÁTICO:');
+                report.push('Você está usando protocolo file://, que não suporta File System API.');
+                report.push('Para ativar salvamento automático, use um servidor web local:');
+                report.push('');
+                report.push('MÉTODO 1 - Python (já instalado no Windows):');
+                report.push('1. Abra o Prompt de Comando na pasta do projeto');
+                report.push('2. Execute: python -m http.server 8000');
+                report.push('3. Acesse: http://localhost:8000');
+                report.push('');
+                report.push('MÉTODO 2 - Live Server (VS Code):');
+                report.push('1. Instale a extensão "Live Server" no VS Code');
+                report.push('2. Clique direito no index.html → "Open with Live Server"');
+                report.push('3. Acesse: http://localhost:5500');
+                report.push('');
+                report.push('MÉTODO 3 - Node.js:');
+                report.push('1. npm install -g http-server');
+                report.push('2. Execute: http-server na pasta do projeto');
+                report.push('3. Acesse: http://localhost:8080');
+            }
+            
+            report.push('\n🎯 DIAGNÓSTICO CONCLUÍDO!');
+            
+            // Mostrar relatório
+            const fullReport = report.join('\n');
+            console.log(fullReport);
+            
+            if (debugMode) {
+                const debugDiv = document.getElementById('debugInfo');
+                if (debugDiv) {
+                    debugDiv.innerHTML = '<pre>' + fullReport + '</pre>';
+                }
+            }
+            
+            showMessage('🔍 Diagnóstico executado! Verifique o console (F12) para detalhes completos.', 'info');
+        }
+
+        function toggleImportSection() {
+            const content = document.getElementById('importContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (!content || !icon) {
+                debugLog('Elementos de importação não encontrados', 'error');
+                return;
+            }
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+                icon.textContent = '▼';
+                debugLog('Seção de importação fechada');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');  
+                icon.textContent = '▲';
+                debugLog('Seção de importação aberta');
+            }
+        }
+
+        function downloadDataFile() {
+            if (allProductsData.length === 0) {
+                showMessage('❌ Nenhum dado para salvar. Importe uma planilha primeiro.', 'error');
+                return;
+            }
+
+            const dataContent = saveDataToFile(allProductsData);
+            const blob = new Blob([dataContent], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage('💾 Arquivo data.js baixado! Substitua o arquivo na pasta compartilhada.', 'success');
+            debugLog('Arquivo data.js baixado via download manual');
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('importMessages');
+            const messageClass = {
+                'success': 'success-message',
+                'error': 'error-message',
+                'warning': 'warning-message',
+                'info': 'info-message'
+            }[type] || 'info-message';
+            
+            messagesDiv.innerHTML = `<div class="${messageClass}">${message}</div>`;
+            
+            setTimeout(function() {
+                messagesDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // === FUNÇÕES DE BUSCA E FILTROS ===
+        function performGlobalSearch() {
+            const searchInput = document.getElementById('globalSearch');
+            searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                document.getElementById('searchResults').innerHTML = '';
+                applyAllFilters();
+                removeHighlights();
+                return;
+            }
+
+            resetAllFilters();
+
+            const searchResults = allProductsData.filter(function(product) {
+                return product.code.toLowerCase().includes(searchTerm) ||
+                    product.item.toLowerCase().includes(searchTerm) ||
+                    product.supplier.toLowerCase().includes(searchTerm) ||
+                    product.family.toLowerCase().includes(searchTerm);
+            });
+
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = `🔍 <strong>${searchResults.length}</strong> produtos encontrados para: "<em>${searchTerm}</em>"`;
+
+            applyAllFilters();
+            highlightSearchResults();
+        }
+
+        function resetAllFilters() {
+            currentFilter = 'all';
+            predictionFilter = null;
+            selectedFamily = null;
+            selectedSupplier = null;
+            currentEstablishment = '';
+            criticalFilterActive = false;
+            
+            document.getElementById('familyFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('establishmentFilter').value = '';
+            
+            updateActiveButton('all');
+            
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('globalSearch').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            searchTerm = '';
+            applyAllFilters();
+            removeHighlights();
+        }
+
+        function highlightSearchResults() {
+            const gaugeCards = document.querySelectorAll('.gauge-card');
+            gaugeCards.forEach(function(card) {
+                const title = card.querySelector('.gauge-title').textContent.toLowerCase();
+                if (searchTerm && title.includes(searchTerm)) {
+                    card.classList.add('highlighted');
+                } else {
+                    card.classList.remove('highlighted');
+                }
+            });
+
+            const tableRows = document.querySelectorAll('#productsTableBody tr');
+            tableRows.forEach(function(row) {
+                const rowText = row.textContent.toLowerCase();
+                if (searchTerm && rowText.includes(searchTerm)) {
+                    row.classList.add('highlighted');
+                    row.classList.add('highlight-animation');
+                } else {
+                    row.classList.remove('highlighted');
+                }
+            });
+        }
+
+        function removeHighlights() {
+            const highlighted = document.querySelectorAll('.highlighted');
+            highlighted.forEach(function(el) {
+                el.classList.remove('highlighted');
+            });
+            const animations = document.querySelectorAll('.highlight-animation');
+            animations.forEach(function(el) {
+                el.classList.remove('highlight-animation');
+            });
+        }
+
+        // === FUNÇÕES DE DADOS ===
+        function processCSV(csvText) {
+            const lines = csvText.split('\n');
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(function(h) {
+                return h.trim().replace(/"/g, '');
+            });
+            const products = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = parseCSVLine(line);
+                if (values.length < headers.length) continue;
+
+                const product = mapProductData(headers, values);
+                if (product.code) {
+                    products.push(product);
+                }
+            }
+
+            return products;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        function processExcelData(jsonData) {
+            const products = [];
+            
+            for (const row of jsonData) {
+                const product = mapProductData(Object.keys(row), Object.values(row));
+                if (product.code) {
+                    products.push(product);
+                }
+            }
+            
+            return products;
+        }
+
+        function mapProductData(headers, values) {
+            const mapping = findColumnMapping(headers);
+            
+            return {
+                code: sanitizeText(values[mapping.code] || ''),
+                supplier: sanitizeText(values[mapping.supplier] || ''),
+                family: sanitizeText(values[mapping.family] || ''),
+                item: sanitizeText(values[mapping.item] || ''),
+                stock14: parseNumber(values[mapping.stock14] || 0),
+                stock9013: parseNumber(values[mapping.stock9013] || 0),
+                stock9015: parseNumber(values[mapping.stock9015] || 0),
+                stockMonths: parseNumber(values[mapping.stockMonths] || 0),
+                vendas4M: parseNumber(values[mapping.vendas4M] || 0)
+            };
+        }
+
+        function findColumnMapping(headers) {
+            const upperHeaders = headers.map(function(h) {
+                return (h || '').toString().toUpperCase().trim();
+            });
+            const mapping = {};
+
+            const mappings = {
+                code: ['CODIGO', 'CÓDIGO', 'CODE', 'COD'],
+                supplier: ['FORNECEDOR', 'SUPPLIER', 'VENDOR'],
+                family: ['FAMILIA', 'FAMÍLIA', 'FAMILY', 'FAM'],
+                item: ['ITEM', 'PRODUTO', 'PRODUCT', 'NOME'],
+                stock14: ['1-4', '1_4', 'STOCK14', 'EST_1_4', 'ESTOQUE 1-4', 'GUARULHOS'],
+                stock9013: ['90-13', '90_13', 'STOCK9013', 'EST_90_13', 'ESTOQUE 90-13', 'ITAJAI', 'ITAJAÍ'],
+                stock9015: ['90-15', '90_15', 'STOCK9015', 'EST_90_15', 'ESTOQUE 90-15', 'GARUVA'],
+                stockMonths: ['ESTOQUE EM MESES', 'ESTOQUE_EM_MESES', 'STOCKMONTHS', 'MESES'],
+                vendas4M: ['VENDAS 4M', 'VENDAS_4M', 'VENDAS4M', 'VENDAS', 'SALES_4M', 'SALES4M']
+            };
+
+            for (const field in mappings) {
+                const possibilities = mappings[field];
+                for (const possibility of possibilities) {
+                    const index = upperHeaders.indexOf(possibility);
+                    if (index !== -1) {
+                        mapping[field] = index;
+                        break;
+                    }
+                }
+                
+                if (mapping[field] === undefined) {
+                    const defaultIndexes = {
+                        code: 0, supplier: 1, family: 2, item: 3,
+                        stock14: 4, stock9013: 5, stock9015: 6, stockMonths: 7, vendas4M: 8
+                    };
+                    mapping[field] = defaultIndexes[field];
+                }
+            }
+
+            return mapping;
+        }
+
+        function sanitizeText(text) {
+            if (!text) return '';
+            return text.toString().trim().replace(/"/g, '');
+        }
+
+        function parseNumber(value) {
+            if (!value && value !== 0) return 0;
+            
+            const cleaned = value.toString().replace(/[^\d.,-]/g, '').replace(',', '.');
+            const parsed = parseFloat(cleaned);
+            
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
+        // === FUNÇÕES DE FILTROS ===
+        function populateFamilyFilter() {
+            const families = [...new Set(allProductsData.map(function(p) {
+                return p.family;
+            }))].sort();
+            const select = document.getElementById('familyFilter');
+            select.innerHTML = '<option value="">Todas as Famílias</option>';
+            families.forEach(function(family) {
+                const option = document.createElement('option');
+                option.value = family;
+                option.textContent = family;
+                select.appendChild(option);
+            });
+        }
+
+        function populateSupplierFilter() {
+            const suppliers = [...new Set(allProductsData.map(function(p) {
+                return p.supplier;
+            }))].sort();
+            const select = document.getElementById('supplierFilter');
+            select.innerHTML = '<option value="">Todos os Fornecedores</option>';
+            suppliers.forEach(function(supplier) {
+                const option = document.createElement('option');
+                option.value = supplier;
+                option.textContent = supplier;
+                select.appendChild(option);
+            });
+        }
+
+        function showAllProducts() {
+            currentFilter = 'all';
+            predictionFilter = null;
+            selectedFamily = null;
+            selectedSupplier = null;
+            criticalFilterActive = false;
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            document.getElementById('familyFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('establishmentFilter').value = '';
+            updateActiveButton('all');
+            applyAllFilters();
+        }
+
+        function filterCriticalStock() {
+            if (criticalFilterActive) {
+                criticalFilterActive = false;
+                currentFilter = 'all';
+                updateActiveButton('all');
+                applyAllFilters();
+            } else {
+                criticalFilterActive = true;
+                currentFilter = 'critical';
+                predictionFilter = null;
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                updateActiveButton('critical');
+                applyAllFilters();
+            }
+        }
+
+        function filterLowStock() {
+            currentFilter = 'low';
+            predictionFilter = null;
+            criticalFilterActive = false;
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            updateActiveButton('low');
+            applyAllFilters();
+        }
+
+        function filterHighStock() {
+            currentFilter = 'high';
+            predictionFilter = null;
+            criticalFilterActive = false;
+            const activeItems = document.querySelectorAll('.prediction-item.active');
+            activeItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+            updateActiveButton('high');
+            applyAllFilters();
+        }
+
+        function filterByFamily() {
+            const familyDropdown = document.getElementById('familyFilter');
+            selectedFamily = familyDropdown.value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterBySupplier() {
+            const supplierDropdown = document.getElementById('supplierFilter');
+            selectedSupplier = supplierDropdown.value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterByEstablishment() {
+            currentEstablishment = document.getElementById('establishmentFilter').value;
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
+
+        function filterByGauge(family) {
+            if (selectedFamily === family) {
+                selectedFamily = null;
+                document.getElementById('familyFilter').value = '';
+                showAllProducts();
+            } else {
+                selectedFamily = family;
+                document.getElementById('familyFilter').value = family;
+                filterByFamily();
+            }
+        }
+
+        function filterZeroIn30() {
+            const item30 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn30()"]');
+            
+            if (predictionFilter === 'zero30') {
+                predictionFilter = null;
+                item30.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                
+                predictionFilter = 'zero30';
+                criticalFilterActive = false;
+                item30.classList.add('active');
+                currentFilter = 'prediction30';
+                updateActiveButton(null);
+                
+                applyAllFilters();
+            }
+        }
+
+        function filterZeroIn60() {
+            const item60 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn60()"]');
+            
+            if (predictionFilter === 'zero60') {
+                predictionFilter = null;
+                item60.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                
+                predictionFilter = 'zero60';
+                criticalFilterActive = false;
+                item60.classList.add('active');
+                currentFilter = 'prediction60';
+                updateActiveButton(null);
+                
+                applyAllFilters();
+            }
+        }
+
+        function applyAllFilters() {
+            let baseData = allProductsData.slice();
+
+            if (predictionFilter === 'zero30') {
+                baseData = baseData.filter(function(p) {
+                    return p.stockMonths > 0 && p.stockMonths < 1;
+                });
+            } else if (predictionFilter === 'zero60') {
+                baseData = baseData.filter(function(p) {
+                    return p.stockMonths >= 1 && p.stockMonths < 2;
+                });
+            }
+
+            if (searchTerm) {
+                baseData = baseData.filter(function(product) {
+                    return product.code.toLowerCase().includes(searchTerm) ||
+                        product.item.toLowerCase().includes(searchTerm) ||
+                        product.supplier.toLowerCase().includes(searchTerm) ||
+                        product.family.toLowerCase().includes(searchTerm);
+                });
+            }
+
+            if (!predictionFilter) {
+                switch(currentFilter) {
+                    case 'critical':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths < 2;
+                        });
+                        break;
+                    case 'low':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths >= 2 && p.stockMonths < 6;
+                        });
+                        break;
+                    case 'high':
+                        baseData = baseData.filter(function(p) {
+                            return p.stockMonths >= 6;
+                        });
+                        break;
+                }
+            }
+
+            if (selectedFamily) {
+                baseData = baseData.filter(function(product) {
+                    return product.family === selectedFamily;
+                });
+            }
+
+            if (selectedSupplier) {
+                baseData = baseData.filter(function(product) {
+                    return product.supplier === selectedSupplier;
+                });
+            }
+
+            if (currentEstablishment) {
+                baseData = baseData.filter(function(product) {
+                    return getProductStock(product) > 0;
+                });
+            }
+
+            filteredData = baseData;
+            updateTable();
+            updateSummary();
+            updateGauges();
+            updatePredictiveAnalysis();
+        }
+
+        function updateActiveButton(filter) {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (filter && btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // === FUNÇÕES DE ANÁLISE ===
+        function updatePredictiveAnalysis() {
+            const thirtyDayZero = filteredData.filter(function(p) {
+                return p.stockMonths > 0 && p.stockMonths < 1;
+            }).length;
+            const sixtyDayZero = filteredData.filter(function(p) {
+                return p.stockMonths >= 1 && p.stockMonths < 2;
+            }).length;
+
+            document.getElementById('zeroIn30').textContent = thirtyDayZero;
+            document.getElementById('zeroIn60').textContent = sixtyDayZero;
+
+            const zeroIn30Element = document.getElementById('zeroIn30');
+            const zeroIn60Element = document.getElementById('zeroIn60');
+            
+            zeroIn30Element.className = thirtyDayZero > 10 ? 'prediction-value prediction-critical' : 
+                                      thirtyDayZero > 5 ? 'prediction-value prediction-warning' : 
+                                      'prediction-value prediction-good';
+            
+            zeroIn60Element.className = sixtyDayZero > 15 ? 'prediction-value prediction-warning' : 
+                                       'prediction-value prediction-good';
+        }
+
+        function updateSummary() {
+            const total = filteredData.length;
+            const avgStock = total > 0 ? filteredData.reduce(function(sum, p) {
+                return sum + p.stockMonths;
+            }, 0) / total : 0;
+            const criticalCount = filteredData.filter(function(p) {
+                return p.stockMonths < 2;
+            }).length;
+            const families = new Set(filteredData.map(function(p) {
+                return p.family;
+            })).size;
+
+            document.getElementById('totalProducts').textContent = total;
+            document.getElementById('avgStockMonths').textContent = avgStock.toFixed(1);
+            document.getElementById('criticalCount').textContent = criticalCount;
+            document.getElementById('totalFamilies').textContent = families;
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('productsTableBody');
+            tableBody.innerHTML = '';
+
+            filteredData.forEach(function(product) {
+                const row = document.createElement('tr');
+                const totalStock = product.stock14 + product.stock9013 + product.stock9015;
+                const statusClass = getStatusClass(product.stockMonths);
+                const prediction = getPrediction(product);
+                
+                const vendas4MDisplay = (!product.vendas4M || product.vendas4M === 0) ? 'S/ VENDA' : product.vendas4M.toLocaleString();
+                const vendas4MClass = (!product.vendas4M || product.vendas4M === 0) ? 'status-warning' : '';
+                
+                row.innerHTML = `
+                    <td>${product.code}</td>
+                    <td>${product.supplier}</td>
+                    <td>${product.family}</td>
+                    <td>${product.item}</td>
+                    <td>${product.stock14.toLocaleString()}</td>
+                    <td>${product.stock9013.toLocaleString()}</td>
+                    <td>${product.stock9015.toLocaleString()}</td>
+                    <td><strong>${totalStock.toLocaleString()}</strong></td>
+                    <td class="${vendas4MClass}">${vendas4MDisplay}</td>
+                    <td class="${statusClass}">${product.stockMonths.toFixed(1)}</td>
+                    <td class="${statusClass}">${prediction}</td>
+                    <td class="${statusClass}">${getStatusText(product.stockMonths)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('tableCount').textContent = `${filteredData.length} produtos exibidos`;
+            
+            if (searchTerm) {
+                highlightSearchResults();
+            }
+        }
+
+        function getProductStock(product) {
+            switch(currentEstablishment) {
+                case '1-4': return product.stock14;
+                case '90-13': return product.stock9013;
+                case '90-15': return product.stock9015;
+                default: return product.stock14 + product.stock9013 + product.stock9015;
+            }
+        }
+
+        function getPrediction(product) {
+            if (product.stockMonths === 0) return 'Sem estoque';
+            if (product.stockMonths < 1) return 'Crítico - 30 dias';
+            if (product.stockMonths < 2) return 'Crítico - 60 dias';
+            if (product.stockMonths < 6) return 'Atenção - 90+ dias';
+            return 'Estável';
+        }
+
+        function getStatusClass(months) {
+            if (months < 2) return 'status-critical';
+            if (months < 6) return 'status-warning';
+            return 'status-good';
+        }
+
+        function getStatusText(months) {
+            if (months < 2) return 'Crítico';
+            if (months < 6) return 'Atenção';
+            return 'Bom';
+        }
+
+        // === FUNÇÕES DE GAUGES ===
+        function updateGauges() {
+            const families = [...new Set(allProductsData.map(function(p) {
+                return p.family;
+            }))].sort();
+            const container = document.getElementById('gaugesContainer');
+            container.innerHTML = '';
+
+            families.forEach(function(family, index) {
+                const familyProducts = getFamilyFilteredProducts(family);
+                if (familyProducts.length === 0) return;
+                
+                const avgStock = calculateAverageStock(familyProducts);
+                const criticalCount = familyProducts.filter(function(p) {
+                    const hasStock = currentEstablishment ? 
+                        getProductStock(p) > 0 : 
+                        (p.stock14 + p.stock9013 + p.stock9015) > 0;
+                    return hasStock && p.stockMonths < 2;
+                }).length;
+
+                const card = document.createElement('div');
+                card.className = 'gauge-card';
+                
+                if (selectedFamily === family) {
+                    card.classList.add('selected');
+                }
+                
+                const shouldHighlight = searchTerm && family.toLowerCase().includes(searchTerm);
+                if (shouldHighlight) {
+                    card.classList.add('highlighted');
+                }
+
+                card.onclick = function() {
+                    filterByGauge(family);
+                };
+                card.style.cursor = 'pointer';
+                card.title = `Clique para filtrar produtos da família ${family}`;
+
+                card.innerHTML = `
+                    <div class="gauge-title">${family}</div>
+                    <div class="gauge">
+                        <canvas id="gauge${index}" width="240" height="140"></canvas>
+                        <div class="gauge-value">${avgStock.toFixed(1)}</div>
+                        <div class="gauge-label">meses</div>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                        ${familyProducts.length} produtos | ${criticalCount} críticos
+                    </div>
+                `;
+                container.appendChild(card);
+
+                setTimeout(function() {
+                    card.classList.add('animating');
+                }, index * 100);
+
+                drawGauge(`gauge${index}`, avgStock, family, index * 200);
+            });
+        }
+
+        function getFamilyFilteredProducts(family) {
+            let products = allProductsData.filter(function(p) {
+                return p.family === family;
+            });
+            
+            if (predictionFilter === 'zero30') {
+                products = products.filter(function(p) {
+                    return p.stockMonths > 0 && p.stockMonths < 1;
+                });
+            } else if (predictionFilter === 'zero60') {
+                products = products.filter(function(p) {
+                    return p.stockMonths >= 1 && p.stockMonths < 2;
+                });
+            }
+            
+            if (searchTerm) {
+                products = products.filter(function(product) {
+                    return product.code.toLowerCase().includes(searchTerm) ||
+                        product.item.toLowerCase().includes(searchTerm) ||
+                        product.supplier.toLowerCase().includes(searchTerm) ||
+                        product.family.toLowerCase().includes(searchTerm);
+                });
+            }
+            
+            if (!predictionFilter) {
+                switch(currentFilter) {
+                    case 'critical':
+                        products = products.filter(function(p) {
+                            return p.stockMonths < 2;
+                        });
+                        break;
+                    case 'low':
+                        products = products.filter(function(p) {
+                            return p.stockMonths >= 2 && p.stockMonths < 6;
+                        });
+                        break;
+                    case 'high':
+                        products = products.filter(function(p) {
+                            return p.stockMonths >= 6;
+                        });
+                        break;
+                }
+            }
+
+            if (selectedFamily && selectedFamily !== family) {
+                return [];
+            }
+
+            if (selectedSupplier) {
+                products = products.filter(function(product) {
+                    return product.supplier === selectedSupplier;
+                });
+            }
+
+            if (currentEstablishment) {
+                products = products.filter(function(p) {
+                    return getProductStock(p) > 0;
+                });
+            }
+            
+            return products;
+        }
+
+        function calculateAverageStock(products) {
+            if (products.length === 0) return 0;
+            return products.reduce(function(sum, p) {
+                return sum + p.stockMonths;
+            }, 0) / products.length;
+        }
+
+        function drawGauge(canvasId, value, title, delay) {
+            delay = delay || 0;
+            setTimeout(function() {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height - 25;
+                const radius = 90;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, Math.PI, 0);
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.stroke();
+
+                let color;
+                if (value < 3) {
+                    color = '#f44336';
+                } else if (value < 6) {
+                    color = '#ff9800';
+                } else {
+                    color = '#4caf50';
+                }
+
+                const maxValue = 12;
+                const targetAngle = Math.min(value / maxValue, 1) * Math.PI;
+                let currentAngle = 0;
+                const animationDuration = 1000;
+                const startTime = Date.now();
+
+                function animate() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    currentAngle = targetAngle * progress;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, Math.PI, 0);
+                    ctx.lineWidth = 20;
+                    ctx.strokeStyle = '#e0e0e0';
+                    ctx.stroke();
+
+                    if (currentAngle > 0) {
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + currentAngle);
+                        ctx.lineWidth = 20;
+                        ctx.strokeStyle = color;
+                        ctx.stroke();
+                    }
+
+                    drawGaugeMarks(ctx, centerX, centerY, radius);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+
+                animate();
+            }, delay);
+        }
+
+        function drawGaugeMarks(ctx, centerX, centerY, radius) {
+            for (let i = 0; i <= 12; i += 3) {
+                const markAngle = Math.PI + (i / 12) * Math.PI;
+                const x1 = centerX + Math.cos(markAngle) * (radius - 30);
+                const y1 = centerY + Math.sin(markAngle) * (radius - 30);
+                const x2 = centerX + Math.cos(markAngle) * (radius - 10);
+                const y2 = centerY + Math.sin(markAngle) * (radius - 10);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#333';
+                ctx.stroke();
+
+                if (i % 6 === 0) {
+                    const textX = centerX + Math.cos(markAngle) * (radius - 45);
+                    const textY = centerY + Math.sin(markAngle) * (radius - 45);
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(i.toString(), textX, textY + 5);
+                }
+            }
+        }
+
+        // === FUNÇÕES DE EXPORTAÇÃO ===
+        function showExportModal() {
+            const modal = document.getElementById('exportModal');
+            const currentDate = new Date().toISOString().split('T')[0];
+            document.getElementById('fileName').value = `estoque_preditivo_${currentDate}`;
+            modal.style.display = 'block';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function confirmExport() {
+            const fileName = document.getElementById('fileName').value || 'estoque_dados';
+            const fileFormat = document.getElementById('fileFormat').value;
+            
+            const exportData = filteredData.map(function(p) {
+                return {
+                    'CÓDIGO': p.code,
+                    'FORNECEDOR': p.supplier,
+                    'FAMÍLIA': p.family,
+                    'ITEM': p.item,
+                    'ESTOQUE 1-4': p.stock14,
+                    'ESTOQUE 90-13': p.stock9013,
+                    'ESTOQUE 90-15': p.stock9015,
+                    'TOTAL ESTOQUE': p.stock14 + p.stock9013 + p.stock9015,
+                    'VENDAS 4M': (!p.vendas4M || p.vendas4M === 0) ? 'S/ VENDA' : p.vendas4M,
+                    'ESTOQUE EM MESES': p.stockMonths,
+                    'PREVISÃO': getPrediction(p),
+                    'STATUS': getStatusText(p.stockMonths)
+                };
+            });
+
+            if (fileFormat === 'csv') {
+                const csv = convertToCSV(exportData);
+                downloadFile(csv, `${fileName}.csv`, 'text/csv');
+            } else {
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Estoque');
+                XLSX.writeFile(wb, `${fileName}.xlsx`);
+            }
+            
+            closeExportModal();
+        }
+
+        function convertToCSV(data) {
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(',')
+            ].concat(data.map(function(row) {
+                return headers.map(function(header) {
+                    return `"${row[header]}"`;
+                }).join(',');
+            })).join('\n');
+            return csvContent;
+        }
+
+        function downloadFile(content, fileName, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function updateData() {
+            loadData();
+            showMessage('✅ Dashboard atualizado!', 'success');
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('exportModal');
+            if (event.target === modal) {
+                closeExportModal();
+            }
+        }
+
+        // Carregar arquivo de dados externo
+        function loadExternalDataScript() {
+            debugLog('Carregando data.js externo...');
+            
+            const script = document.createElement('script');
+            script.src = 'data.js';
+            script.onerror = function() {
+                debugLog('Arquivo data.js não encontrado, usando localStorage ou dados vazios');
+                loadData();
+            };
+            script.onload = function() {
+                debugLog('Arquivo data.js carregado com sucesso');
+                setTimeout(function() {
+                    loadData();
+                }, 100);
+            };
+            document.head.appendChild(script);
+        }
+
+        // === INICIALIZAÇÃO ===
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('=== INICIALIZAÇÃO DO DASHBOARD ===');
+            debugLog('DOM carregado, iniciando processo...');
+            
+            try {
+                // Primeiro detectar capacidades do navegador
+                detectBrowserCapabilities();
+                
+                // Depois carregar dados
+                loadExternalDataScript();
+                
+                // Configurações iniciais após carregar
+                setTimeout(function() {
+                    updateUI();
+                    
+                    // Se não há dados, abrir automaticamente a seção de importação
+                    if (allProductsData.length === 0) {
+                        debugLog('Nenhum dado encontrado, abrindo seção de importação automaticamente');
+                        const importContent = document.getElementById('importContent');
+                        if (importContent && !importContent.classList.contains('expanded')) {
+                            toggleImportSection();
+                        }
+                    }
+                }, 1500);
+                
+            } catch (error) {
+                debugLog(`Erro na inicialização: ${error.message}`, 'error');
+                // Fallback: tentar carregar dados mesmo com erro
+                try {
+                    loadData();
+                } catch (e) {
+                    debugLog(`Erro no fallback: ${e.message}`, 'error');
+                    showMessage('⚠️ Dashboard carregado com problemas. Use o diagnóstico para mais detalhes.', 'warning');
+                }
+            }
+        });
+
+        // Adicionar event listeners para inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput) {
+                // Throttle para melhor performance
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(performGlobalSearch, 300);
+                });
+            }
+        });
+
+        // Detectar mudanças no localStorage (para sincronização entre abas)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'stockData') {
+                debugLog('Detectada mudança nos dados do localStorage');
+                loadData();
+            }
+        });
+
+        // Log de informações do sistema ao carregar
+        console.log(`
+🚀 DASHBOARD DE ESTOQUE v1.1 CARREGADO
+=====================================
+📅 Data: ${new Date().toLocaleString('pt-BR')}
+🌐 Navegador: ${navigator.userAgent}
+📍 URL: ${window.location.href}
+🔒 Protocolo: ${window.location.protocol}
+💻 Tela: ${screen.width}x${screen.height}
+📱 Viewport: ${window.innerWidth}x${window.innerHeight}
+🔧 Debug: Use toggleDebug() para ativar logs detalhados
+=====================================
+        `);
+    </script>
+</body>
+</html>
+            
