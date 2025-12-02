@@ -1457,20 +1457,16 @@
                     <div class="stat-label"><span class="label-text">Total de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Total de produtos" data-tooltip="Quantidade total de SKUs únicos visíveis após aplicar filtros de busca e estabelecimento." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="avgStockMonths">0.0</div>
-                    <div class="stat-label"><span class="label-text">Média de Estoque (meses)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura em meses considerando todo o estoque disponível dividido pelo consumo médio dos últimos meses." data-tooltip-position="top">?</span></div>
+                    <div class="stat-value" id="avgStockMonths">--</div>
+                    <div class="stat-label"><span class="label-text">Média de Estoque</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Média de estoque" data-tooltip="Tempo médio de cobertura convertendo automaticamente para dias, meses ou anos conforme o volume disponível." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="totalCoverage">--</div>
-                    <div class="stat-label"><span class="label-text">Cobertura Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura total" data-tooltip="Soma da cobertura (em meses) informada na planilha para os itens filtrados." data-tooltip-position="top">?</span></div>
+                    <div class="stat-label"><span class="label-text">Cobertura Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura total" data-tooltip="Soma da cobertura dos itens, exibida automaticamente em dias, meses ou anos conforme a grandeza." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="totalStockValue">0</div>
-                    <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis considerando todos os filtros e estabelecimentos selecionados." data-tooltip-position="top">?</span></div>
-                </div>
-                <div class="stat-item clickable" onclick="filterCriticalStock()" title="Clique para ver produtos críticos (<2 meses)">
-                    <div class="stat-value critical" id="criticalCount">0</div>
-                    <div class="stat-label"><span class="label-text">Produtos Críticos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Produtos críticos" data-tooltip="Itens com cobertura inferior a 2 meses. Clique no card para filtrar somente esses produtos." data-tooltip-position="top" onclick="event.stopPropagation();">?</span></div>
+                    <div class="stat-value" id="totalStockValue">--</div>
+                    <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis convertida para quilogramas para facilitar a leitura." data-tooltip-position="top">?</span></div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="totalFamilies">0</div>
@@ -1479,14 +1475,6 @@
             </div>
         </div>
 
-        <div class="pareto-section">
-            <h3 class="header-label">📊 Análise ABC por Vendas <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise ABC por Vendas" data-tooltip="Organizamos os produtos conforme a fatia que cada um representa das vendas dos últimos meses. Itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C." data-tooltip-position="top">?</span></h3>
-            <p class="pareto-description">Calculamos quanto cada item representa sozinho do total vendido nos últimos 3 meses entre todos os produtos com saída. Itens com % Individual igual ou acima de 5% entram na Classe A, entre 1% e 5% ficam na Classe B e abaixo de 1% compõem a Classe C. A regra é recalculada automaticamente conforme você aplica filtros, como família ou fornecedor.</p>
-            <div id="paretoContent"></div>
-        </div>
-        <div class="gauges-container" id="gaugesContainer">
-        </div>
-        
         <div class="products-table">
             <div class="table-header">
                 <h3 class="header-label">Detalhes dos Produtos <span class="info-icon has-tooltip" tabindex="0" aria-label="Detalhes dos Produtos" data-tooltip="Tabela com indicadores de estoque, consumo e classificação ABC de cada item após aplicar os filtros ativos." data-tooltip-position="top">?</span></h3>
@@ -1517,6 +1505,15 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        <div class="gauges-container" id="gaugesContainer">
+        </div>
+
+        <div class="pareto-section">
+            <h3 class="header-label">📊 Análise ABC por Vendas <span class="info-icon has-tooltip" tabindex="0" aria-label="Análise ABC por Vendas" data-tooltip="Organizamos os produtos conforme a fatia que cada um representa das vendas dos últimos meses. Itens com 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e os demais na Classe C." data-tooltip-position="top">?</span></h3>
+            <p class="pareto-description">Calculamos quanto cada item representa sozinho do total vendido nos últimos 3 meses entre todos os produtos com saída. Itens com % Individual igual ou acima de 5% entram na Classe A, entre 1% e 5% ficam na Classe B e abaixo de 1% compõem a Classe C. A regra é recalculada automaticamente conforme você aplica filtros, como família ou fornecedor.</p>
+            <div id="paretoContent"></div>
         </div>
     </div>
 
@@ -2440,11 +2437,11 @@
                 const hasFraction = Math.abs(rounded - Math.round(rounded)) > 1e-6;
                 const fractionDigits = hasFraction ? digits : 0;
 
-                return new Intl.NumberFormat('pt-BR', {
-                    minimumFractionDigits: fractionDigits,
-                    maximumFractionDigits: fractionDigits
-                }).format(rounded);
-            };
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: fractionDigits,
+                maximumFractionDigits: fractionDigits
+            }).format(rounded);
+        };
 
             const isApproximatelyOne = function(number) {
                 return Math.abs(Math.abs(number) - 1) < 1e-6;
@@ -2492,6 +2489,26 @@
                 unitLabel: Math.abs(totalMinutes) === 1 ? 'minuto' : 'minutos',
                 unitType: 'minutes'
             };
+        }
+
+        function formatCoverageStat(monthsValue) {
+            const { displayValue, unitLabel } = formatCoverageDisplay(monthsValue);
+
+            if (displayValue === '--') {
+                return '--';
+            }
+
+            return `${displayValue} ${unitLabel}`.trim();
+        }
+
+        function formatStockInKg(rawStock) {
+            if (!Number.isFinite(rawStock)) {
+                return '--';
+            }
+
+            const stockKg = rawStock / 1000;
+            const formattedValue = formatStatValue(stockKg, 3);
+            return `${formattedValue} kg`;
         }
 
         function resolveCoverageSource(product) {
@@ -4427,10 +4444,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }, 0);
 
             const avgStock = coverageValues.length > 0 ? totalCoverage / coverageValues.length : 0;
-            const criticalCount = filteredData.filter(function(p) {
-                const coverage = getCoverageValue(p);
-                return Number.isFinite(coverage) && coverage < 2;
-            }).length;
             const families = new Set(filteredData.map(function(p) {
                 return p.family;
             })).size;
@@ -4440,10 +4453,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
             document.getElementById('totalProducts').textContent = total;
-            document.getElementById('avgStockMonths').textContent = coverageValues.length > 0 ? formatStatValue(avgStock) : '--';
-            document.getElementById('totalCoverage').textContent = coverageValues.length > 0 ? formatStatValue(totalCoverage) : '--';
-            document.getElementById('totalStockValue').textContent = formatIntegerValue(safeTotalStock);
-            document.getElementById('criticalCount').textContent = criticalCount;
+            document.getElementById('avgStockMonths').textContent = coverageValues.length > 0 ? formatCoverageStat(avgStock) : '--';
+            document.getElementById('totalCoverage').textContent = coverageValues.length > 0 ? formatCoverageStat(totalCoverage) : '--';
+            document.getElementById('totalStockValue').textContent = formatStockInKg(safeTotalStock);
             document.getElementById('totalFamilies').textContent = families;
         }
 
