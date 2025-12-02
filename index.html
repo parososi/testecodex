@@ -488,6 +488,12 @@
             color: #1F448C;
         }
 
+        .forecast-coverage {
+            display: flex;
+            color: #2b4b81;
+            gap: 6px;
+        }
+
         .coverage-tag {
             display: inline-flex;
             align-items: center;
@@ -3596,14 +3602,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const rawStockMonthsCell = columnMapping.stockMonths !== undefined ? values[columnMapping.stockMonths] : null;
             const rawCoberturaCell = columnMapping.cobertura !== undefined ? values[columnMapping.cobertura] : null;
+            const rawForecastCoverageCell = columnMapping.fCobertura !== undefined ? values[columnMapping.fCobertura] : null;
 
             const parsedStockMonths = parseNumber(rawStockMonthsCell);
             const parsedCobertura = parseNumber(rawCoberturaCell);
+            const parsedForecastCobertura = parseNumber(rawForecastCoverageCell);
 
             const hasStockMonths = hasMeaningfulValue(rawStockMonthsCell);
             const hasCobertura = hasMeaningfulValue(rawCoberturaCell);
+            const hasForecastCobertura = hasMeaningfulValue(rawForecastCoverageCell);
             const validStockMonths = hasStockMonths && Number.isFinite(parsedStockMonths);
             const validCobertura = hasCobertura && Number.isFinite(parsedCobertura);
+            const validForecastCobertura = hasForecastCobertura && Number.isFinite(parsedForecastCobertura);
 
             let effectiveCoverage = 0;
             let coverageSource = 'none';
@@ -3628,7 +3638,8 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 media3M: parseNumber(values[columnMapping.media3M]) || 0,
                 novembro: parseNumber(values[columnMapping.novembro]) || 0,
                 dezembro: parseNumber(values[columnMapping.dezembro]) || 0,
-                cobertura: validCobertura ? parsedCobertura : null
+                cobertura: validCobertura ? parsedCobertura : null,
+                fCobertura: validForecastCobertura ? parsedForecastCobertura : null
             };
 
             product.stockMonths = Number.isFinite(effectiveCoverage) ? effectiveCoverage : 0;
@@ -3697,6 +3708,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             existing.novembro = product.novembro;
             existing.dezembro = product.dezembro;
             existing.cobertura = product.cobertura;
+            existing.fCobertura = product.fCobertura;
             existing.coverageSource = product.coverageSource;
 
             delete existing.sheetMonthlyValues;
@@ -3819,8 +3831,14 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return (upper.includes('ESTOQUE') && upper.includes('MESES')) || normalized.includes('STOCKMONTHS');
             }));
 
+            assignField('fCobertura', findIndex(function(_, __, normalized) {
+                return normalized.includes('FCOBERTURA') || normalized.includes('FCOVERAGE');
+            }));
+
             assignField('cobertura', findIndex(function(_, __, normalized) {
-                return normalized.includes('COBERTURA') || normalized.includes('COVERAGE');
+                const hasCoverageKeyword = normalized.includes('COBERTURA') || normalized.includes('COVERAGE');
+                const isForecastCoverage = normalized.includes('FCOBERTURA') || normalized.includes('FCOVERAGE');
+                return hasCoverageKeyword && !isForecastCoverage;
             }));
 
             let vendasIndex = findIndex(function(_, __, normalized) {
@@ -4586,14 +4604,25 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ? Math.round(product.media3M).toLocaleString('pt-BR')
                     : '0';
                 const hasCoverageData = coverageMeta.key !== 'none' && Number.isFinite(coverageValue);
+                const coverageDisplayInfo = formatCoverageDisplay(coverageValue);
                 const coverageValueDisplay = hasCoverageData
-                    ? `${formatStatValue(coverageValue)} meses`
+                    ? `${coverageDisplayInfo.displayValue} ${coverageDisplayInfo.unitLabel}`.trim()
                     : '--';
                 const coverageSourceClass = coverageMeta.className;
                 const coverageSourceLabel = coverageMeta.label;
                 const coverageSourceDetail = coverageMeta.detail || '';
                 const coverageSourceTitle = coverageSourceDetail
                     ? ` title="${escapeTooltip(coverageSourceDetail)}"`
+                    : '';
+                const hasForecastCoverageData = Number.isFinite(product.fCobertura);
+                const forecastCoverageDisplay = hasForecastCoverageData
+                    ? formatCoverageDisplay(product.fCobertura)
+                    : null;
+                const forecastCoverageText = forecastCoverageDisplay && forecastCoverageDisplay.displayValue !== '--'
+                    ? `${forecastCoverageDisplay.displayValue} ${forecastCoverageDisplay.unitLabel}`.trim()
+                    : null;
+                const forecastCoverageHtml = forecastCoverageText
+                    ? `<div class="item-coverage forecast-coverage">F Cobertura: <strong>${forecastCoverageText}</strong></div>`
                     : '';
                 const codeValue = (product.code || '').toString();
                 const hasCode = codeValue.trim() !== '';
@@ -4622,6 +4651,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         Cobertura: <strong>${coverageValueDisplay}</strong>
                         ${coverageTagHtml}
                     </div>
+                    ${forecastCoverageHtml}
                 `.trim();
 
                 const fallbackAbcClass = abcClassificationMap.get(product.code);

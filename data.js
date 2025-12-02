@@ -17,6 +17,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0.9,
+    "fCobertura": 45,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -70,6 +71,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.1,
+    "fCobertura": 0.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
