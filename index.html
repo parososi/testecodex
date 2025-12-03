@@ -258,6 +258,14 @@
             background-color: #163666;
             transform: translateY(-1px);
         }
+
+        .danger-button {
+            background-color: #dc3545;
+        }
+
+        .danger-button:hover {
+            background-color: #b02a37;
+        }
         
         button.active {
             background-color: #2196F3;
@@ -450,6 +458,15 @@
 
         .filter-actions .ghost-button:hover {
             background: #e6e9f2;
+        }
+
+        .filter-actions .ghost-button.danger-button {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .filter-actions .ghost-button.danger-button:hover {
+            background: #b02a37;
         }
 
         .filter-backdrop {
@@ -1599,13 +1616,12 @@
 
         <div class="search-section">
             <div class="search-container">
-                <input 
-                    type="text" 
-                    id="globalSearch" 
-                    class="search-input" 
+                <input
+                    type="text"
+                    id="globalSearch"
+                    class="search-input"
                     placeholder="🔍 Buscar por código ou nome do produto..."
                 />
-                <button class="clear-search" onclick="clearSearch()">🗑️ Limpar</button>
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -1673,11 +1689,10 @@
 
                     <div class="control-group">
                         <button onclick="showExportModal()">📤 Exportar</button>
-                        <button onclick="updateData()">🔄 Atualizar</button>
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button class="ghost-button" onclick="clearAllFilters()">Limpar filtros</button>
+                    <button class="ghost-button danger-button" onclick="clearAllFilters()">Limpar filtros</button>
                     <button onclick="applyAllFilters(); closeFilterPanel();">Aplicar e fechar</button>
                 </div>
             </div>
