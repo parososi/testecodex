@@ -1,4 +1,4 @@
-// Dados do Dashboard de Estoque v1.3 - Gerado em 03/12/2025, 08:36:42
+// Dados do Dashboard de Estoque v1.3 - Gerado em 03/12/2025, 15:03:15
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
 console.log('Carregando data.js v1.3...');
 
@@ -8,16 +8,16 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 3471",
-    "stock14": 2440,
-    "stock9013": 0,
+    "stock14": 1,
+    "stock9013": 1,
     "stock9015": 0,
-    "stockMonths": 0.3,
+    "stockMonths": 0,
     "vendas4M": 30720,
     "media3M": 10240,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 0.9,
-    "fCobertura": 1.4,
+    "cobertura": 0.7,
+    "fCobertura": 1,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -56,14 +56,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 2440,
-          "stock9013": 0,
+          "stock14": 1,
+          "stock9013": 1,
           "stock9015": 0,
-          "totalStock": 2440,
+          "totalStock": 2,
           "vendas4M": 30720,
           "media3M": 10240,
-          "cobertura": 0.3,
-          "fCobertura": 1.4
+          "cobertura": 0,
+          "fCobertura": 1
         },
         "coverageSource": "stockMonths"
       }
@@ -3505,7 +3505,7 @@ window.stockData = [
 
 // Metadados
 window.stockMetadata = {
-    lastUpdate: "2025-12-03T11:36:42.792Z",
+    lastUpdate: "2025-12-03T18:03:15.815Z",
     totalProducts: 53,
     generatedBy: "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
     version: "1.3.0",
