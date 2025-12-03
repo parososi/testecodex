@@ -215,25 +215,25 @@
         
         .filters-panel {
             margin-bottom: 24px;
-            border: 1px solid rgba(31, 68, 140, 0.12);
-            border-radius: 16px;
-            background: #ffffff;
-            box-shadow: 0 12px 28px rgba(15, 35, 79, 0.08);
+            border: 1px solid rgba(31, 68, 140, 0.08);
+            border-radius: 18px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9fb 100%);
+            box-shadow: 0 18px 40px rgba(12, 25, 56, 0.05);
             overflow: hidden;
         }
 
         .filters-toggle {
             width: 100%;
-            background: linear-gradient(90deg, #f8f9ff 0%, #eef2fb 100%);
+            background: linear-gradient(90deg, #f6f7fb 0%, #eef2f8 100%);
             border: none;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            padding: 14px 18px;
+            padding: 16px 18px;
             cursor: pointer;
             text-align: left;
-            gap: 14px;
-            border-bottom: 1px solid rgba(31, 68, 140, 0.08);
+            gap: 16px;
+            border-bottom: 1px solid rgba(31, 68, 140, 0.06);
         }
 
         .filters-toggle:focus-visible {
@@ -264,24 +264,75 @@
             line-height: 1.4;
         }
 
+        .filters-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+        }
+
         .filters-summary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #fff;
-            border: 1px solid rgba(31, 68, 140, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(31, 68, 140, 0.08);
             border-radius: 12px;
             font-weight: 700;
-            color: #1f2a44;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
-            max-width: 520px;
-            min-height: 40px;
+            color: #0f1f3d;
+            box-shadow: 0 8px 20px rgba(15, 35, 79, 0.03);
+            backdrop-filter: blur(10px);
+            min-height: 52px;
         }
 
         .filters-summary small {
             color: #4c5569;
             font-weight: 500;
+        }
+
+        .filters-actions-inline {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .filters-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: #f2f4f8;
+            border: 1px solid #d6deeb;
+            border-radius: 999px;
+            color: #0f2f83;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .clear-filters-btn {
+            background: #ffffff;
+            color: #0f2f83;
+            border: 1px solid rgba(31, 68, 140, 0.16);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-weight: 700;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .clear-filters-btn:hover {
+            background: #f2f5fb;
+            color: #0b2466;
+            transform: translateY(-1px);
         }
 
         .filters-body {
@@ -349,29 +400,29 @@
         }
 
         .filter-btn {
-            background: #fbfcff;
+            background: #ffffff;
             color: #1f2a44;
-            border: 1px solid rgba(31, 68, 140, 0.16);
-            border-radius: 12px;
-            padding: 9px 12px;
+            border: 1px solid rgba(31, 68, 140, 0.14);
+            border-radius: 14px;
+            padding: 10px 14px;
             font-weight: 700;
-            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 18px rgba(22, 40, 78, 0.06);
-            backdrop-filter: blur(4px);
-            min-height: 52px;
+            box-shadow: 0 10px 30px rgba(15, 35, 79, 0.04);
+            backdrop-filter: blur(6px);
+            min-height: 54px;
         }
 
         .filter-btn:hover {
-            background: #f2f5fb;
-            border-color: rgba(31, 68, 140, 0.3);
+            background: linear-gradient(180deg, #ffffff 0%, #f4f6fb 100%);
+            border-color: rgba(31, 68, 140, 0.26);
             color: #0f2f83;
             transform: translateY(-1px);
         }
 
         .filter-btn.active {
-            background: #1F448C;
+            background: linear-gradient(180deg, #1f448c 0%, #163666 100%);
             border-color: #1F448C;
             color: #ffffff;
-            box-shadow: 0 12px 26px rgba(31, 68, 140, 0.25);
+            box-shadow: 0 12px 30px rgba(31, 68, 140, 0.22);
         }
 
         .filters-pills {
@@ -409,12 +460,12 @@
         }
 
         .filter-card {
-            background: #f9fbff;
-            border: 1px solid rgba(31, 68, 140, 0.12);
-            border-radius: 12px;
+            background: #fbfcff;
+            border: 1px solid rgba(31, 68, 140, 0.1);
+            border-radius: 14px;
             padding: 12px 14px;
-            box-shadow: 0 10px 18px rgba(11, 26, 62, 0.05);
-            backdrop-filter: blur(4px);
+            box-shadow: 0 8px 22px rgba(12, 25, 56, 0.05);
+            backdrop-filter: blur(8px);
         }
 
         .filter-card label {
@@ -445,11 +496,11 @@
         .smart-filter-row {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            background: #f8f9ff;
-            border: 1px dashed rgba(31, 68, 140, 0.12);
-            border-radius: 12px;
-            padding: 10px;
+            gap: 8px;
+            background: #f7f9fd;
+            border: 1px solid rgba(31, 68, 140, 0.08);
+            border-radius: 14px;
+            padding: 12px;
         }
 
         .smart-filter-row p {
@@ -1636,17 +1687,23 @@
         </div>
         
         <div class="filters-panel" id="smartFilters">
-            <button class="filters-toggle" onclick="toggleSmartFilters()" onkeypress="handleSmartFiltersKey(event)" aria-expanded="false" aria-controls="smartFiltersBody">
-                <div class="filters-title-block">
-                    <h3>Filtros inteligentes</h3>
-                    <p class="filters-subtitle">Clique para expandir e aplicar filtros rápidos, previsões e ABC sem poluição visual.</p>
+            <div class="filters-toggle" role="button" tabindex="0" onclick="toggleSmartFilters()" onkeypress="handleSmartFiltersKey(event)" aria-expanded="false" aria-controls="smartFiltersBody">
+                <div class="filters-meta">
+                    <div class="filters-title-block">
+                        <h3>Filtros inteligentes</h3>
+                        <p class="filters-subtitle">Clique para expandir e aplicar filtros rápidos, previsões e ABC sem poluição visual.</p>
+                    </div>
+                    <div class="filters-summary" id="activeFiltersBadge">
+                        <span>Todos os produtos</span>
+                        <small>Sem filtros ativos</small>
+                        <div class="filters-chips" id="activeFiltersChips"></div>
+                    </div>
                 </div>
-                <div class="filters-summary" id="activeFiltersBadge">
-                    <span>Todos os produtos</span>
-                    <small>Sem filtros ativos</small>
+                <div class="filters-actions-inline">
+                    <button class="clear-filters-btn" type="button" onclick="handleClearFilters(event)">Limpar filtros ✕</button>
+                    <span class="toggle-icon" id="smartFiltersIcon">⌄</span>
                 </div>
-                <span class="toggle-icon" id="smartFiltersIcon">⌄</span>
-            </button>
+            </div>
 
             <div class="filters-body" id="smartFiltersBody">
                 <div class="filters-quick" aria-label="Filtros rápidos de estoque e previsão">
@@ -4412,6 +4469,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
         function updateActiveFiltersSummary() {
             const summaryElement = document.getElementById('activeFiltersBadge');
+            const chipsElement = document.getElementById('activeFiltersChips');
             if (!summaryElement) {
                 return;
             }
@@ -4462,9 +4520,41 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
-            const title = activeLabels.length > 0 ? activeLabels.join(' • ') : 'Sem filtros ativos';
-            summaryElement.innerHTML = '<span>' + (activeLabels[0] || 'Todos os produtos') + '</span>' +
-                '<small>' + title + '</small>';
+            const detailText = activeLabels.length > 0 ? activeLabels.join(' + ') : 'Sem filtros ativos';
+            const headlineElement = summaryElement.querySelector('span');
+            const detailElement = summaryElement.querySelector('small');
+
+            if (headlineElement) {
+                headlineElement.textContent = activeLabels[0] || 'Todos os produtos';
+            }
+            if (detailElement) {
+                detailElement.textContent = detailText;
+            }
+
+            if (chipsElement) {
+                chipsElement.innerHTML = '';
+                if (activeLabels.length === 0) {
+                    const placeholder = document.createElement('span');
+                    placeholder.className = 'filter-chip';
+                    placeholder.textContent = 'Nenhum filtro aplicado';
+                    chipsElement.appendChild(placeholder);
+                } else {
+                    activeLabels.forEach(function(label) {
+                        const chip = document.createElement('span');
+                        chip.className = 'filter-chip';
+                        chip.textContent = label;
+                        chipsElement.appendChild(chip);
+                    });
+                }
+            }
+        }
+
+        function handleClearFilters(event) {
+            if (event && typeof event.stopPropagation === 'function') {
+                event.stopPropagation();
+            }
+            resetAllFilters();
+            applyAllFilters();
         }
 
         function updateSmartFilterButtons() {
