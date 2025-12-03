@@ -213,19 +213,59 @@
             color: #666;
         }
         
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
+        .filters-panel {
+            margin-bottom: 24px;
+            border: 1px solid #d8e3f4;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f7f9fd 0%, #ffffff 45%, #f3f7ff 100%);
+            box-shadow: 0 12px 32px rgba(17, 58, 148, 0.08);
+            padding: 18px 18px 12px;
         }
-        
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .filters-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #1f2a44;
+        }
+
+        .filters-subtitle {
+            margin: 2px 0 0;
+            color: #4c5569;
+            font-size: 13px;
+        }
+
+        .filters-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            background: #eaf2ff;
+            color: #1F448C;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         .control-group {
             display: flex;
-            align-items: center;
-            gap: 10px;
             flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
         }
         
         button {
@@ -233,21 +273,95 @@
             color: white;
             padding: 8px 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s ease;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
         button:hover {
             background-color: #163666;
             transform: translateY(-1px);
         }
-        
+
         button.active {
             background-color: #2196F3;
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #e9f1ff 100%);
+            color: #1f2a44;
+            border: 1px solid #d8e3f4;
+            border-radius: 30px;
+            padding: 10px 16px;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            background: #e1ecff;
+            border-color: #a4bef7;
+            color: #0f2f83;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #1F448C 0%, #1b63c9 100%);
+            border-color: transparent;
+            color: #ffffff;
+            box-shadow: 0 10px 24px rgba(31, 68, 140, 0.25);
+        }
+
+        .filter-btn .pill-label {
+            display: inline-flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .quick-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .filter-card {
+            background: #ffffff;
+            border: 1px solid #e3e9f5;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 8px 18px rgba(17, 58, 148, 0.05);
+        }
+
+        .filter-card label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #1f2a44;
+            font-size: 13px;
+        }
+
+        .filter-card small {
+            display: block;
+            margin-top: 6px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .filters-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         button.btn-auto-save {
@@ -1260,18 +1374,28 @@
                 min-width: 200px;
             }
             
+            .filters-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
             .controls {
+                gap: 12px;
+            }
+
+            .control-group,
+            .filters-actions,
+            .quick-filters {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
-            .control-group {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            
-            .control-group label {
+
+            .control-group label,
+            .filter-card label {
                 font-weight: bold;
                 margin-bottom: 5px;
             }
@@ -1404,54 +1528,94 @@
             <div class="search-results" id="searchResults"></div>
         </div>
         
-        <div class="controls">
-            <div class="control-group">
-                <label>Filtrar por:</label>
-                <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">Todos</button>
-                <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">Estoque Crítico (&lt;2m)</button>
-                <button onclick="filterLowStock()" class="filter-btn" data-filter="low">Estoque Baixo (2-6m)</button>
-                <button onclick="filterHighStock()" class="filter-btn" data-filter="high">Slow Moving (&gt;6m)</button>
-            </div>
-            
-            <div class="control-group">
-                <label>Família:</label>
-                <select id="familyFilter" onchange="filterByFamily()">
-                    <option value="">Todas as Famílias</option>
-                </select>
+        <div class="filters-panel">
+            <div class="filters-header">
+                <div>
+                    <h3>Filtros inteligentes</h3>
+                    <p class="filters-subtitle">Combine filtros e veja gráficos, gauges e tabelas reagirem em tempo real.</p>
+                </div>
+                <div class="filters-badge">⚡ Visão dinâmica</div>
             </div>
 
-            <div class="control-group">
-                <label>Fornecedor:</label>
-                <select id="supplierFilter" onchange="filterBySupplier()">
-                    <option value="">Todos os Fornecedores</option>
-                </select>
-            </div>
+            <div class="controls">
+                <div class="control-group quick-filters" aria-label="Filtros rápidos de estoque">
+                    <span class="filters-badge" aria-hidden="true">🎯 Filtros rápidos</span>
+                    <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">
+                        <span class="pill-label">
+                            <strong>Todos</strong>
+                            <small>Exibir visão geral</small>
+                        </span>
+                    </button>
+                    <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">
+                        <span class="pill-label">
+                            <strong>Estoque Crítico</strong>
+                            <small>&lt; 2 meses</small>
+                        </span>
+                    </button>
+                    <button onclick="filterLowStock()" class="filter-btn" data-filter="low">
+                        <span class="pill-label">
+                            <strong>Estoque Baixo</strong>
+                            <small>2-6 meses</small>
+                        </span>
+                    </button>
+                    <button onclick="filterHighStock()" class="filter-btn" data-filter="high">
+                        <span class="pill-label">
+                            <strong>Slow Moving</strong>
+                            <small>&gt; 6 meses</small>
+                        </span>
+                    </button>
+                </div>
 
-            <div class="control-group">
-                <label>Estabelecimento:</label>
-                <select id="establishmentFilter" onchange="filterByEstablishment()">
-                    <option value="">Todos os Estabelecimentos</option>
-                    <option value="1-4">1-4 (GUARULHOS)</option>
-                    <option value="90-13">90-13 (ITAJAÍ)</option>
-                    <option value="90-15">90-15 (GARUVA)</option>
-                </select>
-            </div>
+                <div class="filters-grid">
+                    <div class="filter-card">
+                        <label for="familyFilter">Família</label>
+                        <select id="familyFilter" onchange="filterByFamily()">
+                            <option value="">Todas as Famílias</option>
+                        </select>
+                        <small>Organize os resultados por linha de produto.</small>
+                    </div>
 
-            <div class="control-group">
-                <label>Filtro avançado:</label>
-                <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
-                    <option value="">Todos os produtos</option>
-                    <option value="no-stock">Sem estoque</option>
-                    <option value="over50">Estoque &gt; 50 meses</option>
-                    <option value="abc-a">Classe A</option>
-                    <option value="abc-b">Classe B</option>
-                    <option value="abc-c">Classe C</option>
-                </select>
-            </div>
+                    <div class="filter-card">
+                        <label for="supplierFilter">Fornecedor</label>
+                        <select id="supplierFilter" onchange="filterBySupplier()">
+                            <option value="">Todos os Fornecedores</option>
+                        </select>
+                        <small>Encontre rapidamente um parceiro específico.</small>
+                    </div>
 
-            <div class="control-group">
-                <button onclick="showExportModal()">📤 Exportar</button>
-                <button onclick="updateData()">🔄 Atualizar</button>
+                    <div class="filter-card">
+                        <label for="establishmentFilter">Estabelecimento</label>
+                        <select id="establishmentFilter" onchange="filterByEstablishment()">
+                            <option value="">Todos os Estabelecimentos</option>
+                            <option value="1-4">1-4 (GUARULHOS)</option>
+                            <option value="90-13">90-13 (ITAJAÍ)</option>
+                            <option value="90-15">90-15 (GARUVA)</option>
+                        </select>
+                        <small>Refine a visualização por unidade.</small>
+                    </div>
+
+                    <div class="filter-card">
+                        <label for="advancedStockFilter">Filtro avançado</label>
+                        <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
+                            <option value="">Todos os produtos</option>
+                            <option value="no-stock">Sem estoque</option>
+                            <option value="over50">Estoque &gt; 50 meses</option>
+                            <option value="abc-a">Classe A</option>
+                            <option value="abc-b">Classe B</option>
+                            <option value="abc-c">Classe C</option>
+                        </select>
+                        <small>Destaque cenários específicos sem perder contexto.</small>
+                    </div>
+
+                    <div class="filter-card">
+                        <label>Ações rápidas</label>
+                        <div class="filters-actions">
+                            <button onclick="showExportModal()">📤 Exportar</button>
+                            <button onclick="updateData()">🔄 Atualizar</button>
+                        </div>
+                        <small>Os gráficos e gauges são recalculados considerando os filtros ativos.</small>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4448,10 +4612,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function updateActiveButton(filter) {
             const filterBtns = document.querySelectorAll('.filter-btn');
             filterBtns.forEach(function(btn) {
-                btn.classList.remove('active');
-                if (filter && btn.dataset.filter === filter) {
-                    btn.classList.add('active');
-                }
+                const isActive = filter && btn.dataset.filter === filter;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
         }
 
