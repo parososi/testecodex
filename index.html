@@ -6,7 +6,7 @@
     <title>Dashboard de Estoque com Análise Preditiva - Borracha</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
@@ -215,65 +215,71 @@
         
         .filters-panel {
             margin-bottom: 24px;
-            border: 1px solid #d8e3f4;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #f7f9fd 0%, #ffffff 45%, #f3f7ff 100%);
-            box-shadow: 0 12px 32px rgba(17, 58, 148, 0.08);
-            padding: 18px 18px 12px;
+            border: 1px solid rgba(31, 68, 140, 0.09);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 12px 34px rgba(15, 35, 79, 0.08);
+            backdrop-filter: blur(14px);
+            padding: 16px 18px 12px;
         }
 
         .filters-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 6px;
             margin-bottom: 12px;
         }
 
         .filters-header h3 {
             margin: 0;
-            font-size: 18px;
+            font-size: 19px;
             color: #1f2a44;
+            letter-spacing: -0.01em;
+            font-weight: 700;
         }
 
         .filters-subtitle {
             margin: 2px 0 0;
             color: #4c5569;
             font-size: 13px;
+            letter-spacing: -0.01em;
         }
 
         .filters-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 12px;
-            background: #eaf2ff;
-            color: #1F448C;
-            font-weight: 600;
-            font-size: 12px;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(31, 68, 140, 0.08);
+            color: #1f2a44;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 10px;
         }
 
         .control-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
-        
+
         button {
             background-color: #1F448C;
             color: white;
-            padding: 8px 16px;
+            padding: 9px 16px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s ease;
@@ -289,62 +295,68 @@
         }
 
         button.active {
-            background-color: #2196F3;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            background-color: #1F448C;
+            box-shadow: 0 8px 18px rgba(31, 68, 140, 0.18);
         }
 
         .filter-btn {
-            background: linear-gradient(135deg, #ffffff 0%, #e9f1ff 100%);
+            background: #fbfcff;
             color: #1f2a44;
-            border: 1px solid #d8e3f4;
-            border-radius: 30px;
-            padding: 10px 16px;
-            font-weight: 600;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            border-radius: 14px;
+            padding: 10px 14px;
+            font-weight: 700;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 25px rgba(22, 40, 78, 0.06);
+            backdrop-filter: blur(6px);
         }
 
         .filter-btn:hover {
-            background: #e1ecff;
-            border-color: #a4bef7;
+            background: #f2f5fb;
+            border-color: rgba(31, 68, 140, 0.3);
             color: #0f2f83;
+            transform: translateY(-1px);
         }
 
         .filter-btn.active {
-            background: linear-gradient(135deg, #1F448C 0%, #1b63c9 100%);
-            border-color: transparent;
+            background: #1F448C;
+            border-color: #1F448C;
             color: #ffffff;
-            box-shadow: 0 10px 24px rgba(31, 68, 140, 0.25);
+            box-shadow: 0 12px 26px rgba(31, 68, 140, 0.25);
         }
 
         .filter-btn .pill-label {
             display: inline-flex;
             flex-direction: column;
             line-height: 1.2;
+            align-items: flex-start;
         }
 
         .quick-filters {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 6px;
+            align-items: center;
         }
 
         .filters-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px;
             align-items: stretch;
         }
 
         .filter-card {
             background: #ffffff;
-            border: 1px solid #e3e9f5;
-            border-radius: 12px;
+            border: 1px solid rgba(31, 68, 140, 0.08);
+            border-radius: 14px;
             padding: 12px;
-            box-shadow: 0 8px 18px rgba(17, 58, 148, 0.05);
+            box-shadow: 0 10px 24px rgba(11, 26, 62, 0.05);
+            backdrop-filter: blur(6px);
         }
 
         .filter-card label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 700;
             color: #1f2a44;
             font-size: 13px;
@@ -390,17 +402,19 @@
         }
         
         select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 10px 12px;
+            border: 1px solid rgba(31, 68, 140, 0.18);
+            border-radius: 10px;
             font-size: 14px;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
             min-width: 180px;
+            background: #f8f9ff;
         }
-        
+
         select:focus {
             border-color: #1F448C;
             outline: none;
+            box-shadow: 0 0 0 4px rgba(31, 68, 140, 0.12);
         }
         
         .import-section {
@@ -1534,7 +1548,6 @@
                     <h3>Filtros inteligentes</h3>
                     <p class="filters-subtitle">Combine filtros e veja gráficos, gauges e tabelas reagirem em tempo real.</p>
                 </div>
-                <div class="filters-badge">⚡ Visão dinâmica</div>
             </div>
 
             <div class="controls">
