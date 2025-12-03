@@ -241,7 +241,7 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-        
+
         button {
             background-color: #1F448C;
             color: white;
@@ -250,13 +250,14 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s ease;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease;
             white-space: nowrap;
         }
         
         button:hover {
             background-color: #163666;
-            transform: translateY(-1px);
+            transform: translateY(-1px) scale(1.01);
+            box-shadow: 0 6px 20px rgba(31, 68, 140, 0.16);
         }
 
         .danger-button {
@@ -270,6 +271,10 @@
         button.active {
             background-color: #2196F3;
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0) scale(0.98);
         }
 
 
@@ -294,6 +299,7 @@
             padding: 12px 16px;
             box-shadow: 0 6px 18px rgba(31, 68, 140, 0.25);
             border: 2px solid transparent;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
         }
 
         .floating-filter-button:hover,
@@ -337,6 +343,7 @@
             align-items: flex-start;
             gap: 2px;
             line-height: 1.2;
+            transition: color 0.2s ease;
         }
 
         .filter-button-text small {
@@ -886,10 +893,57 @@
             font-size: 28px;
             font-weight: bold;
             color: #1F448C;
+            transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
         }
-        
+
         .stat-value.critical {
             color: #f44336;
+        }
+
+        .stat-value.value-change,
+        .prediction-value.value-change,
+        #tableCount.value-change,
+        .filter-button-text.value-change {
+            animation: numberFlash 0.45s ease;
+        }
+
+        .floating-filter-button.filter-pulse,
+        .filter-btn.filter-pulse,
+        .filter-panel-close.filter-pulse {
+            animation: filterPulse 0.35s ease;
+        }
+
+        @keyframes numberFlash {
+            0% {
+                transform: translateY(4px) scale(0.98);
+                opacity: 0.5;
+                text-shadow: 0 8px 16px rgba(31, 68, 140, 0.15);
+            }
+            50% {
+                transform: translateY(-2px) scale(1.04);
+                opacity: 1;
+                text-shadow: 0 14px 24px rgba(31, 68, 140, 0.12);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+                text-shadow: none;
+            }
+        }
+
+        @keyframes filterPulse {
+            0% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 4px 10px rgba(31, 68, 140, 0.14);
+            }
+            50% {
+                transform: translateY(-2px) scale(1.04);
+                box-shadow: 0 10px 24px rgba(33, 150, 243, 0.28);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 6px 18px rgba(31, 68, 140, 0.16);
+            }
         }
         
         .stat-label {
@@ -2770,6 +2824,62 @@
             return `${formattedValue} kg`;
         }
 
+        function animateValueChange(element) {
+            if (!element) {
+                return;
+            }
+
+            element.classList.remove('value-change');
+            // Forçar reflow para reiniciar a animação quando o valor mudar rapidamente
+            void element.offsetWidth;
+            element.classList.add('value-change');
+
+            element.addEventListener('animationend', function handler() {
+                element.classList.remove('value-change');
+                element.removeEventListener('animationend', handler);
+            });
+        }
+
+        function pulseFilterButton(element) {
+            if (!element) {
+                return;
+            }
+
+            element.classList.remove('filter-pulse');
+            void element.offsetWidth;
+            element.classList.add('filter-pulse');
+
+            element.addEventListener('animationend', function handler() {
+                element.classList.remove('filter-pulse');
+                element.removeEventListener('animationend', handler);
+            });
+        }
+
+        function bindFilterAnimations() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const floatingButton = document.getElementById('filterToggleButton');
+            const closeButton = document.querySelector('.filter-panel-close');
+
+            filterButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    pulseFilterButton(button);
+                });
+            });
+
+            if (floatingButton) {
+                floatingButton.addEventListener('click', function() {
+                    pulseFilterButton(floatingButton.querySelector('.filter-icon-bubble'));
+                    pulseFilterButton(floatingButton);
+                });
+            }
+
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    pulseFilterButton(closeButton);
+                });
+            }
+        }
+
         function resolveCoverageSource(product) {
             if (!product || typeof product !== 'object') {
                 return 'none';
@@ -4499,6 +4609,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             summaryLabel.textContent = activeFilters.length ? `${activeFilters.length} filtro(s) ativo(s)` : 'Nenhum filtro aplicado';
+            animateValueChange(summaryLabel);
 
             if (toggleButton) {
                 toggleButton.classList.toggle('has-active', Boolean(activeFilters.length));
@@ -4546,6 +4657,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 zeroIn30Element.className = urgentCount > 0
                     ? 'prediction-value prediction-critical'
                     : 'prediction-value prediction-good';
+                animateValueChange(zeroIn30Element);
             }
 
             if (zeroIn60Element) {
@@ -4553,6 +4665,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 zeroIn60Element.className = warningCount > 0
                     ? 'prediction-value prediction-warning'
                     : 'prediction-value prediction-good';
+                animateValueChange(zeroIn60Element);
             }
         }
         function updateSummary() {
@@ -4565,9 +4678,24 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }, 0);
             const safeTotalStock = Number.isFinite(totalStock) ? totalStock : 0;
 
-            document.getElementById('totalProducts').textContent = total;
-            document.getElementById('totalStockValue').textContent = formatStockInKg(safeTotalStock);
-            document.getElementById('totalFamilies').textContent = families;
+            const totalProductsElement = document.getElementById('totalProducts');
+            const totalStockElement = document.getElementById('totalStockValue');
+            const totalFamiliesElement = document.getElementById('totalFamilies');
+
+            if (totalProductsElement) {
+                totalProductsElement.textContent = total;
+                animateValueChange(totalProductsElement);
+            }
+
+            if (totalStockElement) {
+                totalStockElement.textContent = formatStockInKg(safeTotalStock);
+                animateValueChange(totalStockElement);
+            }
+
+            if (totalFamiliesElement) {
+                totalFamiliesElement.textContent = families;
+                animateValueChange(totalFamiliesElement);
+            }
         }
 
         function updateParetoAnalysis() {
@@ -4789,7 +4917,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 tableBody.appendChild(row);
             });
 
-            document.getElementById('tableCount').textContent = `${filteredData.length} produtos exibidos`;
+            const tableCountElement = document.getElementById('tableCount');
+            if (tableCountElement) {
+                tableCountElement.textContent = `${filteredData.length} produtos exibidos`;
+                animateValueChange(tableCountElement);
+            }
             
             if (searchTerm) {
                 highlightSearchResults();
@@ -5467,6 +5599,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             try {
                 initializeTooltips();
                 applyPredictionLabels();
+                bindFilterAnimations();
 
                 // Depois carregar dados
                 loadExternalDataScript();
