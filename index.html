@@ -215,36 +215,80 @@
         
         .filters-panel {
             margin-bottom: 24px;
-            border: 1px solid rgba(31, 68, 140, 0.09);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 12px 34px rgba(15, 35, 79, 0.08);
-            backdrop-filter: blur(14px);
-            padding: 16px 18px 12px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(15, 35, 79, 0.08);
+            padding: 14px 16px 16px;
         }
 
         .filters-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: stretch;
             flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(31, 68, 140, 0.08);
+            padding-bottom: 12px;
+        }
+
+        .filters-title-block {
+            display: flex;
+            flex-direction: column;
             gap: 6px;
-            margin-bottom: 12px;
+            min-width: 260px;
         }
 
         .filters-header h3 {
             margin: 0;
-            font-size: 19px;
-            color: #1f2a44;
+            font-size: 18px;
+            color: #11203f;
             letter-spacing: -0.01em;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .filters-subtitle {
-            margin: 2px 0 0;
+            margin: 0;
             color: #4c5569;
             font-size: 13px;
             letter-spacing: -0.01em;
+            line-height: 1.4;
+        }
+
+        .filters-meta {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(31, 68, 140, 0.06);
+            border-radius: 12px;
+            color: #1f2a44;
+            font-weight: 600;
+            font-size: 12px;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+        }
+
+        .filters-quick { 
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 320px;
+        }
+
+        .filters-quick-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
 
         .filters-badge {
@@ -259,19 +303,20 @@
             font-size: 11px;
             letter-spacing: 0.03em;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .control-group {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 8px;
-            align-items: center;
+            align-items: stretch;
         }
 
         button {
@@ -302,12 +347,13 @@
         .filter-btn {
             background: #fbfcff;
             color: #1f2a44;
-            border: 1px solid rgba(31, 68, 140, 0.12);
-            border-radius: 14px;
-            padding: 10px 14px;
+            border: 1px solid rgba(31, 68, 140, 0.16);
+            border-radius: 12px;
+            padding: 9px 12px;
             font-weight: 700;
-            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 25px rgba(22, 40, 78, 0.06);
-            backdrop-filter: blur(6px);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 18px rgba(22, 40, 78, 0.06);
+            backdrop-filter: blur(4px);
+            min-height: 52px;
         }
 
         .filter-btn:hover {
@@ -324,6 +370,17 @@
             box-shadow: 0 12px 26px rgba(31, 68, 140, 0.25);
         }
 
+        .filters-pills {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .filters-quick .filter-btn {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         .filter-btn .pill-label {
             display: inline-flex;
             flex-direction: column;
@@ -331,31 +388,43 @@
             align-items: flex-start;
         }
 
+        .filter-btn strong {
+            font-size: 13px;
+        }
+
+        .filter-btn small {
+            font-size: 11px;
+            color: inherit;
+        }
+
         .quick-filters {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
         }
 
         .filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 10px;
+            gap: 12px;
             align-items: stretch;
         }
 
         .filter-card {
-            background: #ffffff;
-            border: 1px solid rgba(31, 68, 140, 0.08);
-            border-radius: 14px;
-            padding: 12px;
-            box-shadow: 0 10px 24px rgba(11, 26, 62, 0.05);
-            backdrop-filter: blur(6px);
+            background: #f9fbff;
+            border: 1px solid rgba(31, 68, 140, 0.12);
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 10px 18px rgba(11, 26, 62, 0.05);
+            backdrop-filter: blur(4px);
         }
 
         .filter-card label {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
             margin-bottom: 8px;
             font-weight: 700;
             color: #1f2a44;
@@ -1544,44 +1613,54 @@
         
         <div class="filters-panel">
             <div class="filters-header">
-                <div>
+                <div class="filters-title-block">
                     <h3>Filtros inteligentes</h3>
                     <p class="filters-subtitle">Combine filtros e veja gráficos, gauges e tabelas reagirem em tempo real.</p>
+                    <div class="filters-meta">
+                        <span class="meta-chip">⚡ Resposta imediata</span>
+                        <span class="meta-chip">🎯 Combinações inteligentes</span>
+                        <span class="meta-chip">📊 Impacto em tempo real</span>
+                    </div>
+                </div>
+
+                <div class="filters-quick" aria-label="Filtros rápidos de estoque">
+                    <div class="filters-quick-header">
+                        <span class="filters-badge" aria-hidden="true">🎯 Filtros rápidos</span>
+                        <span class="filters-subtitle" style="font-size: 12px;">Selecione um foco e refine abaixo.</span>
+                    </div>
+                    <div class="filters-pills">
+                        <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">
+                            <span class="pill-label">
+                                <strong>Todos</strong>
+                                <small>Visão geral</small>
+                            </span>
+                        </button>
+                        <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">
+                            <span class="pill-label">
+                                <strong>Estoque Crítico</strong>
+                                <small>&lt; 2 meses</small>
+                            </span>
+                        </button>
+                        <button onclick="filterLowStock()" class="filter-btn" data-filter="low">
+                            <span class="pill-label">
+                                <strong>Estoque Baixo</strong>
+                                <small>2-6 meses</small>
+                            </span>
+                        </button>
+                        <button onclick="filterHighStock()" class="filter-btn" data-filter="high">
+                            <span class="pill-label">
+                                <strong>Slow Moving</strong>
+                                <small>&gt; 6 meses</small>
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="controls">
-                <div class="control-group quick-filters" aria-label="Filtros rápidos de estoque">
-                    <span class="filters-badge" aria-hidden="true">🎯 Filtros rápidos</span>
-                    <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">
-                        <span class="pill-label">
-                            <strong>Todos</strong>
-                            <small>Exibir visão geral</small>
-                        </span>
-                    </button>
-                    <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">
-                        <span class="pill-label">
-                            <strong>Estoque Crítico</strong>
-                            <small>&lt; 2 meses</small>
-                        </span>
-                    </button>
-                    <button onclick="filterLowStock()" class="filter-btn" data-filter="low">
-                        <span class="pill-label">
-                            <strong>Estoque Baixo</strong>
-                            <small>2-6 meses</small>
-                        </span>
-                    </button>
-                    <button onclick="filterHighStock()" class="filter-btn" data-filter="high">
-                        <span class="pill-label">
-                            <strong>Slow Moving</strong>
-                            <small>&gt; 6 meses</small>
-                        </span>
-                    </button>
-                </div>
-
                 <div class="filters-grid">
                     <div class="filter-card">
-                        <label for="familyFilter">Família</label>
+                        <label for="familyFilter">Família <span class="meta-chip" style="font-size: 11px;">🏷️ Produtos</span></label>
                         <select id="familyFilter" onchange="filterByFamily()">
                             <option value="">Todas as Famílias</option>
                         </select>
@@ -1589,7 +1668,7 @@
                     </div>
 
                     <div class="filter-card">
-                        <label for="supplierFilter">Fornecedor</label>
+                        <label for="supplierFilter">Fornecedor <span class="meta-chip" style="font-size: 11px;">🤝 Parcerias</span></label>
                         <select id="supplierFilter" onchange="filterBySupplier()">
                             <option value="">Todos os Fornecedores</option>
                         </select>
@@ -1597,7 +1676,7 @@
                     </div>
 
                     <div class="filter-card">
-                        <label for="establishmentFilter">Estabelecimento</label>
+                        <label for="establishmentFilter">Estabelecimento <span class="meta-chip" style="font-size: 11px;">📍 Unidades</span></label>
                         <select id="establishmentFilter" onchange="filterByEstablishment()">
                             <option value="">Todos os Estabelecimentos</option>
                             <option value="1-4">1-4 (GUARULHOS)</option>
@@ -1608,7 +1687,7 @@
                     </div>
 
                     <div class="filter-card">
-                        <label for="advancedStockFilter">Filtro avançado</label>
+                        <label for="advancedStockFilter">Filtro avançado <span class="meta-chip" style="font-size: 11px;">🧠 Inteligente</span></label>
                         <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
                             <option value="">Todos os produtos</option>
                             <option value="no-stock">Sem estoque</option>
@@ -1621,7 +1700,7 @@
                     </div>
 
                     <div class="filter-card">
-                        <label>Ações rápidas</label>
+                        <label>Ações rápidas <span class="meta-chip" style="font-size: 11px;">⚙️ Controles</span></label>
                         <div class="filters-actions">
                             <button onclick="showExportModal()">📤 Exportar</button>
                             <button onclick="updateData()">🔄 Atualizar</button>
