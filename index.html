@@ -219,28 +219,36 @@
             border-radius: 16px;
             background: #ffffff;
             box-shadow: 0 12px 28px rgba(15, 35, 79, 0.08);
-            padding: 14px 16px 16px;
+            overflow: hidden;
         }
 
-        .filters-header {
+        .filters-toggle {
+            width: 100%;
+            background: linear-gradient(90deg, #f8f9ff 0%, #eef2fb 100%);
+            border: none;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: stretch;
-            flex-wrap: wrap;
+            padding: 14px 18px;
+            cursor: pointer;
+            text-align: left;
             gap: 14px;
-            margin-bottom: 14px;
             border-bottom: 1px solid rgba(31, 68, 140, 0.08);
-            padding-bottom: 12px;
+        }
+
+        .filters-toggle:focus-visible {
+            outline: 2px solid #1F448C;
+            outline-offset: -2px;
         }
 
         .filters-title-block {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            min-width: 260px;
+            gap: 4px;
+            min-width: 0;
         }
 
-        .filters-header h3 {
+        .filters-title-block h3 {
             margin: 0;
             font-size: 18px;
             color: #11203f;
@@ -256,54 +264,50 @@
             line-height: 1.4;
         }
 
-        .filters-meta {
+        .filters-summary {
             display: inline-flex;
-            flex-wrap: wrap;
+            align-items: center;
             gap: 8px;
-            align-items: center;
-        }
-
-        .meta-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            background: rgba(31, 68, 140, 0.06);
-            border-radius: 12px;
-            color: #1f2a44;
-            font-weight: 600;
-            font-size: 12px;
+            padding: 8px 12px;
+            background: #fff;
             border: 1px solid rgba(31, 68, 140, 0.12);
+            border-radius: 12px;
+            font-weight: 700;
+            color: #1f2a44;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+            max-width: 520px;
+            min-height: 40px;
         }
 
-        .filters-quick { 
+        .filters-summary small {
+            color: #4c5569;
+            font-weight: 500;
+        }
+
+        .filters-body {
+            display: none;
+            padding: 16px 18px;
+        }
+
+        .filters-body.expanded {
+            display: block;
+        }
+
+        .filters-quick {
             display: flex;
-            flex: 1;
             flex-direction: column;
-            gap: 8px;
-            min-width: 320px;
-        }
-
-        .filters-quick-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             gap: 10px;
         }
 
-        .filters-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: rgba(31, 68, 140, 0.08);
-            color: #1f2a44;
-            font-weight: 700;
-            font-size: 11px;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            white-space: nowrap;
+        .filters-quick h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #11203f;
+            letter-spacing: -0.01em;
+        }
+
+        .filters-quick .filters-pills {
+            margin-top: 4px;
         }
 
         .controls {
@@ -397,13 +401,6 @@
             color: inherit;
         }
 
-        .quick-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
         .filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -443,6 +440,33 @@
             flex-wrap: wrap;
             gap: 10px;
             justify-content: flex-end;
+        }
+
+        .smart-filter-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #f8f9ff;
+            border: 1px dashed rgba(31, 68, 140, 0.12);
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .smart-filter-row p {
+            margin: 0;
+            font-weight: 700;
+            color: #1f2a44;
+            font-size: 13px;
+        }
+
+        .filters-pills.compact {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .filters-quick-note {
+            margin: 0;
+            font-size: 12px;
+            color: #4c5569;
         }
 
         button.btn-auto-save {
@@ -1611,101 +1635,151 @@
             <div class="search-results" id="searchResults"></div>
         </div>
         
-        <div class="filters-panel">
-            <div class="filters-header">
+        <div class="filters-panel" id="smartFilters">
+            <button class="filters-toggle" onclick="toggleSmartFilters()" onkeypress="handleSmartFiltersKey(event)" aria-expanded="false" aria-controls="smartFiltersBody">
                 <div class="filters-title-block">
                     <h3>Filtros inteligentes</h3>
-                    <p class="filters-subtitle">Combine filtros e veja gráficos, gauges e tabelas reagirem em tempo real.</p>
-                    <div class="filters-meta">
-                        <span class="meta-chip">⚡ Resposta imediata</span>
-                        <span class="meta-chip">🎯 Combinações inteligentes</span>
-                        <span class="meta-chip">📊 Impacto em tempo real</span>
-                    </div>
+                    <p class="filters-subtitle">Clique para expandir e aplicar filtros rápidos, previsões e ABC sem poluição visual.</p>
                 </div>
-
-                <div class="filters-quick" aria-label="Filtros rápidos de estoque">
-                    <div class="filters-quick-header">
-                        <span class="filters-badge" aria-hidden="true">🎯 Filtros rápidos</span>
-                        <span class="filters-subtitle" style="font-size: 12px;">Selecione um foco e refine abaixo.</span>
-                    </div>
-                    <div class="filters-pills">
-                        <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">
-                            <span class="pill-label">
-                                <strong>Todos</strong>
-                                <small>Visão geral</small>
-                            </span>
-                        </button>
-                        <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">
-                            <span class="pill-label">
-                                <strong>Estoque Crítico</strong>
-                                <small>&lt; 2 meses</small>
-                            </span>
-                        </button>
-                        <button onclick="filterLowStock()" class="filter-btn" data-filter="low">
-                            <span class="pill-label">
-                                <strong>Estoque Baixo</strong>
-                                <small>2-6 meses</small>
-                            </span>
-                        </button>
-                        <button onclick="filterHighStock()" class="filter-btn" data-filter="high">
-                            <span class="pill-label">
-                                <strong>Slow Moving</strong>
-                                <small>&gt; 6 meses</small>
-                            </span>
-                        </button>
-                    </div>
+                <div class="filters-summary" id="activeFiltersBadge">
+                    <span>Todos os produtos</span>
+                    <small>Sem filtros ativos</small>
                 </div>
-            </div>
+                <span class="toggle-icon" id="smartFiltersIcon">⌄</span>
+            </button>
 
-            <div class="controls">
-                <div class="filters-grid">
-                    <div class="filter-card">
-                        <label for="familyFilter">Família <span class="meta-chip" style="font-size: 11px;">🏷️ Produtos</span></label>
-                        <select id="familyFilter" onchange="filterByFamily()">
-                            <option value="">Todas as Famílias</option>
-                        </select>
-                        <small>Organize os resultados por linha de produto.</small>
-                    </div>
-
-                    <div class="filter-card">
-                        <label for="supplierFilter">Fornecedor <span class="meta-chip" style="font-size: 11px;">🤝 Parcerias</span></label>
-                        <select id="supplierFilter" onchange="filterBySupplier()">
-                            <option value="">Todos os Fornecedores</option>
-                        </select>
-                        <small>Encontre rapidamente um parceiro específico.</small>
-                    </div>
-
-                    <div class="filter-card">
-                        <label for="establishmentFilter">Estabelecimento <span class="meta-chip" style="font-size: 11px;">📍 Unidades</span></label>
-                        <select id="establishmentFilter" onchange="filterByEstablishment()">
-                            <option value="">Todos os Estabelecimentos</option>
-                            <option value="1-4">1-4 (GUARULHOS)</option>
-                            <option value="90-13">90-13 (ITAJAÍ)</option>
-                            <option value="90-15">90-15 (GARUVA)</option>
-                        </select>
-                        <small>Refine a visualização por unidade.</small>
-                    </div>
-
-                    <div class="filter-card">
-                        <label for="advancedStockFilter">Filtro avançado <span class="meta-chip" style="font-size: 11px;">🧠 Inteligente</span></label>
-                        <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
-                            <option value="">Todos os produtos</option>
-                            <option value="no-stock">Sem estoque</option>
-                            <option value="over50">Estoque &gt; 50 meses</option>
-                            <option value="abc-a">Classe A</option>
-                            <option value="abc-b">Classe B</option>
-                            <option value="abc-c">Classe C</option>
-                        </select>
-                        <small>Destaque cenários específicos sem perder contexto.</small>
-                    </div>
-
-                    <div class="filter-card">
-                        <label>Ações rápidas <span class="meta-chip" style="font-size: 11px;">⚙️ Controles</span></label>
-                        <div class="filters-actions">
-                            <button onclick="showExportModal()">📤 Exportar</button>
-                            <button onclick="updateData()">🔄 Atualizar</button>
+            <div class="filters-body" id="smartFiltersBody">
+                <div class="filters-quick" aria-label="Filtros rápidos de estoque e previsão">
+                    <div class="smart-filter-row">
+                        <p>Visão de cobertura</p>
+                        <div class="filters-pills compact">
+                            <button onclick="showAllProducts()" class="filter-btn active" data-filter="all">
+                                <span class="pill-label">
+                                    <strong>Todos</strong>
+                                    <small>Visão geral</small>
+                                </span>
+                            </button>
+                            <button onclick="filterCriticalStock()" class="filter-btn" data-filter="critical">
+                                <span class="pill-label">
+                                    <strong>Estoque Crítico</strong>
+                                    <small>&lt; 2 meses</small>
+                                </span>
+                            </button>
+                            <button onclick="filterLowStock()" class="filter-btn" data-filter="low">
+                                <span class="pill-label">
+                                    <strong>Estoque Baixo</strong>
+                                    <small>2-6 meses</small>
+                                </span>
+                            </button>
+                            <button onclick="filterHighStock()" class="filter-btn" data-filter="high">
+                                <span class="pill-label">
+                                    <strong>Slow Moving</strong>
+                                    <small>&gt; 6 meses</small>
+                                </span>
+                            </button>
                         </div>
-                        <small>Os gráficos e gauges são recalculados considerando os filtros ativos.</small>
+                    </div>
+
+                    <div class="smart-filter-row">
+                        <p>Alertas inteligentes</p>
+                        <div class="filters-pills compact">
+                            <button class="filter-btn" data-smart-filter="zero30" onclick="applyPredictionQuickFilter('zero30')">
+                                <span class="pill-label">
+                                    <strong>Ruptura em 30 dias</strong>
+                                    <small>Urgente</small>
+                                </span>
+                            </button>
+                            <button class="filter-btn" data-smart-filter="zero60" onclick="applyPredictionQuickFilter('zero60')">
+                                <span class="pill-label">
+                                    <strong>Ruptura em 60 dias</strong>
+                                    <small>Atenção</small>
+                                </span>
+                            </button>
+                            <button class="filter-btn" data-smart-filter="no-stock" onclick="applyAdvancedQuickFilter('no-stock')">
+                                <span class="pill-label">
+                                    <strong>Sem estoque</strong>
+                                    <small>Operação parada</small>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="smart-filter-row">
+                        <p>Classes ABC</p>
+                        <div class="filters-pills compact">
+                            <button class="filter-btn" data-smart-filter="abc-a" onclick="applyAdvancedQuickFilter('abc-a')">
+                                <span class="pill-label">
+                                    <strong>Classe A</strong>
+                                    <small>Itens críticos</small>
+                                </span>
+                            </button>
+                            <button class="filter-btn" data-smart-filter="abc-b" onclick="applyAdvancedQuickFilter('abc-b')">
+                                <span class="pill-label">
+                                    <strong>Classe B</strong>
+                                    <small>Equilíbrio</small>
+                                </span>
+                            </button>
+                            <button class="filter-btn" data-smart-filter="abc-c" onclick="applyAdvancedQuickFilter('abc-c')">
+                                <span class="pill-label">
+                                    <strong>Classe C</strong>
+                                    <small>Long tail</small>
+                                </span>
+                            </button>
+                        </div>
+                        <p class="filters-quick-note">Você pode combinar previsões, cobertura e filtros de família/fornecedor sem conflitos.</p>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="filters-grid">
+                        <div class="filter-card">
+                            <label for="familyFilter">Família</label>
+                            <select id="familyFilter" onchange="filterByFamily()">
+                                <option value="">Todas as Famílias</option>
+                            </select>
+                            <small>Organize os resultados por linha de produto.</small>
+                        </div>
+
+                        <div class="filter-card">
+                            <label for="supplierFilter">Fornecedor</label>
+                            <select id="supplierFilter" onchange="filterBySupplier()">
+                                <option value="">Todos os Fornecedores</option>
+                            </select>
+                            <small>Encontre rapidamente um parceiro específico.</small>
+                        </div>
+
+                        <div class="filter-card">
+                            <label for="establishmentFilter">Estabelecimento</label>
+                            <select id="establishmentFilter" onchange="filterByEstablishment()">
+                                <option value="">Todos os Estabelecimentos</option>
+                                <option value="1-4">1-4 (GUARULHOS)</option>
+                                <option value="90-13">90-13 (ITAJAÍ)</option>
+                                <option value="90-15">90-15 (GARUVA)</option>
+                            </select>
+                            <small>Refine a visualização por unidade.</small>
+                        </div>
+
+                        <div class="filter-card">
+                            <label for="advancedStockFilter">Filtro avançado</label>
+                            <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
+                                <option value="">Todos os produtos</option>
+                                <option value="no-stock">Sem estoque</option>
+                                <option value="over50">Estoque &gt; 50 meses</option>
+                                <option value="abc-a">Classe A</option>
+                                <option value="abc-b">Classe B</option>
+                                <option value="abc-c">Classe C</option>
+                            </select>
+                            <small>Destaque cenários específicos sem perder contexto.</small>
+                        </div>
+
+                        <div class="filter-card">
+                            <label>Ações rápidas</label>
+                            <div class="filters-actions">
+                                <button onclick="showExportModal()">📤 Exportar</button>
+                                <button onclick="updateData()">🔄 Atualizar</button>
+                            </div>
+                            <small>Os gráficos e gauges são recalculados considerando os filtros ativos.</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4318,6 +4392,131 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         // === FUNÇÕES DE FILTROS ===
+        function toggleSmartFilters() {
+            const body = document.getElementById('smartFiltersBody');
+            const icon = document.getElementById('smartFiltersIcon');
+            const toggleButton = document.querySelector('#smartFilters .filters-toggle');
+            const isExpanded = body.classList.toggle('expanded');
+
+            icon.classList.toggle('expanded', isExpanded);
+            icon.textContent = isExpanded ? '⌃' : '⌄';
+            toggleButton.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        }
+
+        function handleSmartFiltersKey(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleSmartFilters();
+            }
+        }
+
+        function updateActiveFiltersSummary() {
+            const summaryElement = document.getElementById('activeFiltersBadge');
+            if (!summaryElement) {
+                return;
+            }
+
+            const activeLabels = [];
+
+            switch (currentFilter) {
+                case 'critical':
+                    activeLabels.push('Estoque crítico');
+                    break;
+                case 'low':
+                    activeLabels.push('Estoque baixo');
+                    break;
+                case 'high':
+                    activeLabels.push('Slow moving');
+                    break;
+            }
+
+            if (predictionFilter === 'zero30') {
+                activeLabels.push('Ruptura em 30 dias');
+            } else if (predictionFilter === 'zero60') {
+                activeLabels.push('Ruptura em 60 dias');
+            }
+
+            if (selectedFamily) {
+                activeLabels.push('Família: ' + selectedFamily);
+            }
+
+            if (selectedSupplier) {
+                activeLabels.push('Fornecedor: ' + selectedSupplier);
+            }
+
+            if (currentEstablishment) {
+                activeLabels.push('Estab.: ' + currentEstablishment);
+            }
+
+            if (advancedStockFilter) {
+                const advancedLabels = {
+                    'no-stock': 'Sem estoque',
+                    'over50': 'Estoque > 50 meses',
+                    'abc-a': 'Classe A',
+                    'abc-b': 'Classe B',
+                    'abc-c': 'Classe C'
+                };
+                const mappedLabel = advancedLabels[advancedStockFilter];
+                if (mappedLabel) {
+                    activeLabels.push(mappedLabel);
+                }
+            }
+
+            const title = activeLabels.length > 0 ? activeLabels.join(' • ') : 'Sem filtros ativos';
+            summaryElement.innerHTML = '<span>' + (activeLabels[0] || 'Todos os produtos') + '</span>' +
+                '<small>' + title + '</small>';
+        }
+
+        function updateSmartFilterButtons() {
+            const smartButtons = document.querySelectorAll('[data-smart-filter]');
+            smartButtons.forEach(function(button) {
+                const key = button.dataset.smartFilter;
+                let isActive = false;
+
+                if (key === 'zero30') {
+                    isActive = predictionFilter === 'zero30';
+                } else if (key === 'zero60') {
+                    isActive = predictionFilter === 'zero60';
+                } else {
+                    isActive = advancedStockFilter === key;
+                }
+
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function applyPredictionQuickFilter(target) {
+            if (predictionFilter === target) {
+                predictionFilter = null;
+                currentFilter = 'all';
+                updateActiveButton('all');
+            } else {
+                predictionFilter = target;
+                criticalFilterActive = false;
+                currentFilter = target === 'zero30' ? 'prediction30' : 'prediction60';
+                updateActiveButton(null);
+            }
+
+            applyAllFilters();
+        }
+
+        function applyAdvancedQuickFilter(target) {
+            const advancedDropdown = document.getElementById('advancedStockFilter');
+            if (advancedStockFilter === target) {
+                advancedStockFilter = '';
+                if (advancedDropdown) {
+                    advancedDropdown.value = '';
+                }
+            } else {
+                advancedStockFilter = target;
+                if (advancedDropdown) {
+                    advancedDropdown.value = target;
+                }
+            }
+            criticalFilterActive = false;
+            applyAllFilters();
+        }
         function resetOver50AdvancedFilter() {
             if (advancedStockFilter === 'over50') {
                 advancedStockFilter = '';
@@ -4461,49 +4660,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterZeroIn30() {
-            const item30 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn30()"]');
-            
-            if (predictionFilter === 'zero30') {
-                predictionFilter = null;
-                item30.classList.remove('active');
-                showAllProducts();
-            } else {
-                const activeItems = document.querySelectorAll('.prediction-item.active');
-                activeItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
-                
-                predictionFilter = 'zero30';
-                criticalFilterActive = false;
-                item30.classList.add('active');
-                currentFilter = 'prediction30';
-                updateActiveButton(null);
-                
-                applyAllFilters();
-            }
+            applyPredictionQuickFilter('zero30');
         }
 
         function filterZeroIn60() {
-            const item60 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn60()"]');
-
-            if (predictionFilter === 'zero60') {
-                predictionFilter = null;
-                item60.classList.remove('active');
-                showAllProducts();
-            } else {
-                const activeItems = document.querySelectorAll('.prediction-item.active');
-                activeItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
-
-                predictionFilter = 'zero60';
-                criticalFilterActive = false;
-                item60.classList.add('active');
-                currentFilter = 'prediction60';
-                updateActiveButton(null);
-
-                applyAllFilters();
-            }
+            applyPredictionQuickFilter('zero60');
         }
 
         function assignAbcClassification(dataSet) {
@@ -4699,10 +4860,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             updateSummary();
             updateGauges();
             updatePredictiveAnalysis();
+            updateSmartFilterButtons();
+            updateActiveFiltersSummary();
         }
 
         function updateActiveButton(filter) {
-            const filterBtns = document.querySelectorAll('.filter-btn');
+            const filterBtns = document.querySelectorAll('.filter-btn[data-filter]');
             filterBtns.forEach(function(btn) {
                 const isActive = filter && btn.dataset.filter === filter;
                 btn.classList.toggle('active', isActive);
