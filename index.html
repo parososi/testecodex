@@ -272,14 +272,6 @@
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         }
 
-        button.btn-auto-save {
-            background-color: #28a745;
-            position: relative;
-        }
-
-        button.btn-auto-save:hover {
-            background-color: #218838;
-        }
 
         .floating-filter-wrapper {
             position: fixed;
@@ -480,10 +472,6 @@
 
         .filter-backdrop.visible {
             display: block;
-        }
-
-        button.btn-auto-save.ready {
-            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
@@ -1381,18 +1369,6 @@
             border: 1px solid #bee5eb;
         }
 
-        .offline-notice {
-            background: #e3f2fd;
-            border: 2px solid #2196F3;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .browser-mode-indicator {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
             border-radius: 6px;
             padding: 8px 12px;
             margin: 10px 0;
@@ -1574,32 +1550,19 @@
                 <span class="toggle-icon" id="toggleIcon">▼</span>
             </div>
             <div class="import-content" id="importContent">
-                <div class="offline-notice">
-                    <strong>🌐 Modo Offline</strong> - Este dashboard funciona sem servidor! 
-                    Importe suas planilhas e compartilhe os arquivos atualizados com sua equipe.
-                    <div class="browser-mode-indicator" id="browserModeIndicator">
-                        🔍 Detectando modo do navegador...
-                    </div>
-                </div>
-                
                 <div class="file-input">
                     <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" />
                     <button onclick="importData()">Importar Planilha</button>
-                    <button onclick="tryAutoSave()" id="autoSaveBtn" class="btn-auto-save" style="display: none;">Configurar Pasta</button>
-                    <button onclick="reconfigureAutoSave()" id="reconfigBtn" style="display: none; background-color: #6c757d;">🔧 Reconfigurar</button>
                     <button onclick="openTemplateGenerator()" style="background-color: #28a745;">📋 Template</button>
                 </div>
                 <div id="importMessages"></div>
                 <div id="mappingDebug" class="mapping-debug" style="display: none;"></div>
                 <div id="lastUpdateInfo" style="font-size: 12px; color: #666; margin: 10px 0;"></div>
                 <div id="debugInfo" class="debug-info" style="display: none;"></div>
-                <small><strong>v1.3 - Importador Inteligente:</strong> Agora identifica automaticamente NOVEMBRO, DEZEMBRO e COBERTURA, além de permitir escolher qual aba importar em planilhas com múltiplos meses.</small>
-                
                 <div class="download-section">
                     <h4>📋 Compartilhar Dados</h4>
                     <p>Após importar, baixe o arquivo de dados atualizado e compartilhe com sua equipe:</p>
                     <button onclick="downloadDataFile()" style="background-color: #28a745; font-size: 16px; padding: 10px 20px;">💾 Baixar data.js Atualizado</button>
-                    <button onclick="testAutoSave()" id="testBtn" style="display: none; background-color: #17a2b8; margin-left: 10px;">🧪 Testar</button>
                     <button onclick="runDiagnostic()" style="background-color: #6c757d; margin-left: 10px;">🔍 Diagnóstico</button>
                     <button onclick="toggleDebug()" style="background-color: #ffc107; margin-left: 10px;">🐛 Debug</button>
                     <button onclick="toggleMappingDebug()" style="background-color: #17a2b8; margin-left: 10px;">📋 Mapeamento</button>
@@ -1809,8 +1772,6 @@
         let predictionFilter = null;
         let selectedFamily = null;
         let selectedSupplier = null;
-        let fileSystemSupported = false;
-        let directoryHandle = null;
         let criticalFilterActive = false;
         let debugMode = false;
         let mappingDebugMode = false;
@@ -2954,281 +2915,6 @@
             }
         }
 
-        // Detectar suporte ao File System Access API
-        function detectBrowserCapabilities() {
-            debugLog('Iniciando detecção de capacidades do navegador');
-            
-            try {
-                const isFileProtocol = location.protocol === 'file:';
-                const isHttps = location.protocol === 'https:';
-                const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-                
-                debugLog(`Protocolo atual: ${location.protocol}`);
-                debugLog(`É file://: ${isFileProtocol}`);
-                debugLog(`É HTTPS: ${isHttps}`);
-                debugLog(`É localhost: ${isLocalhost}`);
-                
-                const hasAPI = 'showDirectoryPicker' in window;
-                debugLog(`showDirectoryPicker disponível: ${hasAPI}`);
-                
-                const userAgent = navigator.userAgent;
-                const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Edg');
-                const isEdge = userAgent.includes('Edg');
-                debugLog(`Navegador detectado - Chrome: ${isChrome}, Edge: ${isEdge}`);
-                
-                const isSecureContext = !isFileProtocol && (isHttps || isLocalhost);
-                fileSystemSupported = hasAPI && isSecureContext && (isChrome || isEdge);
-                debugLog(`File System API suportado: ${fileSystemSupported}`);
-                
-                const indicator = document.getElementById('browserModeIndicator');
-                
-                if (!indicator) {
-                    debugLog('Elemento browserModeIndicator não encontrado', 'warn');
-                    return;
-                }
-                
-                if (isFileProtocol) {
-                    indicator.innerHTML = `
-                        <div style="text-align: left;">
-                            🔍 <strong>Modo Arquivo Local</strong> - Salvamento automático não disponível<br>
-                            💡 <strong>Para ativar salvamento automático:</strong><br>
-                            • Use um servidor web local (Live Server, http-server, etc.)<br>
-                            • Ou acesse via https://seu-site.com<br>
-                            • Use o botão "💾 Baixar data.js" para salvar manualmente
-                        </div>
-                    `;
-                    indicator.style.background = '#e7f3ff';
-                    indicator.style.color = '#0066cc';
-                    indicator.style.padding = '12px';
-                    indicator.style.borderLeft = '4px solid #0066cc';
-                    debugLog('Modo file:// detectado - salvamento automático desabilitado');
-                    
-                } else if (fileSystemSupported) {
-                    indicator.innerHTML = '✨ Salvamento automático disponível! (Chrome/Edge + Servidor Web)';
-                    indicator.style.background = '#d4edda';
-                    indicator.style.color = '#155724';
-                    
-                    setTimeout(function() {
-                        const autoSaveBtn = document.getElementById('autoSaveBtn');
-                        const testBtn = document.getElementById('testBtn');
-                        
-                        if (autoSaveBtn) {
-                            autoSaveBtn.style.display = 'inline-block';
-                            autoSaveBtn.classList.add('ready');
-                            debugLog('Botão autoSave mostrado');
-                        }
-                        
-                        if (testBtn) {
-                            testBtn.style.display = 'inline-block';
-                        }
-                    }, 300);
-                } else {
-                    let reason = '';
-                    let solution = '';
-                    
-                    if (!hasAPI) {
-                        reason = 'API não suportada neste navegador';
-                        solution = 'Use Chrome ou Edge atualizado';
-                    } else if (!isSecureContext) {
-                        reason = 'Requer conexão segura (HTTPS ou localhost)';
-                        solution = 'Use um servidor web local ou HTTPS';
-                    } else if (!isChrome && !isEdge) {
-                        reason = 'Navegador não suportado';
-                        solution = 'Use Chrome ou Edge';
-                    }
-                    
-                    indicator.innerHTML = `
-                        <div style="text-align: left;">
-                            ⚠️ <strong>Salvamento automático não disponível</strong><br>
-                            🔍 <strong>Motivo:</strong> ${reason}<br>
-                            💡 <strong>Solução:</strong> ${solution}<br>
-                            🔥 Use o botão "💾 Baixar data.js" para salvar manualmente
-                        </div>
-                    `;
-                    indicator.style.background = '#fff3cd';
-                    indicator.style.color = '#856404';
-                    indicator.style.padding = '12px';
-                    indicator.style.borderLeft = '4px solid #ffc107';
-                    debugLog(`Salvamento automático não disponível: ${reason}`);
-                }
-            } catch (error) {
-                debugLog(`Erro na detecção de capacidades: ${error.message}`, 'error');
-                fileSystemSupported = false;
-            }
-        }
-
-        // Função principal para configurar pasta
-        function tryAutoSave() {
-            debugLog('=== TENTATIVA DE CONFIGURAÇÃO DE PASTA ===');
-            
-            if (location.protocol === 'file:') {
-                const msg = `
-                    ⚠️ Salvamento automático não funciona com arquivos locais (file://)
-                    
-                    💡 Para ativar esta funcionalidade:
-                    • Use um servidor web local (Live Server, Python, etc.)
-                    • Acesse via http://localhost ou https://
-                    
-                    🔥 Por enquanto, use "💾 Baixar data.js" para salvar manualmente
-                `;
-                showMessage(msg, 'warning');
-                debugLog('Tentativa de uso em protocolo file:// - não suportado', 'warn');
-                
-                const downloadBtn = document.querySelector('button[onclick="downloadDataFile()"]');
-                if (downloadBtn) {
-                    downloadBtn.style.animation = 'pulse 2s infinite';
-                    setTimeout(() => {
-                        downloadBtn.style.animation = '';
-                    }, 5000);
-                }
-                return;
-            }
-            
-            if (!fileSystemSupported) {
-                const msg = '❌ Salvamento automático não suportado neste navegador/ambiente.';
-                showMessage(msg, 'error');
-                debugLog(msg, 'error');
-                return;
-            }
-
-            if (allProductsData.length === 0) {
-                const msg = '⚠️ Nenhum dado para salvar. Importe uma planilha primeiro.';
-                showMessage(msg, 'warning');
-                debugLog(msg, 'warn');
-                return;
-            }
-
-            debugLog('Solicitando seleção de pasta ao usuário');
-            
-            window.showDirectoryPicker({
-                mode: 'readwrite',
-                startIn: 'documents'
-            }).then(function(handle) {
-                debugLog('Pasta selecionada com sucesso');
-                directoryHandle = handle;
-                
-                showMessage('✅ Pasta configurada! Salvando arquivo...', 'success');
-                updateUI();
-                
-                return saveDataAutomatically();
-                
-            }).then(function(success) {
-                if (success) {
-                    showMessage('✨ Arquivo data.js salvo automaticamente na pasta selecionada!', 'success');
-                    debugLog('Salvamento automático concluído com sucesso');
-                } else {
-                    showMessage('❌ Erro ao salvar o arquivo. Verifique as permissões.', 'error');
-                    debugLog('Falha no salvamento automático', 'error');
-                }
-            }).catch(function(error) {
-                if (error.name === 'AbortError') {
-                    debugLog('Usuário cancelou a seleção de pasta');
-                    showMessage('❌ Seleção de pasta cancelada pelo usuário.', 'info');
-                } else {
-                    debugLog(`Erro no processo: ${error.message}`, 'error');
-                    showMessage(`❌ Erro: ${error.message}`, 'error');
-                }
-            });
-        }
-
-        function reconfigureAutoSave() {
-            debugLog('Reconfigurando pasta para salvamento automático');
-            directoryHandle = null;
-            tryAutoSave();
-        }
-
-        function saveDataAutomatically() {
-            return new Promise(function(resolve, reject) {
-                debugLog('=== INICIANDO SALVAMENTO AUTOMÁTICO ===');
-                
-                if (!directoryHandle) {
-                    debugLog('directoryHandle não configurado', 'error');
-                    resolve(false);
-                    return;
-                }
-                
-                if (allProductsData.length === 0) {
-                    debugLog('Nenhum dado para salvar', 'error');
-                    resolve(false);
-                    return;
-                }
-
-                try {
-                    debugLog('Gerando conteúdo do arquivo data.js');
-                    const dataContent = saveDataToFile(allProductsData);
-                    debugLog(`Conteúdo gerado: ${dataContent.length} caracteres`);
-                    
-                    debugLog('Verificando permissões de escrita');
-                    directoryHandle.requestPermission({ mode: 'readwrite' }).then(function(permission) {
-                        debugLog(`Permissão obtida: ${permission}`);
-                        
-                        if (permission !== 'granted') {
-                            throw new Error('Permissão de escrita negada');
-                        }
-                        
-                        debugLog('Criando/obtendo arquivo data.js');
-                        return directoryHandle.getFileHandle('data.js', { create: true });
-                        
-                    }).then(function(fileHandle) {
-                        debugLog('Arquivo obtido, criando stream de escrita');
-                        return fileHandle.createWritable();
-                        
-                    }).then(function(writable) {
-                        debugLog('Escrevendo conteúdo no arquivo');
-                        return writable.write(dataContent).then(function() {
-                            debugLog('Fechando arquivo');
-                            return writable.close();
-                        });
-                        
-                    }).then(function() {
-                        debugLog('Arquivo salvo com sucesso!');
-                        
-                        localStorage.setItem('stockDataTimestamp', Date.now().toString());
-                        updateUI();
-                        
-                        resolve(true);
-                        
-                    }).catch(function(error) {
-                        debugLog(`Erro no salvamento: ${error.message}`, 'error');
-                        reject(error);
-                    });
-                    
-                } catch (error) {
-                    debugLog(`Erro na geração do conteúdo: ${error.message}`, 'error');
-                    reject(error);
-                }
-            });
-        }
-
-        function testAutoSave() {
-            debugLog('=== TESTE DE SALVAMENTO ===');
-            
-            if (!fileSystemSupported) {
-                showMessage('❌ Salvamento automático não suportado neste navegador.', 'error');
-                return;
-            }
-            
-            if (!directoryHandle) {
-                showMessage('⚠️ Configure uma pasta primeiro clicando em "Configurar Pasta".', 'warning');
-                return;
-            }
-            
-            if (allProductsData.length === 0) {
-                showMessage('⚠️ Nenhum dado para testar. Importe uma planilha primeiro.', 'warning');
-                return;
-            }
-            
-            saveDataAutomatically().then(function(success) {
-                if (success) {
-                    showMessage('✅ Teste realizado! Arquivo salvo com sucesso.', 'success');
-                } else {
-                    showMessage('❌ Falha no teste de salvamento.', 'error');
-                }
-            }).catch(function(error) {
-                showMessage(`❌ Erro no teste: ${error.message}`, 'error');
-            });
-        }
-
         function updateUI() {
             debugLog('Atualizando interface do usuário');
             
@@ -3254,23 +2940,6 @@
                     } else {
                         infoText = '📅 Nenhuma importação realizada ainda';
                     }
-                }
-                
-                if (fileSystemSupported && directoryHandle) {
-                    const autoSaveBtn = document.getElementById('autoSaveBtn');
-                    const reconfigBtn = document.getElementById('reconfigBtn');
-                    const testBtn = document.getElementById('testBtn');
-                    
-                    if (autoSaveBtn) {
-                        autoSaveBtn.textContent = '✨ Salvar na Pasta';
-                        autoSaveBtn.classList.remove('ready');
-                    }
-                    if (reconfigBtn) reconfigBtn.style.display = 'inline-block';
-                    if (testBtn) testBtn.style.display = 'inline-block';
-                    
-                    infoText += '<br>🗂️ <span style="color: #28a745; font-weight: bold;">Pasta configurada - salvamento automático ativo!</span>';
-                } else if (fileSystemSupported) {
-                    infoText += '<br>⚙️ <span style="color: #1F448C;">Clique em "Configurar Pasta" para ativar salvamento automático</span>';
                 }
                 
                 lastUpdateDiv.innerHTML = infoText;
@@ -3469,20 +3138,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 : '';
             showMessage(`✅ Dados importados com sucesso! ${data.length} produtos carregados.${sheetSummary}`, 'success');
 
-            if (fileSystemSupported && directoryHandle) {
-                debugLog('Tentando salvamento automático após importação');
-                saveDataAutomatically().then(function(success) {
-                    if (success) {
-                        showMessage('✨ Arquivo data.js atualizado automaticamente!', 'success');
-                    }
-                }).catch(function(error) {
-                    debugLog(`Erro no salvamento automático: ${error.message}`, 'error');
-                    showMessage('⚠️ Dados importados, mas erro no salvamento automático. Use "💾 Baixar data.js".', 'warning');
-                });
-            } else if (fileSystemSupported) {
-                showMessage('💡 Dica: Clique em "Configurar Pasta" para ativar salvamento automático!', 'info');
-            }
-
             initializeDashboard();
         }
 
@@ -3590,9 +3245,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             report.push(`- Protocolo: ${location.protocol}`);
             report.push(`- Hostname: ${location.hostname}`);
             report.push(`- URL completa: ${location.href}`);
-            report.push(`- showDirectoryPicker: ${'showDirectoryPicker' in window ? '✅' : '❌'}`);
-            report.push(`- fileSystemSupported: ${fileSystemSupported ? '✅' : '❌'}`);
-            report.push(`- directoryHandle: ${directoryHandle ? '✅ Configurado' : '❌ Não configurado'}`);
             
             // 4. Verificar localStorage
             report.push('\n💾 ARMAZENAMENTO LOCAL:');
@@ -3621,22 +3273,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             report.push(`- Import section expanded: ${document.getElementById('importContent')?.classList.contains('expanded') ? 'Sim' : 'Não'}`);
             report.push(`- Debug mode: ${debugMode ? 'Ativo' : 'Inativo'}`);
             report.push(`- Mapping debug mode: ${mappingDebugMode ? 'Ativo' : 'Inativo'}`);
-            
-            if (location.protocol === 'file:') {
-                report.push('\n🚀 INSTRUÇÕES PARA SALVAMENTO AUTOMÁTICO:');
-                report.push('Você está usando protocolo file://, que não suporta File System API.');
-                report.push('Para ativar salvamento automático, use um servidor web local:');
-                report.push('');
-                report.push('MÉTODO 1 - Python (já instalado no Windows):');
-                report.push('1. Abra o Prompt de Comando na pasta do projeto');
-                report.push('2. Execute: python -m http.server 8000');
-                report.push('3. Acesse: http://localhost:8000');
-                report.push('');
-                report.push('MÉTODO 2 - Live Server (VS Code):');
-                report.push('1. Instale a extensão "Live Server" no VS Code');
-                report.push('2. Clique direito no index.html → "Open with Live Server"');
-                report.push('3. Acesse: http://localhost:5500');
-            }
             
             report.push('\n🎯 DIAGNÓSTICO CONCLUÍDO!');
             
@@ -5830,8 +5466,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             try {
                 initializeTooltips();
-                // Primeiro detectar capacidades do navegador
-                detectBrowserCapabilities();
                 applyPredictionLabels();
 
                 // Depois carregar dados
