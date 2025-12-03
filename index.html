@@ -6,7 +6,7 @@
     <title>Dashboard de Estoque com Análise Preditiva - Borracha</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
@@ -220,14 +220,14 @@
             gap: 10px;
             align-items: center;
         }
-
+        
         .control-group {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
         }
-
+        
         button {
             background-color: #1F448C;
             color: white;
@@ -239,12 +239,12 @@
             transition: all 0.3s ease;
             white-space: nowrap;
         }
-
+        
         button:hover {
             background-color: #163666;
             transform: translateY(-1px);
         }
-
+        
         button.active {
             background-color: #2196F3;
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
@@ -276,19 +276,17 @@
         }
         
         select {
-            padding: 10px 12px;
-            border: 1px solid rgba(31, 68, 140, 0.18);
-            border-radius: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             font-size: 14px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color 0.3s ease;
             min-width: 180px;
-            background: #f8f9ff;
         }
-
+        
         select:focus {
             border-color: #1F448C;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(31, 68, 140, 0.12);
         }
         
         .import-section {
@@ -1262,28 +1260,18 @@
                 min-width: 200px;
             }
             
-            .filters-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-
             .controls {
-                gap: 12px;
-            }
-
-            .control-group,
-            .filters-actions,
-            .quick-filters {
                 flex-direction: column;
                 align-items: stretch;
             }
-
-            .control-group label,
-            .filter-card label {
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .control-group label {
                 font-weight: bold;
                 margin-bottom: 5px;
             }
@@ -1424,7 +1412,7 @@
                 <button onclick="filterLowStock()" class="filter-btn" data-filter="low">Estoque Baixo (2-6m)</button>
                 <button onclick="filterHighStock()" class="filter-btn" data-filter="high">Slow Moving (&gt;6m)</button>
             </div>
-
+            
             <div class="control-group">
                 <label>Família:</label>
                 <select id="familyFilter" onchange="filterByFamily()">
@@ -1446,6 +1434,18 @@
                     <option value="1-4">1-4 (GUARULHOS)</option>
                     <option value="90-13">90-13 (ITAJAÍ)</option>
                     <option value="90-15">90-15 (GARUVA)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Filtro avançado:</label>
+                <select id="advancedStockFilter" onchange="filterByAdvancedStock()">
+                    <option value="">Todos os produtos</option>
+                    <option value="no-stock">Sem estoque</option>
+                    <option value="over50">Estoque &gt; 50 meses</option>
+                    <option value="abc-a">Classe A</option>
+                    <option value="abc-b">Classe B</option>
+                    <option value="abc-c">Classe C</option>
                 </select>
             </div>
 
@@ -4062,164 +4062,6 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         // === FUNÇÕES DE FILTROS ===
-        function toggleSmartFilters() {
-            const body = document.getElementById('smartFiltersBody');
-            const icon = document.getElementById('smartFiltersIcon');
-            const toggleButton = document.querySelector('#smartFilters .filters-toggle');
-            const isExpanded = body.classList.toggle('expanded');
-
-            icon.classList.toggle('expanded', isExpanded);
-            icon.textContent = isExpanded ? '⌃' : '⌄';
-            toggleButton.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-        }
-
-        function handleSmartFiltersKey(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                toggleSmartFilters();
-            }
-        }
-
-        function updateActiveFiltersSummary() {
-            const summaryElement = document.getElementById('activeFiltersBadge');
-            const chipsElement = document.getElementById('activeFiltersChips');
-            if (!summaryElement) {
-                return;
-            }
-
-            const activeLabels = [];
-
-            switch (currentFilter) {
-                case 'critical':
-                    activeLabels.push('Estoque crítico');
-                    break;
-                case 'low':
-                    activeLabels.push('Estoque baixo');
-                    break;
-                case 'high':
-                    activeLabels.push('Slow moving');
-                    break;
-            }
-
-            if (predictionFilter === 'zero30') {
-                activeLabels.push('Ruptura em 30 dias');
-            } else if (predictionFilter === 'zero60') {
-                activeLabels.push('Ruptura em 60 dias');
-            }
-
-            if (selectedFamily) {
-                activeLabels.push('Família: ' + selectedFamily);
-            }
-
-            if (selectedSupplier) {
-                activeLabels.push('Fornecedor: ' + selectedSupplier);
-            }
-
-            if (currentEstablishment) {
-                activeLabels.push('Estab.: ' + currentEstablishment);
-            }
-
-            if (advancedStockFilter) {
-                const advancedLabels = {
-                    'no-stock': 'Sem estoque',
-                    'over50': 'Estoque > 50 meses',
-                    'abc-a': 'Classe A',
-                    'abc-b': 'Classe B',
-                    'abc-c': 'Classe C'
-                };
-                const mappedLabel = advancedLabels[advancedStockFilter];
-                if (mappedLabel) {
-                    activeLabels.push(mappedLabel);
-                }
-            }
-
-            const detailText = activeLabels.length > 0 ? activeLabels.join(' + ') : 'Sem filtros ativos';
-            const headlineElement = summaryElement.querySelector('span');
-            const detailElement = summaryElement.querySelector('small');
-
-            if (headlineElement) {
-                headlineElement.textContent = activeLabels[0] || 'Todos os produtos';
-            }
-            if (detailElement) {
-                detailElement.textContent = detailText;
-            }
-
-            if (chipsElement) {
-                chipsElement.innerHTML = '';
-                if (activeLabels.length === 0) {
-                    const placeholder = document.createElement('span');
-                    placeholder.className = 'filter-chip';
-                    placeholder.textContent = 'Nenhum filtro aplicado';
-                    chipsElement.appendChild(placeholder);
-                } else {
-                    activeLabels.forEach(function(label) {
-                        const chip = document.createElement('span');
-                        chip.className = 'filter-chip';
-                        chip.textContent = label;
-                        chipsElement.appendChild(chip);
-                    });
-                }
-            }
-        }
-
-        function handleClearFilters(event) {
-            if (event && typeof event.stopPropagation === 'function') {
-                event.stopPropagation();
-            }
-            resetAllFilters();
-            applyAllFilters();
-        }
-
-        function updateSmartFilterButtons() {
-            const smartButtons = document.querySelectorAll('[data-smart-filter]');
-            smartButtons.forEach(function(button) {
-                const key = button.dataset.smartFilter;
-                let isActive = false;
-
-                if (key === 'zero30') {
-                    isActive = predictionFilter === 'zero30';
-                } else if (key === 'zero60') {
-                    isActive = predictionFilter === 'zero60';
-                } else {
-                    isActive = advancedStockFilter === key;
-                }
-
-                button.classList.toggle('active', isActive);
-                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-            });
-        }
-
-        function applyPredictionQuickFilter(target) {
-            if (predictionFilter === target) {
-                predictionFilter = null;
-                currentFilter = 'all';
-                updateActiveButton('all');
-            } else {
-                predictionFilter = target;
-                criticalFilterActive = false;
-                currentFilter = target === 'zero30' ? 'prediction30' : 'prediction60';
-                updateActiveButton(null);
-            }
-
-            applyAllFilters();
-        }
-
-        function applyAdvancedQuickFilter(target) {
-            const advancedDropdown = document.getElementById('advancedStockFilter');
-            if (advancedStockFilter === target) {
-                advancedStockFilter = '';
-                if (advancedDropdown) {
-                    advancedDropdown.value = '';
-                }
-            } else {
-                advancedStockFilter = target;
-                if (advancedDropdown) {
-                    advancedDropdown.value = target;
-                }
-            }
-            criticalFilterActive = false;
-            applyAllFilters();
-        }
         function resetOver50AdvancedFilter() {
             if (advancedStockFilter === 'over50') {
                 advancedStockFilter = '';
@@ -4271,10 +4113,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             document.getElementById('familyFilter').value = '';
             document.getElementById('supplierFilter').value = '';
             document.getElementById('establishmentFilter').value = '';
-            const advancedDropdown = document.getElementById('advancedStockFilter');
-            if (advancedDropdown) {
-                advancedDropdown.value = '';
-            }
+            document.getElementById('advancedStockFilter').value = '';
             advancedStockFilter = '';
             updateActiveButton('all');
             applyAllFilters();
@@ -4366,11 +4205,49 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function filterZeroIn30() {
-            applyPredictionQuickFilter('zero30');
+            const item30 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn30()"]');
+            
+            if (predictionFilter === 'zero30') {
+                predictionFilter = null;
+                item30.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                
+                predictionFilter = 'zero30';
+                criticalFilterActive = false;
+                item30.classList.add('active');
+                currentFilter = 'prediction30';
+                updateActiveButton(null);
+                
+                applyAllFilters();
+            }
         }
 
         function filterZeroIn60() {
-            applyPredictionQuickFilter('zero60');
+            const item60 = document.querySelector('.prediction-item.clickable[onclick="filterZeroIn60()"]');
+
+            if (predictionFilter === 'zero60') {
+                predictionFilter = null;
+                item60.classList.remove('active');
+                showAllProducts();
+            } else {
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+
+                predictionFilter = 'zero60';
+                criticalFilterActive = false;
+                item60.classList.add('active');
+                currentFilter = 'prediction60';
+                updateActiveButton(null);
+
+                applyAllFilters();
+            }
         }
 
         function assignAbcClassification(dataSet) {
@@ -4566,16 +4443,15 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             updateSummary();
             updateGauges();
             updatePredictiveAnalysis();
-            updateSmartFilterButtons();
-            updateActiveFiltersSummary();
         }
 
         function updateActiveButton(filter) {
-            const filterBtns = document.querySelectorAll('.filter-btn[data-filter]');
+            const filterBtns = document.querySelectorAll('.filter-btn');
             filterBtns.forEach(function(btn) {
-                const isActive = filter && btn.dataset.filter === filter;
-                btn.classList.toggle('active', isActive);
-                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                btn.classList.remove('active');
+                if (filter && btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                }
             });
         }
 
@@ -4719,7 +4595,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                             <th><span class="header-label">#<span class="info-icon has-tooltip" tabindex="0" aria-label="Posição no ranking" data-tooltip="Lugar do produto na lista, indo do que mais vende para o que menos vende." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Código<span class="info-icon has-tooltip" tabindex="0" aria-label="Código do produto" data-tooltip="Número usado no sistema para identificar o produto." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Item<span class="info-icon has-tooltip" tabindex="0" aria-label="Descrição do item" data-tooltip="Nome do produto como aparece no cadastro." data-tooltip-position="top">?</span></span></th>
-                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas nos últimos 4 meses" data-tooltip="Total vendido nos últimos 4 meses considerado nesta análise." data-tooltip-position="top">?</span></span></th>
+                            <th><span class="header-label">Vendas 3M<span class="info-icon has-tooltip" tabindex="0" aria-label="Vendas nos últimos 4 meses" data-tooltip="Total vendido nos últimos 3 meses considerado nesta análise." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">% Individual<span class="info-icon has-tooltip" tabindex="0" aria-label="Percentual individual" data-tooltip="Mostra quanto o produto representa sozinho do total vendido pelos itens com saída. Com base nele definimos as classes: 5% ou mais → A; entre 1% e 5% → B; abaixo de 1% → C." data-tooltip-position="top">?</span></span></th>
                             <th><span class="header-label">Classe<span class="info-icon has-tooltip" tabindex="0" aria-label="Classe ABC" data-tooltip="Definida diretamente pelo % Individual do item: 5% ou mais das vendas ficam na Classe A, entre 1% e 5% na Classe B e o restante na Classe C." data-tooltip-position="top">?</span></span></th>
                         </tr>
