@@ -1,4 +1,4 @@
-// Dados do Dashboard de Estoque v1.3 - Gerado em 02/12/2025, 17:58:15
+// Dados do Dashboard de Estoque v1.3 - Gerado em 03/12/2025, 08:36:42
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
 console.log('Carregando data.js v1.3...');
 
@@ -17,6 +17,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0.9,
+    "fCobertura": 1.4,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -61,8 +62,10 @@ window.stockData = [
           "totalStock": 2440,
           "vendas4M": 30720,
           "media3M": 10240,
-          "cobertura": 0.3
-        }
+          "cobertura": 0.3,
+          "fCobertura": 1.4
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -80,6 +83,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.1,
+    "fCobertura": 4.4,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -124,8 +128,10 @@ window.stockData = [
           "totalStock": 13500,
           "vendas4M": 28420,
           "media3M": 9473,
-          "cobertura": 1.9
-        }
+          "cobertura": 1.9,
+          "fCobertura": 4.4
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -143,6 +149,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 10.3,
+    "fCobertura": 4.7,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -187,8 +194,10 @@ window.stockData = [
           "totalStock": 5580,
           "vendas4M": 1620,
           "media3M": 540,
-          "cobertura": 13.8
-        }
+          "cobertura": 13.8,
+          "fCobertura": 4.7
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -206,6 +215,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.6,
+    "fCobertura": 3.5,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -250,8 +260,10 @@ window.stockData = [
           "totalStock": 4000,
           "vendas4M": 5760,
           "media3M": 1920,
-          "cobertura": 2.8
-        }
+          "cobertura": 2.8,
+          "fCobertura": 3.5
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -269,6 +281,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.7,
+    "fCobertura": 6.2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -313,8 +326,10 @@ window.stockData = [
           "totalStock": 5299,
           "vendas4M": 9120,
           "media3M": 3040,
-          "cobertura": 2.3
-        }
+          "cobertura": 2.3,
+          "fCobertura": 6.2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -332,6 +347,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.4,
+    "fCobertura": 4.9,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -376,8 +392,10 @@ window.stockData = [
           "totalStock": 5920,
           "vendas4M": 5980,
           "media3M": 1993,
-          "cobertura": 4
-        }
+          "cobertura": 4,
+          "fCobertura": 4.9
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -395,6 +413,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2.1,
+    "fCobertura": 3.2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -439,8 +458,10 @@ window.stockData = [
           "totalStock": 2280,
           "vendas4M": 6120,
           "media3M": 2040,
-          "cobertura": 1.5
-        }
+          "cobertura": 1.5,
+          "fCobertura": 3.2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -458,6 +479,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 141,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -502,8 +524,10 @@ window.stockData = [
           "totalStock": 940,
           "vendas4M": 20,
           "media3M": 7,
-          "cobertura": 188
-        }
+          "cobertura": 188,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -521,6 +545,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 37.1,
+    "fCobertura": 62.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -565,8 +590,10 @@ window.stockData = [
           "totalStock": 6180,
           "vendas4M": 500,
           "media3M": 167,
-          "cobertura": 49.4
-        }
+          "cobertura": 49.4,
+          "fCobertura": 62.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -584,6 +611,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 6.8,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -628,8 +656,10 @@ window.stockData = [
           "totalStock": 57,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 9.1
-        }
+          "cobertura": 9.1,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -647,6 +677,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 143.6,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -691,8 +722,10 @@ window.stockData = [
           "totalStock": 1197,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 191.5
-        }
+          "cobertura": 191.5,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -710,6 +743,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -754,8 +788,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 1,
           "media3M": 0,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -773,6 +809,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -817,8 +854,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 1,
           "media3M": 0,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -836,6 +875,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 54000,
     "cobertura": 3.8,
+    "fCobertura": 3.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -880,8 +920,10 @@ window.stockData = [
           "totalStock": 11070,
           "vendas4M": 51250,
           "media3M": 17083,
-          "cobertura": 0.9
-        }
+          "cobertura": 0.9,
+          "fCobertura": 3.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -899,6 +941,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 12.7,
+    "fCobertura": 12.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -943,8 +986,10 @@ window.stockData = [
           "totalStock": 28201,
           "vendas4M": 6650,
           "media3M": 2217,
-          "cobertura": 17
-        }
+          "cobertura": 17,
+          "fCobertura": 12.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -962,6 +1007,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 6.8,
+    "fCobertura": 9.1,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1006,8 +1052,10 @@ window.stockData = [
           "totalStock": 13025,
           "vendas4M": 5775,
           "media3M": 1925,
-          "cobertura": 9
-        }
+          "cobertura": 9,
+          "fCobertura": 9.1
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1025,6 +1073,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0.1,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1069,8 +1118,10 @@ window.stockData = [
           "totalStock": 1200,
           "vendas4M": 62400,
           "media3M": 20800,
-          "cobertura": 0.1
-        }
+          "cobertura": 0.1,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1088,6 +1139,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 1.5,
+    "fCobertura": 13.2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1132,8 +1184,10 @@ window.stockData = [
           "totalStock": 3950,
           "vendas4M": 7950,
           "media3M": 2650,
-          "cobertura": 2
-        }
+          "cobertura": 2,
+          "fCobertura": 13.2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1151,6 +1205,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 88.4,
+    "fCobertura": 16.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1195,8 +1250,10 @@ window.stockData = [
           "totalStock": 11050,
           "vendas4M": 375,
           "media3M": 125,
-          "cobertura": 117.9
-        }
+          "cobertura": 117.9,
+          "fCobertura": 16.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1214,6 +1271,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 3.8,
+    "fCobertura": 3.2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1258,8 +1316,10 @@ window.stockData = [
           "totalStock": 2600,
           "vendas4M": 8350,
           "media3M": 2783,
-          "cobertura": 1.2
-        }
+          "cobertura": 1.2,
+          "fCobertura": 3.2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1277,6 +1337,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 11.8,
+    "fCobertura": 2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1321,8 +1382,10 @@ window.stockData = [
           "totalStock": 1575,
           "vendas4M": 400,
           "media3M": 133,
-          "cobertura": 15.8
-        }
+          "cobertura": 15.8,
+          "fCobertura": 2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1340,6 +1403,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 74.4,
+    "fCobertura": 6.6,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1384,8 +1448,10 @@ window.stockData = [
           "totalStock": 3100,
           "vendas4M": 125,
           "media3M": 42,
-          "cobertura": 99.2
-        }
+          "cobertura": 99.2,
+          "fCobertura": 6.6
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1403,6 +1469,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 158.6,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1447,8 +1514,10 @@ window.stockData = [
           "totalStock": 9250,
           "vendas4M": 175,
           "media3M": 58,
-          "cobertura": 211.4
-        }
+          "cobertura": 211.4,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1466,6 +1535,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.8,
+    "fCobertura": 8.1,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1510,8 +1580,10 @@ window.stockData = [
           "totalStock": 2125,
           "vendas4M": 6600,
           "media3M": 2200,
-          "cobertura": 1.3
-        }
+          "cobertura": 1.3,
+          "fCobertura": 8.1
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1529,6 +1601,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 37.7,
+    "fCobertura": 45,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1573,8 +1646,10 @@ window.stockData = [
           "totalStock": 2200,
           "vendas4M": 175,
           "media3M": 58,
-          "cobertura": 50.3
-        }
+          "cobertura": 50.3,
+          "fCobertura": 45
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1592,6 +1667,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.5,
+    "fCobertura": 10.7,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1636,8 +1712,10 @@ window.stockData = [
           "totalStock": 3400,
           "vendas4M": 7050,
           "media3M": 2350,
-          "cobertura": 1.9
-        }
+          "cobertura": 1.9,
+          "fCobertura": 10.7
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1655,6 +1733,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 16000,
     "cobertura": 10.3,
+    "fCobertura": 1,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1699,8 +1778,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 4675,
           "media3M": 1558,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 1
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1718,6 +1799,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 8000,
     "cobertura": 14.9,
+    "fCobertura": 5.7,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1762,8 +1844,10 @@ window.stockData = [
           "totalStock": 2325,
           "vendas4M": 2075,
           "media3M": 692,
-          "cobertura": 4.5
-        }
+          "cobertura": 4.5,
+          "fCobertura": 5.7
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1781,6 +1865,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 426,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1825,8 +1910,10 @@ window.stockData = [
           "totalStock": 3550,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 568
-        }
+          "cobertura": 568,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1844,6 +1931,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0.4,
+    "fCobertura": 2,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1888,8 +1976,10 @@ window.stockData = [
           "totalStock": 200,
           "vendas4M": 1600,
           "media3M": 533,
-          "cobertura": 0.5
-        }
+          "cobertura": 0.5,
+          "fCobertura": 2
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1907,6 +1997,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 105,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1951,8 +2042,10 @@ window.stockData = [
           "totalStock": 3500,
           "vendas4M": 100,
           "media3M": 33,
-          "cobertura": 140
-        }
+          "cobertura": 140,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -1970,6 +2063,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 207,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2014,8 +2108,10 @@ window.stockData = [
           "totalStock": 1725,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 276
-        }
+          "cobertura": 276,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2033,6 +2129,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 52,
+    "fCobertura": 9.7,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2077,8 +2174,10 @@ window.stockData = [
           "totalStock": 1300,
           "vendas4M": 75,
           "media3M": 25,
-          "cobertura": 69.3
-        }
+          "cobertura": 69.3,
+          "fCobertura": 9.7
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2096,6 +2195,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 208.5,
+    "fCobertura": 20.9,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2140,8 +2240,10 @@ window.stockData = [
           "totalStock": 3475,
           "vendas4M": 50,
           "media3M": 17,
-          "cobertura": 278
-        }
+          "cobertura": 278,
+          "fCobertura": 20.9
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2159,6 +2261,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 141,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2203,8 +2306,10 @@ window.stockData = [
           "totalStock": 1175,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 188
-        }
+          "cobertura": 188,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2222,6 +2327,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 135,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2266,8 +2372,10 @@ window.stockData = [
           "totalStock": 2250,
           "vendas4M": 50,
           "media3M": 17,
-          "cobertura": 180
-        }
+          "cobertura": 180,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2285,6 +2393,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 6.5,
+    "fCobertura": 4.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2329,8 +2438,10 @@ window.stockData = [
           "totalStock": 15325,
           "vendas4M": 17300,
           "media3M": 5767,
-          "cobertura": 3.5
-        }
+          "cobertura": 3.5,
+          "fCobertura": 4.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2348,6 +2459,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 22.1,
+    "fCobertura": 2.9,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2392,8 +2504,10 @@ window.stockData = [
           "totalStock": 16240,
           "vendas4M": 2200,
           "media3M": 733,
-          "cobertura": 29.5
-        }
+          "cobertura": 29.5,
+          "fCobertura": 2.9
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2411,6 +2525,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 76.5,
+    "fCobertura": 6.1,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2455,8 +2570,10 @@ window.stockData = [
           "totalStock": 2550,
           "vendas4M": 100,
           "media3M": 33,
-          "cobertura": 102
-        }
+          "cobertura": 102,
+          "fCobertura": 6.1
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2474,6 +2591,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 87,
+    "fCobertura": 0,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2518,8 +2636,10 @@ window.stockData = [
           "totalStock": 725,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 116
-        }
+          "cobertura": 116,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2537,6 +2657,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 157.5,
+    "fCobertura": 9.8,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2581,8 +2702,10 @@ window.stockData = [
           "totalStock": 5250,
           "vendas4M": 100,
           "media3M": 33,
-          "cobertura": 210
-        }
+          "cobertura": 210,
+          "fCobertura": 9.8
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2600,6 +2723,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 210,
+    "fCobertura": 18.5,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2644,8 +2768,10 @@ window.stockData = [
           "totalStock": 1750,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 280
-        }
+          "cobertura": 280,
+          "fCobertura": 18.5
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2663,6 +2789,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 2244,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2707,8 +2834,10 @@ window.stockData = [
           "totalStock": 18700,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 2992
-        }
+          "cobertura": 2992,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2726,6 +2855,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.8,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2770,8 +2900,10 @@ window.stockData = [
           "totalStock": 24300,
           "vendas4M": 15300,
           "media3M": 5100,
-          "cobertura": 6.4
-        }
+          "cobertura": 6.4,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2789,6 +2921,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 193.7,
+    "fCobertura": 15.5,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2833,8 +2966,10 @@ window.stockData = [
           "totalStock": 2905,
           "vendas4M": 45,
           "media3M": 15,
-          "cobertura": 258
-        }
+          "cobertura": 258,
+          "fCobertura": 15.5
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2852,6 +2987,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 69,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2896,8 +3032,10 @@ window.stockData = [
           "totalStock": 575,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 92
-        }
+          "cobertura": 92,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2915,6 +3053,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2959,8 +3098,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 25,
           "media3M": 8,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -2978,6 +3119,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 11.4,
+    "fCobertura": 39,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3022,8 +3164,10 @@ window.stockData = [
           "totalStock": 950,
           "vendas4M": 250,
           "media3M": 83,
-          "cobertura": 15.2
-        }
+          "cobertura": 15.2,
+          "fCobertura": 39
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -3041,6 +3185,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3085,8 +3230,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 600,
           "media3M": 200,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -3104,6 +3251,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3148,8 +3296,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 600,
           "media3M": 200,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -3167,6 +3317,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 22.2,
+    "fCobertura": 9.3,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3211,8 +3362,10 @@ window.stockData = [
           "totalStock": 2070,
           "vendas4M": 280,
           "media3M": 93,
-          "cobertura": 30
-        }
+          "cobertura": 30,
+          "fCobertura": 9.3
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -3230,6 +3383,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 33,
+    "fCobertura": 7.9,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3274,8 +3428,10 @@ window.stockData = [
           "totalStock": 1375,
           "vendas4M": 125,
           "media3M": 42,
-          "cobertura": 44
-        }
+          "cobertura": 44,
+          "fCobertura": 7.9
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   },
@@ -3293,6 +3449,7 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 0,
+    "fCobertura": null,
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3337,8 +3494,10 @@ window.stockData = [
           "totalStock": 0,
           "vendas4M": 1,
           "media3M": 0,
-          "cobertura": 0
-        }
+          "cobertura": 0,
+          "fCobertura": 0
+        },
+        "coverageSource": "stockMonths"
       }
     ]
   }
@@ -3346,7 +3505,7 @@ window.stockData = [
 
 // Metadados
 window.stockMetadata = {
-    lastUpdate: "2025-12-02T20:58:15.809Z",
+    lastUpdate: "2025-12-03T11:36:42.792Z",
     totalProducts: 53,
     generatedBy: "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
     version: "1.3.0",
