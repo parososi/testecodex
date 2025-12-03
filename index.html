@@ -1942,6 +1942,9 @@
             const totalStock = Number(product.stock14 || 0) + Number(product.stock9013 || 0) + Number(product.stock9015 || 0);
             const coverageValue = getCoverageValue(product);
             const historyCoverageSource = resolveCoverageSource(product);
+            const forecastCoverageValue = Number.isFinite(product.fCobertura)
+                ? Number(product.fCobertura)
+                : null;
 
             return {
                 sheetName: sheetName || '',
@@ -1953,7 +1956,8 @@
                     totalStock: Number.isFinite(totalStock) ? totalStock : 0,
                     vendas4M: Number(product.vendas4M) || 0,
                     media3M: Number(product.media3M) || 0,
-                    cobertura: Number.isFinite(coverageValue) ? coverageValue : 0
+                    cobertura: Number.isFinite(coverageValue) ? coverageValue : 0,
+                    fCobertura: forecastCoverageValue
                 },
                 coverageSource: historyCoverageSource
             };
@@ -2010,7 +2014,8 @@
                 totalStock: 0,
                 vendas4M: 0,
                 media3M: 0,
-                cobertura: 0
+                cobertura: 0,
+                fCobertura: null
             }, entry.totals || {});
 
             const normalizedCoverageSource = entry.coverageSource || 'none';
@@ -2033,6 +2038,9 @@
             normalizedTotals.cobertura = Number.isFinite(Number(normalizedTotals.cobertura))
                 ? Number(normalizedTotals.cobertura)
                 : parseNumber(normalizedTotals.cobertura);
+            normalizedTotals.fCobertura = Number.isFinite(Number(normalizedTotals.fCobertura))
+                ? Number(normalizedTotals.fCobertura)
+                : parseNumber(normalizedTotals.fCobertura);
             normalizedTotals.totalStock = Number.isFinite(Number(normalizedTotals.totalStock))
                 ? Number(normalizedTotals.totalStock)
                 : (normalizedTotals.stock14 + normalizedTotals.stock9013 + normalizedTotals.stock9015);
@@ -2048,6 +2056,13 @@
         function ensureProductHistoryStructure(product) {
             if (!product || typeof product !== 'object') {
                 return product;
+            }
+
+            if (hasMeaningfulValue(product.fCobertura)) {
+                const parsedForecast = parseNumber(product.fCobertura);
+                product.fCobertura = Number.isFinite(parsedForecast) ? parsedForecast : null;
+            } else {
+                product.fCobertura = null;
             }
 
             if (Array.isArray(product.monthlyValues) && product.monthlyValues.length > 0) {
@@ -3105,7 +3120,8 @@
                             return {
                                 sheetName: normalizedEntry.sheetName,
                                 months: normalizedEntry.months,
-                                totals: normalizedEntry.totals
+                                totals: normalizedEntry.totals,
+                                coverageSource: normalizedEntry.coverageSource
                             };
                         })
                         : [];
@@ -3126,6 +3142,9 @@
                         cobertura: Number.isFinite(product.cobertura)
                             ? product.cobertura
                             : (Number.isFinite(product.stockMonths) ? product.stockMonths : 0),
+                        fCobertura: Number.isFinite(product.fCobertura)
+                            ? Number(product.fCobertura)
+                            : null,
                         monthlyValues: monthlyValues,
                         importHistory: historyEntries
                     };
@@ -4870,6 +4889,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         ? formatCoverageDisplay(totals.cobertura)
                         : null;
                     const coverageMetricHtml = `<li class="history-metric-coverage"><span class="history-metric-label">Estoque em meses</span><span class="history-metric-value">${coverageMetricDisplay && coverageMetricDisplay.unitLabel ? `${coverageMetricDisplay.displayValue} ${coverageMetricDisplay.unitLabel}` : '--'}</span></li>`;
+                    const forecastCoverageMetricDisplay = Number.isFinite(totals.fCobertura)
+                        ? formatCoverageDisplay(totals.fCobertura)
+                        : null;
+                    const forecastCoverageMetricHtml = forecastCoverageMetricDisplay
+                        ? `<li class="history-metric-coverage forecast"><span class="history-metric-label">F Cobertura (Sales Forecast)</span><span class="history-metric-value">${forecastCoverageMetricDisplay.displayValue} ${forecastCoverageMetricDisplay.unitLabel || ''}</span></li>`
+                        : '';
                     const entryCoverageMeta = getCoverageSourceMetadata({
                         coverageSource: entry.coverageSource,
                         stockMonths: totals.cobertura,
@@ -4891,7 +4916,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                             <div class="history-grid">
                                 <div class="history-summary">
                                     <h5>Resumo do período</h5>
-                                    <ul class="history-metric-list">${totalsMetrics}${coverageMetricHtml}</ul>
+                                    <ul class="history-metric-list">${totalsMetrics}${coverageMetricHtml}${forecastCoverageMetricHtml}</ul>
                                     ${entryCoverageNote}
                                 </div>
                                 <div class="history-months">
