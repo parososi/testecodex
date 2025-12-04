@@ -291,40 +291,31 @@
 
         .filter-active-badge {
             display: none;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 12px 14px;
-            border-radius: 10px;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
             background: #0f2250;
             color: #f6f8ff;
             font-weight: 700;
-            font-size: 13px;
-            box-shadow: 0 10px 24px rgba(16, 34, 80, 0.22);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            line-height: 1.3;
+            font-size: 12px;
+            box-shadow: 0 8px 18px rgba(16, 34, 80, 0.24);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            line-height: 1;
             cursor: default;
             position: relative;
-            min-width: 220px;
+            min-width: auto;
+            max-width: min(520px, calc(100vw - 64px));
             transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
         }
 
         .filter-active-badge::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            right: 22px;
-            width: 12px;
-            height: 12px;
-            background: inherit;
-            transform: rotate(45deg);
-            border-left: 1px solid rgba(255, 255, 255, 0.14);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-            box-shadow: 0 6px 16px rgba(16, 34, 80, 0.18);
+            display: none;
         }
 
         .filter-active-badge.visible {
             display: inline-flex;
+            flex-wrap: wrap;
         }
 
         .filter-active-badge:hover,
@@ -334,44 +325,41 @@
             outline: none;
         }
 
-        .filter-active-badge .badge-title {
+        .badge-inline-label {
             color: #c6d3ff;
             font-size: 12px;
-            font-weight: 600;
             letter-spacing: 0.02em;
             text-transform: uppercase;
         }
 
         .badge-filter-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .badge-filter-chip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 12px;
-            padding: 8px 10px;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 6px 10px;
             color: #f6f8ff;
             font-weight: 600;
-            box-shadow: 0 6px 16px rgba(15, 34, 80, 0.2);
+            white-space: nowrap;
         }
 
         .badge-filter-chip button {
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.28);
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.32);
             border-radius: 50%;
             color: #f6f8ff;
-            width: 24px;
-            height: 24px;
-            min-width: 24px;
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
             padding: 0;
             font-weight: 700;
             line-height: 1;
@@ -382,26 +370,6 @@
             background: rgba(255, 255, 255, 0.22);
             box-shadow: none;
             transform: none;
-        }
-
-        .badge-clear-all {
-            align-self: flex-end;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 10px;
-            color: #f6f8ff;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 700;
-            box-shadow: none;
-            min-width: auto;
-        }
-
-        .badge-clear-all:hover,
-        .badge-clear-all:focus-visible {
-            background: rgba(255, 255, 255, 0.22);
-            transform: none;
-            box-shadow: none;
         }
 
         .floating-filter-button {
@@ -4754,9 +4722,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 badge.innerHTML = '';
 
                 if (activeFilters.length) {
-                    const badgeTitle = document.createElement('div');
-                    badgeTitle.className = 'badge-title';
-                    badgeTitle.textContent = 'Filtros ativos';
+                    const badgeLabel = document.createElement('span');
+                    badgeLabel.className = 'badge-inline-label';
+                    badgeLabel.textContent = 'Filtros';
 
                     const badgeList = document.createElement('div');
                     badgeList.className = 'badge-filter-list';
@@ -4781,20 +4749,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         badgeList.appendChild(chip);
                     });
 
-                    const clearAllButton = document.createElement('button');
-                    clearAllButton.type = 'button';
-                    clearAllButton.className = 'badge-clear-all';
-                    clearAllButton.textContent = 'Limpar todos';
-                    clearAllButton.setAttribute('aria-label', 'Limpar todos os filtros ativos');
-                    clearAllButton.onclick = function() {
-                        clearAllFilters();
-                    };
-
-                    badge.appendChild(badgeTitle);
+                    badge.appendChild(badgeLabel);
                     badge.appendChild(badgeList);
-                    badge.appendChild(clearAllButton);
                     badge.classList.add('visible');
-                    badge.setAttribute('aria-label', 'Filtros ativos. Clique em X para remover individualmente ou no botão para limpar todos.');
+                    badge.setAttribute('aria-label', 'Filtros ativos. Clique em X para remover individualmente.');
                 } else {
                     badge.classList.remove('visible');
                     badge.removeAttribute('aria-label');
