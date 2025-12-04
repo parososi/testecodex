@@ -289,6 +289,47 @@
             z-index: 1100;
         }
 
+        .filter-active-badge {
+            display: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #0f2250;
+            color: #f6f8ff;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 10px 24px rgba(16, 34, 80, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            line-height: 1.3;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .filter-active-badge::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 22px;
+            width: 12px;
+            height: 12px;
+            background: inherit;
+            transform: rotate(45deg);
+            border-left: 1px solid rgba(255, 255, 255, 0.14);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 6px 16px rgba(16, 34, 80, 0.18);
+        }
+
+        .filter-active-badge.visible {
+            display: inline-flex;
+        }
+
+        .filter-active-badge:hover,
+        .filter-active-badge:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(16, 34, 80, 0.28);
+            outline: none;
+        }
+
         .floating-filter-button {
             display: inline-flex;
             align-items: center;
@@ -1644,6 +1685,7 @@
         </div>
         
         <div class="floating-filter-wrapper">
+            <button id="filterActiveBadge" type="button" class="filter-active-badge" onclick="clearAllFilters()" aria-label="Limpar filtros aplicados" aria-live="polite"></button>
             <button id="filterToggleButton" class="floating-filter-button" onclick="toggleFilterPanel()" aria-expanded="false" aria-controls="filterPanel">
                 <span class="filter-icon-bubble">🧭</span>
                 <span class="filter-button-text">
@@ -4507,6 +4549,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 return;
             }
 
+            if (filterType === 'prediction') {
+                predictionFilter = null;
+                currentFilter = 'all';
+                const activeItems = document.querySelectorAll('.prediction-item.active');
+                activeItems.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+                updateActiveButton('all');
+                applyAllFilters();
+                return;
+            }
+
             if (filterType === 'family') {
                 selectedFamily = null;
                 const familySelect = document.getElementById('familyFilter');
@@ -4546,6 +4600,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
             const summaryLabel = document.getElementById('filterSummaryLabel');
             const toggleButton = document.getElementById('filterToggleButton');
+            const badge = document.getElementById('filterActiveBadge');
 
             if (!activeFiltersContainer || !summaryLabel) {
                 return;
@@ -4553,7 +4608,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             const activeFilters = [];
 
-            if (currentFilter && currentFilter !== 'all') {
+            if (predictionFilter === 'zero30') {
+                activeFilters.push({ type: 'prediction', label: 'Previsão: ruptura em até 30 dias' });
+            } else if (predictionFilter === 'zero60') {
+                activeFilters.push({ type: 'prediction', label: 'Previsão: ruptura em 31 a 60 dias' });
+            }
+
+            if (!predictionFilter && currentFilter && currentFilter !== 'all') {
                 const activeBtn = document.querySelector(`.filter-btn[data-filter="${currentFilter}"]`);
                 activeFilters.push({ type: 'stock', label: activeBtn ? activeBtn.textContent.trim() : 'Estoque' });
             }
@@ -4613,6 +4674,21 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
             if (toggleButton) {
                 toggleButton.classList.toggle('has-active', Boolean(activeFilters.length));
+            }
+
+            if (badge) {
+                if (activeFilters.length) {
+                    const primaryLabel = activeFilters[0].label;
+                    const badgeSuffix = activeFilters.length > 1 ? ` +${activeFilters.length - 1}` : '';
+                    const badgeText = `${primaryLabel}${badgeSuffix}`;
+                    badge.textContent = `Limpar: ${badgeText}`;
+                    badge.classList.add('visible');
+                    badge.setAttribute('aria-label', `Limpar filtros (${badgeText})`);
+                } else {
+                    badge.textContent = '';
+                    badge.classList.remove('visible');
+                    badge.removeAttribute('aria-label');
+                }
             }
         }
 
