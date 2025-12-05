@@ -1,6 +1,6 @@
 # 📊 Dashboard de Estoque com Análise Preditiva - Borracha
 
-Um dashboard web interativo para análise de estoque com capacidades preditivas, desenvolvido para gestão de produtos de borracha da Usiquímica do Brasil (prazo limitado). A ferramenta automatiza a análise de níveis de estoque, identifica produtos críticos e oferece previsões de ruptura de estoque.
+Um dashboard web interativo para análise de estoque com capacidades preditivas, desenvolvido para gestão de produtos de borracha da Usiquímica do Brasil (prazo limitado). A ferramenta automatiza a análise de níveis de estoque, identifica produtos críticos e oferece previsões de ruptura de estoque. Foi pensado para uso rápido em ambiente local (sem backend), permitindo que a equipe visualize dados atualizados, gere alertas e exporte relatórios sem depender de instalação complexa. Abaixo você encontra as funcionalidades incluídas, para que servem e um passo a passo direto de uso.
 
 ## 📋 Índice
 
@@ -8,6 +8,7 @@ Um dashboard web interativo para análise de estoque com capacidades preditivas,
 - [Funcionalidades](#funcionalidades)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
 - [Como Usar](#como-usar)
+- [Para que Serve](#para-que-serve)
 - [Estrutura de Análise](#estrutura-de-análise)
 - [Limitações](#limitações)
 - [Créditos](#créditos)
@@ -20,28 +21,28 @@ Este dashboard foi desenvolvido para automatizar e otimizar o controle de estoqu
 ## ✨ Funcionalidades
 
 ### 📊 Análise de Estoque
-- **Análise Multi-Estabelecimento**: Controle consolidado dos estabelecimentos 1-4, 90-13 e 90-15
-- **Análise Preditiva**: Previsão de produtos que zerarão em 30 e 60 dias
-- **Classificação Automática**: Produtos críticos (<2 meses), baixo estoque (2-6 meses) e slow moving (>6 meses)
-- **Métricas Consolidadas**: Visão geral com totais, médias e indicadores críticos
+- **Análise Multi-Estabelecimento**: Consolida os estabelecimentos 1-4, 90-13 e 90-15 para enxergar rapidamente onde cada item está disponível.
+- **Análise Preditiva**: Antecipação de produtos que podem zerar em 30 e 60 dias para planejar reposição sem surpresas.
+- **Classificação Automática**: Categoriza produtos como críticos (<2 meses), baixo estoque (2-6 meses) ou slow moving (>6 meses) para priorizar ações.
+- **Métricas Consolidadas**: Visão geral com totais, médias e indicadores críticos para decisões rápidas.
 
 ### 🎮 Interface Interativa
-- **Gauges Animados**: Visualização por família de produtos com animações fluidas
-- **Filtros Dinâmicos**: Busca por código, nome, fornecedor ou família
-- **Dashboard Responsivo**: Interface adaptada para desktop e mobile
-- **Alertas Visuais**: Códigos de cores para identificação rápida de status
+- **Gauges Animados**: Visualização por família de produtos com animações fluidas, facilitando a leitura do status geral.
+- **Filtros Dinâmicos**: Busca por código, nome, fornecedor ou família para achar itens específicos em poucos cliques.
+- **Dashboard Responsivo**: Interface adaptada para desktop e mobile, mantendo o controle em qualquer dispositivo.
+- **Alertas Visuais**: Códigos de cores para identificação rápida de status, evitando depender de análises demoradas.
 
 ### 📄 Importação e Exportação
-- **Importação Flexível**: Suporte para Excel (.xlsx, .xls) e CSV
-- **Mapeamento Inteligente**: Detecção automática de colunas com debug visual
-- **Exportação Completa**: Relatórios em Excel ou CSV com dados filtrados
-- **Compartilhamento**: Sistema de arquivos para distribuição de dados atualizados
+- **Importação Flexível**: Suporte para Excel (.xlsx, .xls) e CSV para aproveitar planilhas já usadas pela equipe.
+- **Mapeamento Inteligente**: Detecção automática de colunas com debug visual, reduzindo erros na leitura dos dados.
+- **Exportação Completa**: Relatórios em Excel ou CSV com dados filtrados para compartilhar rapidamente com outras áreas.
+- **Compartilhamento**: Sistema de arquivos para distribuição de dados atualizados sem depender de e-mail ou servidores.
 
 ### 🔧 Funcionalidades Avançadas
-- **Modo Offline**: Funciona completamente sem servidor
-- **Salvamento Automático**: File System API para salvar dados automaticamente (Chrome/Edge + HTTPS)
-- **Debug Avançado**: Sistema completo de diagnóstico e mapeamento de colunas
-- **Histórico de Dados**: Backup automático no localStorage
+- **Modo Offline**: Funciona completamente sem servidor, ideal para uso local em equipes restritas.
+- **Salvamento Automático**: File System API para salvar dados automaticamente quando suportado pelo navegador.
+- **Debug Avançado**: Sistema completo de diagnóstico e mapeamento de colunas para validar a leitura das planilhas.
+- **Histórico de Dados**: Backup automático no localStorage, permitindo retomar o trabalho sem reenviar arquivos.
 
 ## 🛠 Tecnologias Utilizadas
 
@@ -52,6 +53,15 @@ Este dashboard foi desenvolvido para automatizar e otimizar o controle de estoqu
 - **SheetJS (XLSX)**: Processamento de planilhas Excel
 - **File System Access API**: Salvamento automático de arquivos
 - **Local Storage**: Backup de dados do navegador
+
+## 🧭 Para que Serve
+
+O dashboard centraliza o acompanhamento de estoque de produtos de borracha, ajudando a:
+
+- Priorizar reposição de itens críticos antes da ruptura
+- Visualizar o desempenho por família, fornecedor e estabelecimento
+- Padronizar a análise com classificação automática e alertas visuais
+- Exportar relatórios filtrados para equipes operacionais ou gerenciais
 
 ## 🚀 Como Usar
 
@@ -85,10 +95,11 @@ Certifique-se de que sua planilha contenha as colunas:
 - **Tabela detalhada**: Dados completos com status visual
 - **Exportação**: Gere relatórios Excel/CSV dos dados filtrados
 
-### Requisitos
-- Navegador moderno (Chrome 80+, Firefox 75+, Safari 13+)
-- JavaScript habilitado
-- Para salvamento automático: Chrome/Edge + HTTPS ou localhost
+### 5. Fluxo Rápido de Uso
+- Baixe o repositório ou faça o download dos arquivos HTML/CSS/JS.
+- Abra o arquivo `index.html` diretamente no navegador (funciona offline).
+- Importe a planilha e use os filtros para encontrar itens críticos.
+- Exporte um CSV/Excel filtrado para compartilhar com sua equipe.
 
 ## 📐 Estrutura de Análise
 
