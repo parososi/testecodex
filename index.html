@@ -4617,6 +4617,23 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
             }
 
+            if (filterType === 'search') {
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+
+                const resultsDiv = document.getElementById('searchResults');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = '';
+                }
+
+                searchTerm = '';
+                removeHighlights();
+                applyAllFilters();
+                return;
+            }
+
             applyAllFilters();
         }
 
@@ -4631,6 +4648,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             const activeFilters = [];
+
+            const searchInput = document.getElementById('globalSearch');
+            const searchValue = searchInput ? searchInput.value.trim() : '';
+            if (searchValue) {
+                activeFilters.push({ type: 'search', label: `Busca: "${searchValue}"` });
+            }
 
             if (predictionFilter === 'zero30') {
                 activeFilters.push({ type: 'prediction', label: 'Previsão: ruptura em até 30 dias' });
@@ -4743,6 +4766,19 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         }
 
         function clearAllFilters() {
+            const searchInput = document.getElementById('globalSearch');
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+            }
+
+            searchTerm = '';
+            removeHighlights();
             showAllProducts();
             closeFilterPanel();
             updateActiveFiltersDisplay();
