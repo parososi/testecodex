@@ -2984,7 +2984,7 @@
             }
 
             const stockKg = rawStock;
-            const formattedValue = formatStatValue(stockKg, 3);
+            const formattedValue = formatIntegerValue(stockKg);
             return `${formattedValue} kg`;
         }
 
@@ -3217,23 +3217,29 @@
         }
 
         async function fetchPtaxFromBacen() {
-            const todayUrl = buildPtaxDailyUrl(new Date());
+            const today = new Date();
             let lastError = null;
 
-            try {
-                const todayResponse = await fetch(todayUrl);
-                if (!todayResponse.ok) {
-                    throw new Error(`Erro ao consultar PTAX do dia (${todayResponse.status})`);
-                }
+            for (let offset = 0; offset < 5; offset++) {
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() - offset);
+                const dailyUrl = buildPtaxDailyUrl(targetDate);
 
-                const todayJson = await todayResponse.json();
-                if (Array.isArray(todayJson) && todayJson.length > 0) {
-                    return parsePtaxEntry(todayJson[0], 'Não foi possível interpretar o PTAX do dia.');
-                }
+                try {
+                    const response = await fetch(dailyUrl);
+                    if (!response.ok) {
+                        throw new Error(`Erro ao consultar PTAX do dia (${response.status})`);
+                    }
 
-                lastError = new Error('PTAX do dia indisponível. Usando último valor disponível.');
-            } catch (error) {
-                lastError = error;
+                    const json = await response.json();
+                    if (Array.isArray(json) && json.length > 0) {
+                        return parsePtaxEntry(json[0], 'Não foi possível interpretar o PTAX do dia.');
+                    }
+
+                    lastError = new Error('PTAX do dia indisponível. Buscando dia anterior.');
+                } catch (error) {
+                    lastError = error;
+                }
             }
 
             const latestResponse = await fetch(PTAX_LATEST_URL);
