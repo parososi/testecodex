@@ -2851,6 +2851,19 @@
             }).format(value);
         }
 
+        function formatWeightValue(value, maxFractionDigits = 3) {
+            if (value === null || typeof value === 'undefined' || Number.isNaN(value)) {
+                return '--';
+            }
+
+            const minimumFractionDigits = Number.isInteger(value) ? 0 : 1;
+
+            return new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits,
+                maximumFractionDigits: maxFractionDigits
+            }).format(value);
+        }
+
         function formatIntegerValue(value) {
             if (!Number.isFinite(value)) {
                 return '0';
@@ -5515,7 +5528,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const totalLabel = hasCost && Number.isFinite(costInfo.totalValue)
                 ? formatCurrencyValue(costInfo.totalValue, currencyLabel)
                 : '--';
-            const stockLabel = `${formatStatValue(costInfo.stockKg, 3)} kg em estoque`;
+            const stockLabel = `${formatWeightValue(costInfo.stockKg, 3)} kg em estoque`;
 
             const conversionVisible = costInfo.currency === 'USD';
             let convertedLabel = 'Aguardando PTAX...';
@@ -5576,7 +5589,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             if (stockWeightElement) {
-                stockWeightElement.textContent = `${formatStatValue(costInfo.stockKg, 3)} kg em estoque`;
+                stockWeightElement.textContent = `${formatWeightValue(costInfo.stockKg, 3)} kg em estoque`;
             }
 
             if (totalElement) {
