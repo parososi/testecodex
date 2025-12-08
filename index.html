@@ -1987,6 +1987,7 @@
         let lastImportedSheetName = '';
         const PTAX_STORAGE_KEY = 'ptaxCache';
         const PTAX_SERIES_URL = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.10813/dados/ultimo?formato=json';
+        const PTAX_FALLBACK_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
         let ptaxState = {
             rate: null,
             date: null,
@@ -3005,7 +3006,22 @@
             }
 
             const normalized = cellValue.toString().toLowerCase();
-            if (normalized.includes('usd') || normalized.includes('u$') || normalized.includes('u$s') || normalized.includes('$') || normalized.includes('dolar') || normalized.includes('dólar')) {
+
+            const isBrl = normalized.includes('brl')
+                || normalized.includes('r$')
+                || normalized.includes('real')
+                || normalized.includes('reais');
+
+            if (isBrl) {
+                return 'BRL';
+            }
+
+            const usdHints = ['usd', 'u$', 'u$s', 'dolar', 'dólar'];
+            if (usdHints.some(function(hint) { return normalized.includes(hint); })) {
+                return 'USD';
+            }
+
+            if (normalized.includes('$')) {
                 return 'USD';
             }
 
@@ -3168,19 +3184,8 @@
             storePtaxCache(ptaxState.rate, ptaxState.date);
         }
 
-        async function fetchPtaxRate(forceRefresh = false) {
-            if (ptaxState.loading) {
-                return ptaxState.promise;
-            }
-
-            const cached = loadCachedPtax();
-            if (!forceRefresh && cached && isSameDay(cached.date, new Date())) {
-                applyPtaxToState(cached.rate, cached.date);
-                return Promise.resolve({ rate: cached.rate, date: cached.date });
-            }
-
-            ptaxState.loading = true;
-            ptaxState.promise = fetch(PTAX_SERIES_URL)
+        function fetchPtaxFromBacen() {
+            return fetch(PTAX_SERIES_URL)
                 .then(function(response) {
                     if (!response.ok) {
                         throw new Error(`Erro ao consultar PTAX (${response.status})`);
@@ -3199,14 +3204,70 @@
                         throw new Error('Não foi possível interpretar o PTAX retornado.');
                     }
 
-                    applyPtaxToState(rate, referenceDate);
                     return { rate, date: referenceDate };
+                });
+        }
+
+        function fetchPtaxFromFallback() {
+            return fetch(PTAX_FALLBACK_URL)
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error(`Erro ao consultar serviço alternativo (${response.status})`);
+                    }
+                    return response.json();
                 })
-                .catch(function(error) {
-                    ptaxState.error = error.message;
-                    debugLog(`Erro ao buscar PTAX: ${error.message}`, 'error');
-                    return { rate: null, date: null };
-                })
+                .then(function(json) {
+                    const payload = json && (json.USDBRL || json['USD-BRL'] || json['USDBRL '] || json['USD_BRL']);
+                    const rate = payload ? parseNumber(payload.bid || payload.ask || payload.high || payload.low) : null;
+                    const referenceDate = payload && payload.create_date
+                        ? new Date(payload.create_date.replace(' ', 'T'))
+                        : new Date();
+
+                    if (!Number.isFinite(rate)) {
+                        throw new Error('Não foi possível interpretar o PTAX retornado pelo serviço de fallback.');
+                    }
+
+                    return {
+                        rate,
+                        date: referenceDate instanceof Date && !isNaN(referenceDate.getTime())
+                            ? referenceDate
+                            : new Date()
+                    };
+                });
+        }
+
+        async function fetchPtaxRate(forceRefresh = false) {
+            if (ptaxState.loading) {
+                return ptaxState.promise;
+            }
+
+            const cached = loadCachedPtax();
+            if (!forceRefresh && cached && isSameDay(cached.date, new Date())) {
+                applyPtaxToState(cached.rate, cached.date);
+                return Promise.resolve({ rate: cached.rate, date: cached.date });
+            }
+
+            ptaxState.loading = true;
+            ptaxState.promise = (async function() {
+                try {
+                    const bacenResult = await fetchPtaxFromBacen();
+                    applyPtaxToState(bacenResult.rate, bacenResult.date);
+                    return bacenResult;
+                } catch (primaryError) {
+                    debugLog(`Erro ao buscar PTAX (BACEN): ${primaryError.message}`, 'warn');
+
+                    try {
+                        const fallbackResult = await fetchPtaxFromFallback();
+                        applyPtaxToState(fallbackResult.rate, fallbackResult.date);
+                        return fallbackResult;
+                    } catch (fallbackError) {
+                        const combinedMessage = `Bacen: ${primaryError.message} | Fallback: ${fallbackError.message}`;
+                        ptaxState.error = combinedMessage;
+                        debugLog(`Erro ao buscar PTAX (fallback): ${fallbackError.message}`, 'error');
+                        return { rate: null, date: null };
+                    }
+                }
+            })()
                 .finally(function() {
                     ptaxState.loading = false;
                     ptaxState.promise = null;
