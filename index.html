@@ -958,7 +958,8 @@
             font-size: 28px;
             font-weight: bold;
             color: #1F448C;
-            transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+            transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease, filter 0.15s ease;
+            will-change: transform, filter;
         }
 
         .stat-value.critical {
@@ -969,7 +970,7 @@
         .prediction-value.value-change,
         #tableCount.value-change,
         .filter-button-text.value-change {
-            animation: numberFlash 0.45s ease;
+            animation: numberFlash 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .floating-filter-button.filter-pulse,
@@ -980,19 +981,27 @@
 
         @keyframes numberFlash {
             0% {
-                transform: translateY(4px) scale(0.98);
-                opacity: 0.5;
-                text-shadow: 0 8px 16px rgba(31, 68, 140, 0.15);
+                transform: translateY(6px) scale(0.9) rotate(-0.35deg);
+                opacity: 0.45;
+                color: #0f5bd9;
+                text-shadow: 0 10px 30px rgba(31, 68, 140, 0.2);
+                filter: drop-shadow(0 6px 12px rgba(15, 91, 217, 0.15));
             }
-            50% {
-                transform: translateY(-2px) scale(1.04);
+            48% {
+                transform: translateY(-2px) scale(1.07) rotate(0.15deg);
                 opacity: 1;
-                text-shadow: 0 14px 24px rgba(31, 68, 140, 0.12);
+                color: #102a56;
+                text-shadow: 0 16px 32px rgba(31, 68, 140, 0.16);
+                filter: drop-shadow(0 10px 18px rgba(12, 68, 160, 0.22));
+                letter-spacing: 0.2px;
             }
             100% {
-                transform: translateY(0) scale(1);
+                transform: translateY(0) scale(1) rotate(0);
                 opacity: 1;
+                color: inherit;
                 text-shadow: none;
+                filter: none;
+                letter-spacing: normal;
             }
         }
 
@@ -1682,9 +1691,7 @@
                     <h4>📋 Compartilhar Dados</h4>
                     <p>Após importar, baixe o arquivo de dados atualizado e compartilhe com sua equipe:</p>
                     <button onclick="downloadDataFile()" style="background-color: #28a745; font-size: 16px; padding: 10px 20px;">💾 Baixar data.js Atualizado</button>
-                    <button onclick="runDiagnostic()" style="background-color: #6c757d; margin-left: 10px;">🔍 Diagnóstico</button>
                     <button onclick="toggleDebug()" style="background-color: #ffc107; margin-left: 10px;">🐛 Debug</button>
-                    <button onclick="toggleMappingDebug()" style="background-color: #17a2b8; margin-left: 10px;">📋 Mapeamento</button>
                     <br><br>
                     <div style="background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc;">
                         <strong>🔍 Como compartilhar seus dados:</strong><br>
@@ -3091,9 +3098,20 @@
             }
         }
 
+        function formatLastUpdateText(dateInput) {
+            const date = new Date(dateInput);
+
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+
+            const formatted = `${date.toLocaleDateString('pt-BR')}, ${date.toLocaleTimeString('pt-BR')}`;
+            return `📅 Última atualização: ${formatted}`;
+        }
+
         function updateUI() {
             debugLog('Atualizando interface do usuário');
-            
+
             try {
                 const lastUpdateDiv = document.getElementById('lastUpdateInfo');
                 if (!lastUpdateDiv) {
@@ -3104,18 +3122,18 @@
                 let infoText = '';
                 
                 if (typeof window.stockMetadata !== 'undefined' && window.stockMetadata.lastUpdate) {
-                    const date = new Date(window.stockMetadata.lastUpdate);
-                    const formattedDate = date.toLocaleString('pt-BR');
-                    infoText = `📅 Última atualização: ${formattedDate}`;
+                    infoText = formatLastUpdateText(window.stockMetadata.lastUpdate);
                 } else {
                     const storedData = localStorage.getItem('stockDataTimestamp');
                     if (storedData) {
-                        const date = new Date(parseInt(storedData));
-                        const formattedDate = date.toLocaleString('pt-BR');
-                        infoText = `📅 Última atualização: ${formattedDate}`;
+                        infoText = formatLastUpdateText(parseInt(storedData));
                     } else {
                         infoText = '📅 Nenhuma importação realizada ainda';
                     }
+                }
+
+                if (!infoText) {
+                    infoText = '📅 Nenhuma importação realizada ainda';
                 }
                 
                 lastUpdateDiv.innerHTML = infoText;
