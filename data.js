@@ -18,6 +18,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0.9,
     "fCobertura": 1.4,
+    "accountingCost": 6.5,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -84,6 +86,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 2.1,
     "fCobertura": 4.4,
+    "accountingCost": 18.9,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
