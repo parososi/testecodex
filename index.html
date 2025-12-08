@@ -1871,7 +1871,7 @@
                     <div class="stat-value" id="totalFamilies">0</div>
                     <div class="stat-label"><span class="label-text">Famílias de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Famílias de produtos" data-tooltip="Número de famílias distintas representadas na lista atual de produtos." data-tooltip-position="top">?</span></div>
                 </div>
-                <div class="stat-item cost-highlight">
+                <div class="stat-item cost-highlight" id="brlCostCard">
                     <div class="stat-value" id="totalAccountingCostBrl">--</div>
                     <div class="stat-label"><span class="label-text">Custo Contábil (BRL)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Custo Contábil (BRL)" data-tooltip="Somatório do custo contábil por kg dos itens precificados em reais multiplicado pelo estoque disponível em quilos." data-tooltip-position="top">?</span></div>
                     <div class="stat-footnote" id="costBrlFootnote">Itens precificados em BRL</div>
@@ -1986,7 +1986,9 @@
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
         const PTAX_STORAGE_KEY = 'ptaxCache';
-        const PTAX_SERIES_URL = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.10813/dados/ultimo?formato=json';
+        const PTAX_SERIES_CODE = '10813'; // PTAX dólar americano/real brasileiro - venda
+        const PTAX_LATEST_URL = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${PTAX_SERIES_CODE}/dados/ultimo?formato=json`;
+        const PTAX_DAILY_URL = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${PTAX_SERIES_CODE}/dados?formato=json&data=`;
         const PTAX_FALLBACK_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
         let ptaxState = {
             rate: null,
@@ -2981,7 +2983,7 @@
                 return '--';
             }
 
-            const stockKg = rawStock / 1000;
+            const stockKg = rawStock;
             const formattedValue = formatStatValue(stockKg, 3);
             return `${formattedValue} kg`;
         }
@@ -3056,7 +3058,7 @@
         function calculateStockInKg(product) {
             const totalStock = getProductStock(product);
             const normalizedStock = Number.isFinite(totalStock) ? totalStock : 0;
-            return Math.max(normalizedStock / 1000, 0);
+            return Math.max(normalizedStock, 0);
         }
 
         function calculateProductCost(product, ptaxRate) {
@@ -3162,6 +3164,36 @@
             return date.toLocaleDateString('pt-BR');
         }
 
+        function buildPtaxDailyUrl(referenceDate) {
+            const date = referenceDate instanceof Date && !isNaN(referenceDate.getTime())
+                ? referenceDate
+                : new Date();
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+
+            return `${PTAX_DAILY_URL}${day}/${month}/${year}`;
+        }
+
+        function parsePtaxEntry(entry, errorMessage) {
+            if (!entry) {
+                throw new Error(errorMessage || 'Não foi possível interpretar o PTAX retornado.');
+            }
+
+            const rate = parseNumber(entry.valor);
+            const dateParts = entry.data ? entry.data.split('/') : null;
+            const referenceDate = dateParts && dateParts.length === 3
+                ? new Date(`${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`)
+                : new Date();
+
+            if (!Number.isFinite(rate)) {
+                throw new Error(errorMessage || 'Não foi possível interpretar o PTAX retornado.');
+            }
+
+            return { rate, date: referenceDate };
+        }
+
         function isSameDay(dateA, dateB) {
             if (!(dateA instanceof Date) || !(dateB instanceof Date)) {
                 return false;
@@ -3184,28 +3216,35 @@
             storePtaxCache(ptaxState.rate, ptaxState.date);
         }
 
-        function fetchPtaxFromBacen() {
-            return fetch(PTAX_SERIES_URL)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error(`Erro ao consultar PTAX (${response.status})`);
-                    }
-                    return response.json();
-                })
-                .then(function(json) {
-                    const lastEntry = Array.isArray(json) && json.length > 0 ? json[0] : null;
-                    const rate = lastEntry ? parseNumber(lastEntry.valor) : null;
-                    const dateParts = lastEntry && lastEntry.data ? lastEntry.data.split('/') : null;
-                    const referenceDate = dateParts && dateParts.length === 3
-                        ? new Date(`${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`)
-                        : new Date();
+        async function fetchPtaxFromBacen() {
+            const todayUrl = buildPtaxDailyUrl(new Date());
+            let lastError = null;
 
-                    if (!Number.isFinite(rate)) {
-                        throw new Error('Não foi possível interpretar o PTAX retornado.');
-                    }
+            try {
+                const todayResponse = await fetch(todayUrl);
+                if (!todayResponse.ok) {
+                    throw new Error(`Erro ao consultar PTAX do dia (${todayResponse.status})`);
+                }
 
-                    return { rate, date: referenceDate };
-                });
+                const todayJson = await todayResponse.json();
+                if (Array.isArray(todayJson) && todayJson.length > 0) {
+                    return parsePtaxEntry(todayJson[0], 'Não foi possível interpretar o PTAX do dia.');
+                }
+
+                lastError = new Error('PTAX do dia indisponível. Usando último valor disponível.');
+            } catch (error) {
+                lastError = error;
+            }
+
+            const latestResponse = await fetch(PTAX_LATEST_URL);
+            if (!latestResponse.ok) {
+                const baseMessage = lastError ? `${lastError.message} | ` : '';
+                throw new Error(`${baseMessage}Erro ao consultar PTAX mais recente (${latestResponse.status})`);
+            }
+
+            const latestJson = await latestResponse.json();
+            const latestEntry = Array.isArray(latestJson) && latestJson.length > 0 ? latestJson[0] : null;
+            return parsePtaxEntry(latestEntry, lastError ? lastError.message : 'Não foi possível interpretar o PTAX retornado.');
         }
 
         function fetchPtaxFromFallback() {
@@ -5284,13 +5323,19 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const costSummary = calculateAccountingCostTotals(filteredData, ptaxState.rate);
             const brlElement = document.getElementById('totalAccountingCostBrl');
             const brlFootnote = document.getElementById('costBrlFootnote');
+            const brlCard = document.getElementById('brlCostCard');
             const usdCard = document.getElementById('usdCostCard');
             const usdValueElement = document.getElementById('totalAccountingCostUsd');
             const usdBrlElement = document.getElementById('totalAccountingCostUsdInBrl');
             const ptaxSummaryInfo = document.getElementById('ptaxSummaryInfo');
 
+            const hasBrlCost = costSummary.brlCount > 0;
+
+            if (brlCard) {
+                brlCard.style.display = hasBrlCost ? 'block' : 'none';
+            }
+
             if (brlElement) {
-                const hasBrlCost = costSummary.brlCount > 0;
                 const brlValue = hasBrlCost ? costSummary.brlTotal : 0;
                 brlElement.textContent = formatCurrencyValue(brlValue, 'BRL');
                 animateValueChange(brlElement);
