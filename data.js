@@ -1,4 +1,4 @@
-// Dados do Dashboard de Estoque v1.3 - Gerado em 03/12/2025, 15:54:19
+// Dados do Dashboard de Estoque v1.3 - Gerado em 08/12/2025, 17:37:47
 // Substitua este arquivo na pasta compartilhada para atualizar os dados
 console.log('Carregando data.js v1.3...');
 
@@ -8,17 +8,17 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 3471",
-    "stock14": 2440,
-    "stock9013": 0,
+    "stock14": 1060,
+    "stock9013": 3840,
     "stock9015": 0,
-    "stockMonths": 0.3,
+    "stockMonths": 0.6,
     "vendas4M": 30720,
     "media3M": 10240,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 0.9,
-    "fCobertura": 1.4,
-    "accountingCost": 6.5,
+    "cobertura": 1.1,
+    "fCobertura": 1.9,
+    "accountingCost": 1.74,
     "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
@@ -58,14 +58,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 2440,
-          "stock9013": 0,
+          "stock14": 1060,
+          "stock9013": 3840,
           "stock9015": 0,
-          "totalStock": 2440,
+          "totalStock": 4900,
           "vendas4M": 30720,
           "media3M": 10240,
-          "cobertura": 0.3,
-          "fCobertura": 1.4
+          "cobertura": 0.6,
+          "fCobertura": 1.9
         },
         "coverageSource": "stockMonths"
       }
@@ -76,18 +76,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 3431",
-    "stock14": 1140,
+    "stock14": 40,
     "stock9013": 12360,
     "stock9015": 0,
-    "stockMonths": 1.9,
+    "stockMonths": 1.7,
     "vendas4M": 28420,
     "media3M": 9473,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 2.1,
-    "fCobertura": 4.4,
-    "accountingCost": 18.9,
-    "accountingCostCurrency": "BRL",
+    "cobertura": 2,
+    "fCobertura": 4.1,
+    "accountingCost": 1.87,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -126,14 +126,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 1140,
+          "stock14": 40,
           "stock9013": 12360,
           "stock9015": 0,
-          "totalStock": 13500,
+          "totalStock": 12400,
           "vendas4M": 28420,
           "media3M": 9473,
-          "cobertura": 1.9,
-          "fCobertura": 4.4
+          "cobertura": 1.7,
+          "fCobertura": 4.1
         },
         "coverageSource": "stockMonths"
       }
@@ -154,6 +154,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 10.3,
     "fCobertura": 4.7,
+    "accountingCost": 2.01,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -210,16 +212,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 3441",
-    "stock14": 1660,
+    "stock14": 0,
     "stock9013": 2340,
     "stock9015": 0,
-    "stockMonths": 2.8,
+    "stockMonths": 1.6,
     "vendas4M": 5760,
     "media3M": 1920,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 2.6,
-    "fCobertura": 3.5,
+    "cobertura": 1.7,
+    "fCobertura": 2.5,
+    "accountingCost": 1.79,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -258,14 +262,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 1660,
+          "stock14": 0,
           "stock9013": 2340,
           "stock9015": 0,
-          "totalStock": 4000,
+          "totalStock": 2340,
           "vendas4M": 5760,
           "media3M": 1920,
-          "cobertura": 2.8,
-          "fCobertura": 3.5
+          "cobertura": 1.6,
+          "fCobertura": 2.5
         },
         "coverageSource": "stockMonths"
       }
@@ -276,16 +280,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 5340",
-    "stock14": 499,
+    "stock14": 119,
     "stock9013": 4800,
     "stock9015": 0,
-    "stockMonths": 2.3,
+    "stockMonths": 2.2,
     "vendas4M": 9120,
     "media3M": 3040,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 2.7,
-    "fCobertura": 6.2,
+    "cobertura": 2.6,
+    "fCobertura": 5.8,
+    "accountingCost": 1.99,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -324,14 +330,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 499,
+          "stock14": 119,
           "stock9013": 4800,
           "stock9015": 0,
-          "totalStock": 5299,
+          "totalStock": 4919,
           "vendas4M": 9120,
           "media3M": 3040,
-          "cobertura": 2.3,
-          "fCobertura": 6.2
+          "cobertura": 2.2,
+          "fCobertura": 5.8
         },
         "coverageSource": "stockMonths"
       }
@@ -342,16 +348,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 5370",
-    "stock14": 160,
+    "stock14": 140,
     "stock9013": 5760,
     "stock9015": 0,
-    "stockMonths": 4,
+    "stockMonths": 3.9,
     "vendas4M": 5980,
     "media3M": 1993,
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.4,
     "fCobertura": 4.9,
+    "accountingCost": 2.05,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -390,13 +398,13 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 160,
+          "stock14": 140,
           "stock9013": 5760,
           "stock9015": 0,
-          "totalStock": 5920,
+          "totalStock": 5900,
           "vendas4M": 5980,
           "media3M": 1993,
-          "cobertura": 4,
+          "cobertura": 3.9,
           "fCobertura": 4.9
         },
         "coverageSource": "stockMonths"
@@ -408,16 +416,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 3481",
-    "stock14": 1620,
+    "stock14": 1220,
     "stock9013": 660,
     "stock9015": 0,
-    "stockMonths": 1.5,
+    "stockMonths": 1.2,
     "vendas4M": 6120,
     "media3M": 2040,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 2.1,
-    "fCobertura": 3.2,
+    "cobertura": 1.9,
+    "fCobertura": 2.8,
+    "accountingCost": 1.82,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -456,14 +466,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 1620,
+          "stock14": 1220,
           "stock9013": 660,
           "stock9015": 0,
-          "totalStock": 2280,
+          "totalStock": 1880,
           "vendas4M": 6120,
           "media3M": 2040,
-          "cobertura": 1.5,
-          "fCobertura": 3.2
+          "cobertura": 1.2,
+          "fCobertura": 2.8
         },
         "coverageSource": "stockMonths"
       }
@@ -484,6 +494,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 141,
     "fCobertura": 0,
+    "accountingCost": 2.07,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -540,16 +552,18 @@ window.stockData = [
     "supplier": "HOSHINE",
     "family": "BORRACHA SILICONE",
     "item": "HOSHINE 5380",
-    "stock14": 1380,
+    "stock14": 1180,
     "stock9013": 4800,
     "stock9015": 0,
-    "stockMonths": 49.4,
+    "stockMonths": 47.8,
     "vendas4M": 500,
     "media3M": 167,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 37.1,
-    "fCobertura": 62.8,
+    "cobertura": 35.9,
+    "fCobertura": 60.8,
+    "accountingCost": 2.12,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -588,14 +602,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 1380,
+          "stock14": 1180,
           "stock9013": 4800,
           "stock9015": 0,
-          "totalStock": 6180,
+          "totalStock": 5980,
           "vendas4M": 500,
           "media3M": 167,
-          "cobertura": 49.4,
-          "fCobertura": 62.8
+          "cobertura": 47.8,
+          "fCobertura": 60.8
         },
         "coverageSource": "stockMonths"
       }
@@ -616,6 +630,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 6.8,
     "fCobertura": 0,
+    "accountingCost": 3.55,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -682,6 +698,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 143.6,
     "fCobertura": 0,
+    "accountingCost": 2.81,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -748,6 +766,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": 0,
+    "accountingCost": 3.57,
+    "accountingCostCurrency": "USD",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -814,6 +834,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": 0,
+    "accountingCost": null,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -870,16 +892,18 @@ window.stockData = [
     "supplier": "VINMAR",
     "family": "BORRACHA EVA",
     "item": "EVA SIPCHEM 2518",
-    "stock14": 2820,
+    "stock14": 2520,
     "stock9013": 8250,
     "stock9015": 0,
-    "stockMonths": 0.9,
+    "stockMonths": 0.8,
     "vendas4M": 51250,
     "media3M": 17083,
     "novembro": 0,
     "dezembro": 54000,
     "cobertura": 3.8,
-    "fCobertura": 3.8,
+    "fCobertura": 3.7,
+    "accountingCost": 9.74,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -918,14 +942,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 2820,
+          "stock14": 2520,
           "stock9013": 8250,
           "stock9015": 0,
-          "totalStock": 11070,
+          "totalStock": 10770,
           "vendas4M": 51250,
           "media3M": 17083,
-          "cobertura": 0.9,
-          "fCobertura": 3.8
+          "cobertura": 0.8,
+          "fCobertura": 3.7
         },
         "coverageSource": "stockMonths"
       }
@@ -936,16 +960,18 @@ window.stockData = [
     "supplier": "KIUMHO",
     "family": "BORRACHA EPDM",
     "item": "EPDM KUMHO KEP 350",
-    "stock14": 5551,
-    "stock9013": 0,
+    "stock14": 5351,
+    "stock9013": 4500,
     "stock9015": 22650,
-    "stockMonths": 17,
+    "stockMonths": 19.5,
     "vendas4M": 6650,
     "media3M": 2217,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 12.7,
-    "fCobertura": 12.8,
+    "cobertura": 14.7,
+    "fCobertura": 14.5,
+    "accountingCost": 16.89,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -984,14 +1010,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 5551,
-          "stock9013": 0,
+          "stock14": 5351,
+          "stock9013": 4500,
           "stock9015": 22650,
-          "totalStock": 28201,
+          "totalStock": 32501,
           "vendas4M": 6650,
           "media3M": 2217,
-          "cobertura": 17,
-          "fCobertura": 12.8
+          "cobertura": 19.5,
+          "fCobertura": 14.5
         },
         "coverageSource": "stockMonths"
       }
@@ -1002,16 +1028,18 @@ window.stockData = [
     "supplier": "KIUMHO",
     "family": "BORRACHA EPDM",
     "item": "EPDM KUMHO KEP 9570E",
-    "stock14": 2625,
+    "stock14": 2225,
     "stock9013": 10400,
     "stock9015": 0,
-    "stockMonths": 9,
+    "stockMonths": 8.7,
     "vendas4M": 5775,
     "media3M": 1925,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 6.8,
-    "fCobertura": 9.1,
+    "cobertura": 6.6,
+    "fCobertura": 8.9,
+    "accountingCost": 17.85,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1050,14 +1078,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 2625,
+          "stock14": 2225,
           "stock9013": 10400,
           "stock9015": 0,
-          "totalStock": 13025,
+          "totalStock": 12625,
           "vendas4M": 5775,
           "media3M": 1925,
-          "cobertura": 9,
-          "fCobertura": 9.1
+          "cobertura": 8.7,
+          "fCobertura": 8.9
         },
         "coverageSource": "stockMonths"
       }
@@ -1078,6 +1106,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0.1,
     "fCobertura": null,
+    "accountingCost": 8.17,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1134,16 +1164,18 @@ window.stockData = [
     "supplier": "ALLMARI",
     "family": "ACELERADOR",
     "item": "TMTD",
-    "stock14": 1950,
+    "stock14": 1850,
     "stock9013": 2000,
     "stock9015": 0,
-    "stockMonths": 2,
+    "stockMonths": 1.9,
     "vendas4M": 7950,
     "media3M": 2650,
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 1.5,
-    "fCobertura": 13.2,
+    "fCobertura": 12.8,
+    "accountingCost": 11.67,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1182,14 +1214,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 1950,
+          "stock14": 1850,
           "stock9013": 2000,
           "stock9015": 0,
-          "totalStock": 3950,
+          "totalStock": 3850,
           "vendas4M": 7950,
           "media3M": 2650,
-          "cobertura": 2,
-          "fCobertura": 13.2
+          "cobertura": 1.9,
+          "fCobertura": 12.8
         },
         "coverageSource": "stockMonths"
       }
@@ -1210,6 +1242,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 88.4,
     "fCobertura": 16.8,
+    "accountingCost": 17.08,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1266,16 +1300,18 @@ window.stockData = [
     "supplier": "ALLMARI",
     "family": "ACELERADOR",
     "item": "CBS",
-    "stock14": 2600,
+    "stock14": 100,
     "stock9013": 0,
     "stock9015": 0,
-    "stockMonths": 1.2,
+    "stockMonths": 0,
     "vendas4M": 8350,
     "media3M": 2783,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 3.8,
-    "fCobertura": 3.2,
+    "cobertura": 2.9,
+    "fCobertura": 1.1,
+    "accountingCost": 12.82,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1314,14 +1350,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 2600,
+          "stock14": 100,
           "stock9013": 0,
           "stock9015": 0,
-          "totalStock": 2600,
+          "totalStock": 100,
           "vendas4M": 8350,
           "media3M": 2783,
-          "cobertura": 1.2,
-          "fCobertura": 3.2
+          "cobertura": 0,
+          "fCobertura": 1.1
         },
         "coverageSource": "stockMonths"
       }
@@ -1342,6 +1378,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 11.8,
     "fCobertura": 2,
+    "accountingCost": 14.2,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1408,6 +1446,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 74.4,
     "fCobertura": 6.6,
+    "accountingCost": 11.78,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1474,6 +1514,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 158.6,
     "fCobertura": null,
+    "accountingCost": 10.14,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1540,6 +1582,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 4.8,
     "fCobertura": 8.1,
+    "accountingCost": 14.35,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1606,6 +1650,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 37.7,
     "fCobertura": 45,
+    "accountingCost": 21.01,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1662,7 +1708,7 @@ window.stockData = [
     "supplier": "ALLMARI",
     "family": "ADITIVO BORRACHA",
     "item": "TMQ",
-    "stock14": 200,
+    "stock14": 100,
     "stock9013": 3200,
     "stock9015": 0,
     "stockMonths": 1.9,
@@ -1671,7 +1717,9 @@ window.stockData = [
     "novembro": 0,
     "dezembro": 0,
     "cobertura": 4.5,
-    "fCobertura": 10.7,
+    "fCobertura": 10.4,
+    "accountingCost": 11.22,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1710,14 +1758,14 @@ window.stockData = [
           }
         ],
         "totals": {
-          "stock14": 200,
+          "stock14": 100,
           "stock9013": 3200,
           "stock9015": 0,
-          "totalStock": 3400,
+          "totalStock": 3300,
           "vendas4M": 7050,
           "media3M": 2350,
           "cobertura": 1.9,
-          "fCobertura": 10.7
+          "fCobertura": 10.4
         },
         "coverageSource": "stockMonths"
       }
@@ -1738,6 +1786,8 @@ window.stockData = [
     "dezembro": 16000,
     "cobertura": 10.3,
     "fCobertura": 1,
+    "accountingCost": 16.32,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1804,6 +1854,8 @@ window.stockData = [
     "dezembro": 8000,
     "cobertura": 14.9,
     "fCobertura": 5.7,
+    "accountingCost": 16.35,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1870,6 +1922,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 426,
     "fCobertura": null,
+    "accountingCost": 21.18,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -1936,6 +1990,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0.4,
     "fCobertura": 2,
+    "accountingCost": 25.56,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2002,6 +2058,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 105,
     "fCobertura": null,
+    "accountingCost": 22.75,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2068,6 +2126,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 207,
     "fCobertura": null,
+    "accountingCost": 18.68,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2134,6 +2194,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 52,
     "fCobertura": 9.7,
+    "accountingCost": 13.89,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2200,6 +2262,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 208.5,
     "fCobertura": 20.9,
+    "accountingCost": 20.93,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2266,6 +2330,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 141,
     "fCobertura": null,
+    "accountingCost": 23.86,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2332,6 +2398,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 135,
     "fCobertura": null,
+    "accountingCost": 14.47,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2389,15 +2457,17 @@ window.stockData = [
     "family": "ADITIVO BORRACHA",
     "item": "RESINA HM1300",
     "stock14": 1725,
-    "stock9013": 13600,
+    "stock9013": 12600,
     "stock9015": 0,
-    "stockMonths": 3.5,
+    "stockMonths": 3.3,
     "vendas4M": 17300,
     "media3M": 5767,
     "novembro": 0,
     "dezembro": 0,
-    "cobertura": 6.5,
-    "fCobertura": 4.8,
+    "cobertura": 6.4,
+    "fCobertura": 4.6,
+    "accountingCost": 9.54,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2437,13 +2507,13 @@ window.stockData = [
         ],
         "totals": {
           "stock14": 1725,
-          "stock9013": 13600,
+          "stock9013": 12600,
           "stock9015": 0,
-          "totalStock": 15325,
+          "totalStock": 14325,
           "vendas4M": 17300,
           "media3M": 5767,
-          "cobertura": 3.5,
-          "fCobertura": 4.8
+          "cobertura": 3.3,
+          "fCobertura": 4.6
         },
         "coverageSource": "stockMonths"
       }
@@ -2464,6 +2534,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 22.1,
     "fCobertura": 2.9,
+    "accountingCost": 6.06,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2530,6 +2602,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 76.5,
     "fCobertura": 6.1,
+    "accountingCost": 17.3,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2596,6 +2670,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 87,
     "fCobertura": 0,
+    "accountingCost": 16.98,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2662,6 +2738,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 157.5,
     "fCobertura": 9.8,
+    "accountingCost": 16.76,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2728,6 +2806,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 210,
     "fCobertura": 18.5,
+    "accountingCost": 17.57,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2794,6 +2874,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 2244,
     "fCobertura": null,
+    "accountingCost": 7.77,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2860,6 +2942,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 4.8,
     "fCobertura": null,
+    "accountingCost": 7.08,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2926,6 +3010,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 193.7,
     "fCobertura": 15.5,
+    "accountingCost": 16.85,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -2992,6 +3078,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 69,
     "fCobertura": null,
+    "accountingCost": 28.36,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3058,6 +3146,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": null,
+    "accountingCost": null,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3124,6 +3214,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 11.4,
     "fCobertura": 39,
+    "accountingCost": 15.55,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3190,6 +3282,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": null,
+    "accountingCost": null,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3256,6 +3350,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": null,
+    "accountingCost": null,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3322,6 +3418,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 22.2,
     "fCobertura": 9.3,
+    "accountingCost": 15.83,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3388,6 +3486,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 33,
     "fCobertura": 7.9,
+    "accountingCost": 12.86,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3454,6 +3554,8 @@ window.stockData = [
     "dezembro": 0,
     "cobertura": 0,
     "fCobertura": null,
+    "accountingCost": null,
+    "accountingCostCurrency": "BRL",
     "monthlyValues": [
       {
         "label": "JANEIRO (26)",
@@ -3509,13 +3611,13 @@ window.stockData = [
 
 // Metadados
 window.stockMetadata = {
-    lastUpdate: "2025-12-03T18:54:19.466Z",
+    lastUpdate: "2025-12-08T20:37:47.747Z",
     totalProducts: 53,
     generatedBy: "Dashboard de Estoque v1.3 - Importador com múltiplas abas",
     version: "1.3.0",
-    sourceFile: "Atualização Slow 02-12.xlsx",
+    sourceFile: "Atualização Slow 08-12.xlsx",
     sheetName: "Estoque (53)",
-    source: "Atualização Slow 02-12.xlsx · Estoque"
+    source: "Atualização Slow 08-12.xlsx · Estoque"
 };
 
 console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');
