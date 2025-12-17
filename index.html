@@ -847,11 +847,46 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        
+
         .summary-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 20px;
+        }
+
+        .stat-chart,
+        .insight-chart {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(31, 68, 140, 0.12), rgba(31, 68, 140, 0.08));
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .stat-chart-fill,
+        .insight-chart-fill {
+            height: 100%;
+            border-radius: inherit;
+            width: 0;
+            background: linear-gradient(90deg, #1F448C, #4BA3FF);
+            transition: width 0.35s ease;
+        }
+
+        .insight-chart.secondary .insight-chart-fill {
+            background: linear-gradient(90deg, #F97316, #FDBA74);
+        }
+
+        .insight-chart.success .insight-chart-fill {
+            background: linear-gradient(90deg, #16A34A, #4ADE80);
+        }
+
+        .chart-label {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #4b5563;
         }
 
         .advanced-card {
@@ -1920,25 +1955,45 @@
                 <div class="stat-item">
                     <div class="stat-value" id="totalProducts">0</div>
                     <div class="stat-label"><span class="label-text">Total de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Total de produtos" data-tooltip="Quantidade total de SKUs únicos visíveis após aplicar filtros de busca e estabelecimento." data-tooltip-position="top">?</span></div>
+                    <div class="stat-chart" aria-hidden="true">
+                        <div class="stat-chart-fill" id="totalProductsChart"></div>
+                    </div>
+                    <span class="chart-label" id="totalProductsChartLabel">Distribuição relativa</span>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="totalStockValue">--</div>
                     <div class="stat-label"><span class="label-text">Estoque Total</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Estoque total" data-tooltip="Soma das unidades disponíveis convertida para quilogramas para facilitar a leitura." data-tooltip-position="top">?</span></div>
+                    <div class="stat-chart" aria-hidden="true">
+                        <div class="stat-chart-fill" id="totalStockChart"></div>
+                    </div>
+                    <span class="chart-label" id="totalStockChartLabel">Escala baseada no maior indicador</span>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="totalFamilies">0</div>
                     <div class="stat-label"><span class="label-text">Famílias de Produtos</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Famílias de produtos" data-tooltip="Número de famílias distintas representadas na lista atual de produtos." data-tooltip-position="top">?</span></div>
+                    <div class="stat-chart" aria-hidden="true">
+                        <div class="stat-chart-fill" id="totalFamiliesChart"></div>
+                    </div>
+                    <span class="chart-label" id="totalFamiliesChartLabel">Escala baseada no maior indicador</span>
                 </div>
                 <div class="stat-item cost-highlight" id="brlCostCard">
                     <div class="stat-value" id="totalAccountingCostBrl">--</div>
                     <div class="stat-label"><span class="label-text">Custo Contábil (BRL)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Custo Contábil (BRL)" data-tooltip="Somatório do custo contábil por kg dos itens precificados em reais multiplicado pelo estoque disponível em quilos." data-tooltip-position="top">?</span></div>
                     <div class="stat-footnote" id="costBrlFootnote">Itens precificados em BRL</div>
+                    <div class="stat-chart" aria-hidden="true">
+                        <div class="stat-chart-fill" id="brlCostChart"></div>
+                    </div>
+                    <span class="chart-label" id="brlCostChartLabel">Participação relativa entre custos</span>
                 </div>
                 <div class="stat-item cost-highlight" id="usdCostCard" style="display: none;">
                     <div class="stat-value" id="totalAccountingCostUsd">--</div>
                     <div class="stat-label"><span class="label-text">Custo Contábil (USD)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Custo Contábil (USD)" data-tooltip="Somatório do custo contábil por kg dos itens dolarizados multiplicado pelo estoque disponível em quilos." data-tooltip-position="top">?</span></div>
                     <div class="stat-subvalue" id="totalAccountingCostUsdInBrl">--</div>
                     <div class="stat-footnote" id="ptaxSummaryInfo">PTAX: <span id="ptaxRate">—</span> · <span id="ptaxDate">—</span> <span id="ptaxStatusNote"></span></div>
+                    <div class="stat-chart" aria-hidden="true">
+                        <div class="stat-chart-fill" id="usdCostChart"></div>
+                    </div>
+                    <span class="chart-label" id="usdCostChartLabel">Participação relativa entre custos</span>
                 </div>
             </div>
         </div>
@@ -1951,21 +2006,37 @@
                     <div class="insight-title stat-label">Estabelecimento mais carregado <span class="info-icon has-tooltip" tabindex="0" aria-label="Estabelecimento mais carregado" data-tooltip="Soma total de estoque em cada local. Mostra onde há maior concentração para priorizar redistribuição." data-tooltip-position="top">?</span></div>
                     <div class="insight-value" id="heaviestEstablishment">--</div>
                     <div class="insight-subvalue" id="heaviestEstablishmentDetail">Sem dados suficientes</div>
+                    <div class="insight-chart" aria-hidden="true">
+                        <div class="insight-chart-fill" id="heaviestEstablishmentBar"></div>
+                    </div>
+                    <span class="chart-label" id="heaviestEstablishmentLabel">Participação sobre o estoque visível</span>
                 </div>
                 <div class="insight-item">
                     <div class="insight-title stat-label">Família mais volumosa <span class="info-icon has-tooltip" tabindex="0" aria-label="Família mais volumosa" data-tooltip="Família com maior peso de estoque nos filtros atuais. Ajuda a identificar onde o volume está concentrado." data-tooltip-position="top">?</span></div>
                     <div class="insight-value" id="topFamilyByStock">--</div>
                     <div class="insight-subvalue" id="topFamilyByStockDetail">Sem dados suficientes</div>
+                    <div class="insight-chart secondary" aria-hidden="true">
+                        <div class="insight-chart-fill" id="topFamilyBar"></div>
+                    </div>
+                    <span class="chart-label" id="topFamilyBarLabel">Fatia da família no estoque filtrado</span>
                 </div>
                 <div class="insight-item">
                     <div class="insight-title stat-label">Itens sem estoque <span class="info-icon has-tooltip" tabindex="0" aria-label="Itens sem estoque" data-tooltip="Quantidade de SKUs exibidos que estão zerados no estoque selecionado." data-tooltip-position="top">?</span></div>
                     <div class="insight-value" id="outOfStockCount">--</div>
                     <div class="insight-subvalue" id="outOfStockDetail">Todos com cobertura disponível</div>
+                    <div class="insight-chart" aria-hidden="true">
+                        <div class="insight-chart-fill" id="outOfStockBar"></div>
+                    </div>
+                    <span class="chart-label" id="outOfStockBarLabel">Proporção sobre os itens visíveis</span>
                 </div>
                 <div class="insight-item">
                     <div class="insight-title stat-label">Cobertura média estimada <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura média estimada" data-tooltip="Média em meses da cobertura dos itens com demanda. Usa a projeção de ruptura ou o estoque em meses informado." data-tooltip-position="top">?</span></div>
                     <div class="insight-value" id="averageCoverage">--</div>
                     <div class="insight-subvalue" id="averageCoverageDetail">Sem demanda suficiente para estimar</div>
+                    <div class="insight-chart success" aria-hidden="true">
+                        <div class="insight-chart-fill" id="averageCoverageBar"></div>
+                    </div>
+                    <span class="chart-label" id="averageCoverageBarLabel">Escala de 0 a 12 meses</span>
                 </div>
             </div>
         </div>
@@ -5246,6 +5317,30 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 animateValueChange(zeroIn60Element);
             }
         }
+        function renderChartsGroup(entries) {
+            const maxValue = entries.reduce(function(max, entry) {
+                const numericValue = Number.isFinite(entry.value) ? Math.max(entry.value, 0) : 0;
+                return Math.max(max, numericValue);
+            }, 0);
+
+            entries.forEach(function(entry) {
+                const bar = document.getElementById(entry.barId);
+                const label = document.getElementById(entry.labelId);
+                const numericValue = Number.isFinite(entry.value) ? Math.max(entry.value, 0) : 0;
+                const width = maxValue > 0 ? (numericValue / maxValue) * 100 : 0;
+
+                if (bar) {
+                    bar.style.width = `${width}%`;
+                }
+
+                if (label) {
+                    label.textContent = maxValue > 0
+                        ? entry.labelText
+                        : (entry.emptyText || 'Sem dados disponíveis');
+                }
+            });
+        }
+
         function updateSummary() {
             const total = filteredData.length;
             const families = new Set(filteredData.map(function(p) {
@@ -5275,7 +5370,52 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 animateValueChange(totalFamiliesElement);
             }
 
-            updateCostSummary();
+            renderChartsGroup([
+                {
+                    barId: 'totalProductsChart',
+                    labelId: 'totalProductsChartLabel',
+                    value: total,
+                    labelText: `${formatIntegerValue(total)} SKU(s) visíveis`,
+                    emptyText: 'Sem produtos visíveis'
+                },
+                {
+                    barId: 'totalStockChart',
+                    labelId: 'totalStockChartLabel',
+                    value: safeTotalStock,
+                    labelText: `${formatStockInKg(safeTotalStock)} em estoque`,
+                    emptyText: 'Sem estoque disponível'
+                },
+                {
+                    barId: 'totalFamiliesChart',
+                    labelId: 'totalFamiliesChartLabel',
+                    value: families,
+                    labelText: `${formatIntegerValue(families)} família(s) filtradas`,
+                    emptyText: 'Sem famílias nos filtros atuais'
+                }
+            ]);
+
+            const costContext = updateCostSummary();
+
+            renderChartsGroup([
+                {
+                    barId: 'brlCostChart',
+                    labelId: 'brlCostChartLabel',
+                    value: costContext.hasBrlCost ? costContext.brlTotal : 0,
+                    labelText: costContext.hasBrlCost
+                        ? `${formatCurrencyValue(costContext.brlTotal, 'BRL')}`
+                        : 'Nenhum item com custo em BRL',
+                    emptyText: 'Nenhum item com custo em BRL'
+                },
+                {
+                    barId: 'usdCostChart',
+                    labelId: 'usdCostChartLabel',
+                    value: costContext.hasUsdCost ? costContext.usdTotal : 0,
+                    labelText: costContext.hasUsdCost
+                        ? `${formatCurrencyValue(costContext.usdTotal, 'USD')}`
+                        : 'Nenhum item com custo em USD',
+                    emptyText: 'Nenhum item com custo em USD'
+                }
+            ]);
         }
 
         function updateCostSummary() {
@@ -5293,13 +5433,14 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const ptaxSummaryInfo = document.getElementById('ptaxSummaryInfo');
 
             const hasBrlCost = costSummary.brlCount > 0;
+            let brlValue = 0;
 
             if (brlCard) {
                 brlCard.style.display = hasBrlCost ? 'block' : 'none';
             }
 
             if (brlElement) {
-                const brlValue = hasBrlCost ? costSummary.brlTotal : 0;
+                brlValue = hasBrlCost ? costSummary.brlTotal : 0;
                 brlElement.textContent = formatCurrencyValue(brlValue, 'BRL');
                 animateValueChange(brlElement);
 
@@ -5311,19 +5452,31 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             if (!usdCard) {
-                return;
+                return {
+                    brlTotal: brlValue,
+                    usdTotal: 0,
+                    hasBrlCost: hasBrlCost,
+                    hasUsdCost: false
+                };
             }
 
             const hasUsd = costSummary.usdCount > 0;
             usdCard.style.display = hasUsd ? 'block' : 'none';
+            let usdValue = 0;
 
             if (!hasUsd) {
-                return;
+                return {
+                    brlTotal: brlValue,
+                    usdTotal: usdValue,
+                    hasBrlCost: hasBrlCost,
+                    hasUsdCost: hasUsd
+                };
             }
 
             if (usdValueElement) {
                 usdValueElement.classList.toggle('loading-text', currentPtax.loading && !Number.isFinite(ptaxRate));
-                usdValueElement.textContent = formatCurrencyValue(costSummary.usdTotal, 'USD');
+                usdValue = costSummary.usdTotal;
+                usdValueElement.textContent = formatCurrencyValue(usdValue, 'USD');
                 animateValueChange(usdValueElement);
             }
 
@@ -5360,6 +5513,13 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ptaxStatusElement.textContent = conversionAvailable ? '' : getPtaxLabel();
                 }
             }
+
+            return {
+                brlTotal: brlValue,
+                usdTotal: usdValue,
+                hasBrlCost: hasBrlCost,
+                hasUsdCost: hasUsd
+            };
         }
 
         function calculateAdvancedStats(dataSet) {
@@ -5441,6 +5601,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
 
         function updateAdvancedStats() {
             const stats = calculateAdvancedStats(filteredData);
+            const totalVisible = filteredData.length;
 
             const establishmentLabel = stats.topEstablishment && stats.topEstablishment.label
                 ? stats.topEstablishment.label
@@ -5480,6 +5641,53 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                         : 'Média considerando somente itens com consumo mapeado.')
                     : 'Sem demanda suficiente para estimar'
             );
+
+            setPercentageBar(
+                'heaviestEstablishmentBar',
+                'heaviestEstablishmentLabel',
+                Number.isFinite(stats.establishmentShare) ? stats.establishmentShare : null,
+                Number.isFinite(stats.establishmentShare)
+                    ? `${formatStatValue(stats.establishmentShare, 1)}% do estoque consolidado`
+                    : '',
+                'Sem estoque acumulado para os estabelecimentos'
+            );
+
+            setPercentageBar(
+                'topFamilyBar',
+                'topFamilyBarLabel',
+                Number.isFinite(stats.topFamily && stats.topFamily.share) ? stats.topFamily.share : null,
+                Number.isFinite(stats.topFamily && stats.topFamily.share)
+                    ? `${formatStatValue(stats.topFamily.share, 1)}% do estoque nos filtros`
+                    : '',
+                'Sem dados suficientes sobre famílias'
+            );
+
+            const outOfStockPercent = totalVisible > 0
+                ? (stats.outOfStockCount / totalVisible) * 100
+                : null;
+            setPercentageBar(
+                'outOfStockBar',
+                'outOfStockBarLabel',
+                outOfStockPercent,
+                Number.isFinite(outOfStockPercent)
+                    ? `${formatStatValue(outOfStockPercent, 1)}% dos itens sem estoque`
+                    : '',
+                'Sem itens visíveis para calcular'
+            );
+
+            const cappedCoverage = Number.isFinite(stats.averageCoverageMonths)
+                ? Math.min(stats.averageCoverageMonths, 12)
+                : null;
+            const coveragePercent = cappedCoverage !== null ? (cappedCoverage / 12) * 100 : null;
+            setPercentageBar(
+                'averageCoverageBar',
+                'averageCoverageBarLabel',
+                coveragePercent,
+                Number.isFinite(stats.averageCoverageMonths)
+                    ? `${formatStatValue(stats.averageCoverageMonths, 1)} meses de cobertura média`
+                    : '',
+                'Sem dados de cobertura para exibir'
+            );
         }
 
         function setInsightValue(elementId, textContent) {
@@ -5499,6 +5707,23 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             element.textContent = textContent;
+        }
+
+        function setPercentageBar(barId, labelId, percentage, labelText, emptyText) {
+            const bar = document.getElementById(barId);
+            const label = document.getElementById(labelId);
+            const hasValidValue = Number.isFinite(percentage) && percentage >= 0;
+            const safePercent = hasValidValue ? Math.min(percentage, 100) : 0;
+
+            if (bar) {
+                bar.style.width = `${safePercent}%`;
+            }
+
+            if (label) {
+                label.textContent = hasValidValue
+                    ? (labelText || `${formatStatValue(safePercent, 1)}%`)
+                    : (emptyText || 'Sem dados suficientes');
+            }
         }
 
         function updateParetoAnalysis() {
