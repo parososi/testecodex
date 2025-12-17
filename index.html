@@ -1016,6 +1016,193 @@
             font-size: 14px;
         }
 
+        .interactive-hub {
+            margin: 24px 0;
+            padding: 20px;
+            border: 1px solid #e4e8f0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8fbff 0%, #f0f4ff 100%);
+            box-shadow: 0 10px 35px rgba(31, 68, 140, 0.08);
+        }
+
+        .interactive-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .interactive-header h3 {
+            margin: 0;
+            color: #1F2A44;
+        }
+
+        .interactive-header p {
+            margin: 4px 0 0;
+            color: #4a5675;
+        }
+
+        .metric-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 220px;
+        }
+
+        .metric-selector label {
+            font-weight: 700;
+            color: #1F448C;
+        }
+
+        .metric-selector select {
+            border: 2px solid #c6d4ff;
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: #1F2A44;
+        }
+
+        .metric-selector select:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.15);
+        }
+
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .interactive-chart-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid #dfe6f5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        .chart-track {
+            height: 16px;
+            background: #eef2fb;
+            border-radius: 999px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #1F448C, #3fa9f5);
+            border-radius: 999px;
+            transition: width 0.3s ease, transform 0.2s ease;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 3fr 100px;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 8px;
+            border-radius: 12px;
+            transition: background 0.2s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+
+        .chart-row:hover,
+        .chart-row:focus-visible {
+            background: rgba(31, 68, 140, 0.06);
+            transform: translateX(2px);
+        }
+
+        .chart-row strong {
+            color: #1F2A44;
+        }
+
+        .chart-value {
+            text-align: right;
+            font-weight: 700;
+            color: #1F448C;
+        }
+
+        .chart-legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4a5675;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #1F448C, #3fa9f5);
+            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.12);
+        }
+
+        .chart-empty {
+            padding: 12px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .chart-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 12px;
+            background: #f1f4ff;
+            color: #1F2A44;
+            font-weight: 600;
+        }
+
+        .chart-pill small {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .insight-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #dfe6f5;
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        .insight-list-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: #f8fbff;
+            align-items: center;
+        }
+
+        .insight-list-item strong {
+            color: #1F2A44;
+        }
+
+        .insight-list-item span {
+            color: #1F448C;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1024px) {
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .abc-chip {
             display: inline-flex;
             align-items: center;
@@ -1998,6 +2185,34 @@
             </div>
         </div>
 
+        <section class="interactive-hub" aria-label="Laboratório de gráficos interativos">
+            <div class="interactive-header">
+                <div>
+                    <h3 class="header-label">Laboratório de Gráficos</h3>
+                    <p>Escolha uma métrica e interaja com os itens mais relevantes sem depender de vários campos.</p>
+                    <div class="chart-legend">
+                        <span class="legend-dot" aria-hidden="true"></span>
+                        <small>Mantenha o cursor ou clique em uma barra para explorar detalhes.</small>
+                    </div>
+                </div>
+                <div class="metric-selector">
+                    <label for="chartMetric">Métrica principal</label>
+                    <select id="chartMetric" aria-label="Escolher métrica do gráfico">
+                        <option value="stock">Estoque consolidado (kg)</option>
+                        <option value="coverage">Cobertura (meses estimados)</option>
+                        <option value="sales">Vendas 3M</option>
+                        <option value="familyStock">Famílias com mais estoque</option>
+                    </select>
+                </div>
+            </div>
+            <div class="interactive-grid">
+                <div class="interactive-chart-card">
+                    <div id="chartCanvas" class="chart-canvas" aria-live="polite"></div>
+                </div>
+                <div class="insight-list" id="chartInsightList" aria-live="polite"></div>
+            </div>
+        </section>
+
         <div class="advanced-card" aria-live="polite">
             <h3 class="header-label">Estatísticas Avançadas <span class="info-icon has-tooltip" tabindex="0" aria-label="Estatísticas avançadas" data-tooltip="Insights dinâmicos para identificar concentração de estoque, gargalos e riscos de ruptura considerando os filtros atuais." data-tooltip-position="top">?</span></h3>
             <p class="insights-helper">Painel compacto com destaques automáticos do que está mais crítico ou concentrado.</p>
@@ -2175,6 +2390,56 @@
         const abcIndividualThresholds = Object.freeze({
             classA: 0.05,
             classB: 0.01
+        });
+        const interactiveMetricConfig = Object.freeze({
+            stock: {
+                label: 'Estoque consolidado',
+                accessor: function(product) {
+                    return getProductStock(product);
+                },
+                formatter: function(value) {
+                    return formatStockInKg(value);
+                },
+                empty: 'Sem estoque visível'
+            },
+            coverage: {
+                label: 'Cobertura estimada',
+                accessor: function(product) {
+                    const coverage = getCoverageInfo(product);
+                    if (coverage.outOfStock) {
+                        return 0;
+                    }
+                    if (coverage.daysToDepletion !== null && coverage.hasDemand) {
+                        return coverage.daysToDepletion / 30;
+                    }
+                    if (Number.isFinite(product.stockMonths)) {
+                        return product.stockMonths;
+                    }
+                    return null;
+                },
+                formatter: function(value) {
+                    return formatCoverageStat(value);
+                },
+                empty: 'Sem dados de cobertura'
+            },
+            sales: {
+                label: 'Vendas em 3M',
+                accessor: function(product) {
+                    return Number(product.vendas4M) || 0;
+                },
+                formatter: function(value) {
+                    return `${formatIntegerValue(value)} un`;
+                },
+                empty: 'Sem registros de venda'
+            },
+            familyStock: {
+                label: 'Famílias com mais estoque',
+                accessor: null,
+                formatter: function(value) {
+                    return formatStockInKg(value);
+                },
+                empty: 'Nenhuma família com estoque'
+            }
         });
         let abcClassificationMap = new Map();
         let tooltipElement = null;
@@ -4984,6 +5249,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             updateTable();
             updateSummary();
             updateAdvancedStats();
+            updateInteractiveCharts();
             updateGauges();
             updatePredictiveAnalysis();
             updateActiveFiltersDisplay();
@@ -5724,6 +5990,160 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ? (labelText || `${formatStatValue(safePercent, 1)}%`)
                     : (emptyText || 'Sem dados suficientes');
             }
+        }
+
+        function formatInteractiveValue(value, config) {
+            if (!config || typeof config.formatter !== 'function') {
+                return formatStatValue(value, 1);
+            }
+
+            return config.formatter(value);
+        }
+
+        function getInteractiveDataset(metricKey) {
+            const config = interactiveMetricConfig[metricKey] || interactiveMetricConfig.stock;
+            const rows = [];
+
+            if (metricKey === 'familyStock') {
+                const totals = new Map();
+                filteredData.forEach(function(product) {
+                    const family = product.family || 'Sem família';
+                    const stock = getProductStock(product);
+                    totals.set(family, (totals.get(family) || 0) + stock);
+                });
+
+                totals.forEach(function(value, family) {
+                    if (Number.isFinite(value) && value >= 0) {
+                        rows.push({
+                            label: family,
+                            value: value,
+                            family: family
+                        });
+                    }
+                });
+            } else {
+                filteredData.forEach(function(product) {
+                    const value = config.accessor(product);
+                    if (Number.isFinite(value) && value >= 0) {
+                        rows.push({
+                            label: product.item || product.code || 'Item sem nome',
+                            value: value,
+                            code: product.code,
+                            family: product.family
+                        });
+                    }
+                });
+            }
+
+            rows.sort(function(a, b) {
+                return b.value - a.value;
+            });
+
+            return {
+                config: config,
+                data: rows.slice(0, 8)
+            };
+        }
+
+        function renderInteractiveChart(dataset) {
+            const container = document.getElementById('chartCanvas');
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            if (!dataset.data.length) {
+                container.innerHTML = `<p class="chart-empty">${dataset.config.empty}</p>`;
+                return;
+            }
+
+            const maxValue = dataset.data.reduce(function(max, entry) {
+                return Math.max(max, entry.value);
+            }, 0) || 1;
+
+            dataset.data.forEach(function(entry, index) {
+                const row = document.createElement('div');
+                row.className = 'chart-row';
+                row.tabIndex = 0;
+                row.setAttribute('role', 'button');
+                row.setAttribute('aria-label', `${dataset.config.label}: ${entry.label} (${formatInteractiveValue(entry.value, dataset.config)})`);
+
+                const label = document.createElement('div');
+                label.innerHTML = `<strong>${escapeTooltip(entry.label)}</strong><br><small>${escapeTooltip(entry.family || '')}</small>`;
+
+                const barTrack = document.createElement('div');
+                barTrack.className = 'chart-track';
+                const barFill = document.createElement('div');
+                barFill.className = 'chart-bar';
+                const widthPercent = Math.max((entry.value / maxValue) * 100, 6);
+                barFill.style.width = `${Math.min(widthPercent, 100)}%`;
+                barTrack.appendChild(barFill);
+
+                const value = document.createElement('div');
+                value.className = 'chart-value';
+                value.textContent = formatInteractiveValue(entry.value, dataset.config);
+
+                row.appendChild(label);
+                row.appendChild(barTrack);
+                row.appendChild(value);
+
+                row.addEventListener('click', function() {
+                    if (!entry.code) {
+                        return;
+                    }
+                    searchTerm = entry.code.toString().toLowerCase();
+                    const searchInput = document.getElementById('globalSearch');
+                    if (searchInput) {
+                        searchInput.value = entry.code;
+                    }
+                    showMessage(`🔍 Filtro rápido pelo código ${entry.code}`, 'info');
+                    applyAllFilters();
+                });
+
+                container.appendChild(row);
+            });
+        }
+
+        function renderChartInsights(dataset) {
+            const insightContainer = document.getElementById('chartInsightList');
+            if (!insightContainer) {
+                return;
+            }
+
+            if (!dataset.data.length) {
+                insightContainer.innerHTML = '<div class="insight-list-item"><strong>Nenhum dado encontrado</strong><span>—</span></div>';
+                return;
+            }
+
+            const insights = dataset.data.slice(0, 3).map(function(entry, index) {
+                return `
+                    <div class="insight-list-item">
+                        <strong>${index + 1}. ${escapeTooltip(entry.label)}</strong>
+                        <span>${formatInteractiveValue(entry.value, dataset.config)}</span>
+                    </div>
+                `;
+            });
+
+            insights.push(`
+                <div class="chart-pill">
+                    ${dataset.data.length} destaques · <small>${dataset.config.label}</small>
+                </div>
+            `);
+
+            insightContainer.innerHTML = insights.join('');
+        }
+
+        function updateInteractiveCharts() {
+            const selector = document.getElementById('chartMetric');
+            if (!selector) {
+                return;
+            }
+
+            const metricKey = selector.value || 'stock';
+            const dataset = getInteractiveDataset(metricKey);
+            renderInteractiveChart(dataset);
+            renderChartInsights(dataset);
         }
 
         function updateParetoAnalysis() {
@@ -6805,6 +7225,11 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(performGlobalSearch, 300);
                 });
+            }
+
+            const chartMetricSelect = document.getElementById('chartMetric');
+            if (chartMetricSelect) {
+                chartMetricSelect.addEventListener('change', updateInteractiveCharts);
             }
         });
 
