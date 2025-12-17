@@ -854,6 +854,64 @@
             gap: 20px;
         }
 
+        .advanced-card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+
+        .advanced-card .header-label {
+            margin: 0;
+        }
+
+        .insights-helper {
+            color: #4a5568;
+            margin: 4px 0 16px;
+            font-size: 14px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .insight-item {
+            padding: 14px;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            background: #f9fbff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .insight-title {
+            color: #4a5568;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .insight-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1F448C;
+            line-height: 1.2;
+        }
+
+        .insight-subvalue {
+            font-size: 13px;
+            color: #2d3748;
+            line-height: 1.4;
+        }
+
         .stat-subvalue {
             color: #1F448C;
             font-size: 14px;
@@ -1881,6 +1939,33 @@
                     <div class="stat-label"><span class="label-text">Custo Contábil (USD)</span><span class="info-icon has-tooltip" tabindex="0" aria-label="Custo Contábil (USD)" data-tooltip="Somatório do custo contábil por kg dos itens dolarizados multiplicado pelo estoque disponível em quilos." data-tooltip-position="top">?</span></div>
                     <div class="stat-subvalue" id="totalAccountingCostUsdInBrl">--</div>
                     <div class="stat-footnote" id="ptaxSummaryInfo">PTAX: <span id="ptaxRate">—</span> · <span id="ptaxDate">—</span> <span id="ptaxStatusNote"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="advanced-card" aria-live="polite">
+            <h3 class="header-label">Estatísticas Avançadas <span class="info-icon has-tooltip" tabindex="0" aria-label="Estatísticas avançadas" data-tooltip="Insights dinâmicos para identificar concentração de estoque, gargalos e riscos de ruptura considerando os filtros atuais." data-tooltip-position="top">?</span></h3>
+            <p class="insights-helper">Painel compacto com destaques automáticos do que está mais crítico ou concentrado.</p>
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <div class="insight-title stat-label">Estabelecimento mais carregado <span class="info-icon has-tooltip" tabindex="0" aria-label="Estabelecimento mais carregado" data-tooltip="Soma total de estoque em cada local. Mostra onde há maior concentração para priorizar redistribuição." data-tooltip-position="top">?</span></div>
+                    <div class="insight-value" id="heaviestEstablishment">--</div>
+                    <div class="insight-subvalue" id="heaviestEstablishmentDetail">Sem dados suficientes</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-title stat-label">Família mais volumosa <span class="info-icon has-tooltip" tabindex="0" aria-label="Família mais volumosa" data-tooltip="Família com maior peso de estoque nos filtros atuais. Ajuda a identificar onde o volume está concentrado." data-tooltip-position="top">?</span></div>
+                    <div class="insight-value" id="topFamilyByStock">--</div>
+                    <div class="insight-subvalue" id="topFamilyByStockDetail">Sem dados suficientes</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-title stat-label">Itens sem estoque <span class="info-icon has-tooltip" tabindex="0" aria-label="Itens sem estoque" data-tooltip="Quantidade de SKUs exibidos que estão zerados no estoque selecionado." data-tooltip-position="top">?</span></div>
+                    <div class="insight-value" id="outOfStockCount">--</div>
+                    <div class="insight-subvalue" id="outOfStockDetail">Todos com cobertura disponível</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-title stat-label">Cobertura média estimada <span class="info-icon has-tooltip" tabindex="0" aria-label="Cobertura média estimada" data-tooltip="Média em meses da cobertura dos itens com demanda. Usa a projeção de ruptura ou o estoque em meses informado." data-tooltip-position="top">?</span></div>
+                    <div class="insight-value" id="averageCoverage">--</div>
+                    <div class="insight-subvalue" id="averageCoverageDetail">Sem demanda suficiente para estimar</div>
                 </div>
             </div>
         </div>
@@ -4827,6 +4912,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             updateParetoAnalysis();
             updateTable();
             updateSummary();
+            updateAdvancedStats();
             updateGauges();
             updatePredictiveAnalysis();
             updateActiveFiltersDisplay();
@@ -5274,6 +5360,145 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                     ptaxStatusElement.textContent = conversionAvailable ? '' : getPtaxLabel();
                 }
             }
+        }
+
+        function calculateAdvancedStats(dataSet) {
+            const establishments = [
+                { id: '1-4', label: '14 (P. Carga)', total: 0 },
+                { id: '90-13', label: '90-13 (Itajaí)', total: 0 },
+                { id: '90-15', label: '90-15 (Garuva)', total: 0 }
+            ];
+
+            const safeData = Array.isArray(dataSet) ? dataSet : [];
+            const familyTotals = new Map();
+            const coverageValues = [];
+            let outOfStockCount = 0;
+            let noDemandCount = 0;
+
+            safeData.forEach(function(product) {
+                establishments[0].total += normalizeStockValue(product.stock14);
+                establishments[1].total += normalizeStockValue(product.stock9013);
+                establishments[2].total += normalizeStockValue(product.stock9015);
+
+                const familyKey = product.family || 'Sem família';
+                const stock = getProductStock(product);
+                familyTotals.set(familyKey, (familyTotals.get(familyKey) || 0) + stock);
+
+                const coverage = getCoverageInfo(product);
+                if (coverage.outOfStock) {
+                    outOfStockCount++;
+                }
+                if (!coverage.hasDemand) {
+                    noDemandCount++;
+                }
+
+                const coverageMonths = coverage.daysToDepletion !== null && coverage.hasDemand && !coverage.outOfStock
+                    ? coverage.daysToDepletion / 30
+                    : (Number.isFinite(product.stockMonths) && product.stockMonths > 0 ? product.stockMonths : null);
+
+                if (Number.isFinite(coverageMonths)) {
+                    coverageValues.push(coverageMonths);
+                }
+            });
+
+            const totalPerSite = establishments.reduce(function(sum, site) {
+                return sum + site.total;
+            }, 0);
+
+            const sortedSites = establishments.slice().sort(function(a, b) {
+                return b.total - a.total;
+            });
+            const topEstablishment = sortedSites.length ? sortedSites[0] : { label: null, total: 0 };
+            const establishmentShare = totalPerSite > 0 ? (topEstablishment.total / totalPerSite) * 100 : null;
+
+            let topFamily = { name: null, total: 0, share: null };
+            let totalFamilyStock = 0;
+            familyTotals.forEach(function(total, family) {
+                totalFamilyStock += total;
+                if (total > topFamily.total) {
+                    topFamily = { name: family, total: total, share: null };
+                }
+            });
+
+            if (totalFamilyStock > 0 && topFamily.name !== null) {
+                topFamily.share = (topFamily.total / totalFamilyStock) * 100;
+            }
+
+            const averageCoverageMonths = coverageValues.length
+                ? coverageValues.reduce(function(sum, value) { return sum + value; }, 0) / coverageValues.length
+                : null;
+
+            return {
+                topEstablishment,
+                establishmentShare,
+                totalPerSite,
+                topFamily,
+                outOfStockCount,
+                noDemandCount,
+                averageCoverageMonths
+            };
+        }
+
+        function updateAdvancedStats() {
+            const stats = calculateAdvancedStats(filteredData);
+
+            const establishmentLabel = stats.topEstablishment && stats.topEstablishment.label
+                ? stats.topEstablishment.label
+                : '--';
+            const establishmentDetail = stats.topEstablishment && stats.topEstablishment.total > 0
+                ? `${formatStockInKg(stats.topEstablishment.total)}${stats.establishmentShare !== null ? ` (${formatStatValue(stats.establishmentShare, 1)}% do total)` : ''}`
+                : 'Sem estoque acumulado';
+
+            setInsightValue('heaviestEstablishment', establishmentLabel);
+            setInsightSubvalue('heaviestEstablishmentDetail', establishmentDetail);
+
+            const topFamilyLabel = stats.topFamily && stats.topFamily.name ? stats.topFamily.name : '--';
+            const topFamilyDetail = stats.topFamily && stats.topFamily.name
+                ? `${formatStockInKg(stats.topFamily.total)}${stats.topFamily.share !== null ? ` (${formatStatValue(stats.topFamily.share, 1)}% do estoque visível)` : ''}`
+                : 'Sem dados suficientes';
+
+            setInsightValue('topFamilyByStock', topFamilyLabel);
+            setInsightSubvalue('topFamilyByStockDetail', topFamilyDetail);
+
+            setInsightValue('outOfStockCount', formatIntegerValue(stats.outOfStockCount));
+            setInsightSubvalue(
+                'outOfStockDetail',
+                stats.outOfStockCount > 0
+                    ? 'Priorize reposição para evitar ruptura e redistribua estoques ociosos.'
+                    : 'Todos com cobertura disponível'
+            );
+
+            const averageCoverageText = Number.isFinite(stats.averageCoverageMonths)
+                ? formatCoverageStat(stats.averageCoverageMonths)
+                : '--';
+            setInsightValue('averageCoverage', averageCoverageText);
+            setInsightSubvalue(
+                'averageCoverageDetail',
+                Number.isFinite(stats.averageCoverageMonths)
+                    ? (stats.noDemandCount > 0
+                        ? `${stats.noDemandCount} item(ns) sem demanda recente ficaram fora do cálculo.`
+                        : 'Média considerando somente itens com consumo mapeado.')
+                    : 'Sem demanda suficiente para estimar'
+            );
+        }
+
+        function setInsightValue(elementId, textContent) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return;
+            }
+
+            element.textContent = textContent;
+            animateValueChange(element);
+        }
+
+        function setInsightSubvalue(elementId, textContent) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return;
+            }
+
+            element.textContent = textContent;
         }
 
         function updateParetoAnalysis() {
