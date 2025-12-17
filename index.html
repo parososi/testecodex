@@ -6,19 +6,22 @@
     <title>Dashboard de Estoque com Análise Preditiva - Borracha</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 24px;
+            background: radial-gradient(circle at 20% 20%, #eef1f6 0, #f8f9fb 50%, #f3f4f8 100%);
+            color: #0b1322;
         }
-        
+
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
         .has-tooltip {
@@ -151,66 +154,77 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
             flex-wrap: wrap;
             gap: 20px;
         }
-        
+
         .header h1 {
             margin: 0;
             flex: 1;
             min-width: 300px;
+            font-size: 34px;
+            letter-spacing: -0.4px;
+            color: #0b1322;
         }
-        
+
         .company-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            max-width: 300px;
+            max-width: 280px;
             height: 60px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 14px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 10px 30px rgba(15, 23, 42, 0.1);
         }
-        
+
         .company-logo img {
             max-height: 100%;
             max-width: 100%;
             object-fit: contain;
         }
-        
+
         .search-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(248, 248, 250, 0.9));
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 22px;
+            border: 1px solid rgba(12, 18, 36, 0.05);
+            box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
         }
-        
+
         .search-container {
             display: flex;
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
         }
-        
+
         .search-input {
             flex: 1;
             min-width: 300px;
-            padding: 12px 20px;
-            border: 2px solid #1F448C;
-            border-radius: 25px;
+            padding: 14px 22px;
+            border: 1.5px solid #d2d7df;
+            border-radius: 999px;
             font-size: 16px;
             outline: none;
             transition: all 0.3s ease;
+            background: #fbfbfd;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
         
         .search-input:focus {
-            box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 0 0 4px rgba(0, 122, 255, 0.15);
+            border-color: rgba(0, 122, 255, 0.45);
             transform: translateY(-1px);
         }
-        
+
         .search-results {
             margin-top: 10px;
             font-size: 14px;
-            color: #666;
+            color: #3f4555;
         }
         
         .controls {
@@ -243,34 +257,44 @@
         }
 
         button {
-            background-color: #1F448C;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
+            background: linear-gradient(180deg, #fefefe 0%, #f4f6fb 100%);
+            color: #0b1322;
+            padding: 10px 18px;
+            border: 1px solid rgba(12, 18, 36, 0.08);
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
-            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
             white-space: nowrap;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+            font-weight: 600;
         }
-        
+
         button:hover {
-            background-color: #163666;
+            background: linear-gradient(180deg, #ffffff 0%, #edf0f5 100%);
             transform: translateY(-1px) scale(1.01);
-            box-shadow: 0 6px 20px rgba(31, 68, 140, 0.16);
+            box-shadow: 0 16px 28px rgba(15, 23, 42, 0.12);
+            border-color: rgba(0, 122, 255, 0.18);
         }
 
         .danger-button {
-            background-color: #dc3545;
+            background: linear-gradient(180deg, #ff4d4f 0%, #e63946 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 10px 20px rgba(230, 57, 70, 0.2);
         }
 
         .danger-button:hover {
-            background-color: #b02a37;
+            background: linear-gradient(180deg, #ff6b6d 0%, #d62839 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(230, 57, 70, 0.25);
         }
-        
+
         button.active {
-            background-color: #2196F3;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            background: linear-gradient(180deg, #0d99ff 0%, #0b84e6 100%);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(13, 153, 255, 0.25);
+            border: none;
         }
 
         button:active {
@@ -710,10 +734,11 @@
 
         .table-container {
             position: relative;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: #fff;
-            padding: 8px;
+            border: 1px solid rgba(12, 18, 36, 0.06);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
         }
 
         .table-scroll {
@@ -733,22 +758,22 @@
         }
 
         th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            color: #333;
-            padding: 12px 8px;
+            background: linear-gradient(180deg, #f7f8fb 0%, #edf0f6 100%);
+            font-weight: 700;
+            color: #0f172a;
+            padding: 14px 10px;
             text-align: left;
             position: sticky;
             top: 0;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 1px solid rgba(12, 18, 36, 0.08);
             z-index: 5;
         }
-        
+
         td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            border-bottom: 1px solid rgba(12, 18, 36, 0.05);
             vertical-align: top;
-            line-height: 1.4;
+            line-height: 1.45;
             word-break: break-word;
         }
 
