@@ -1095,6 +1095,75 @@
             box-shadow: 0 0 0 3px rgba(31, 68, 140, 0.15);
         }
 
+        .visual-section {
+            margin-top: 26px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(246, 249, 255, 0.95));
+            border: 1px solid rgba(12, 18, 36, 0.05);
+            border-radius: 18px;
+            box-shadow: 0 22px 60px rgba(12, 18, 36, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            padding: 20px;
+        }
+
+        .visual-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .visual-header h3 {
+            margin: 0 0 6px 0;
+            font-size: 22px;
+            letter-spacing: -0.2px;
+            color: #0b1322;
+        }
+
+        .visual-header p {
+            margin: 0;
+            color: #4a5675;
+        }
+
+        .lookin-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(12, 18, 36, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px rgba(12, 18, 36, 0.08);
+            min-width: 280px;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .lookin-search:focus-within {
+            border-color: rgba(31, 68, 140, 0.25);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 28px rgba(31, 68, 140, 0.18);
+        }
+
+        .lookin-search span {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .lookin-search input {
+            border: none;
+            flex: 1;
+            background: transparent;
+            font-size: 15px;
+            color: #0b1322;
+            outline: none;
+        }
+
+        .visual-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         .interactive-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -1103,15 +1172,15 @@
         }
 
         .interactive-chart-card {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
+            background: #fdfefe;
+            border-radius: 16px;
+            padding: 18px;
             border: 1px solid #dfe6f5;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 16px 40px rgba(15, 23, 42, 0.08);
         }
 
         .chart-track {
-            height: 16px;
+            height: 14px;
             background: #eef2fb;
             border-radius: 999px;
             position: relative;
@@ -1123,26 +1192,30 @@
             top: 0;
             left: 0;
             height: 100%;
-            background: linear-gradient(90deg, #1F448C, #3fa9f5);
+            background: linear-gradient(90deg, #2e3f73, #6fa3ff);
             border-radius: 999px;
             transition: width 0.3s ease, transform 0.2s ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 16px rgba(20, 37, 76, 0.18);
         }
 
         .chart-row {
             display: grid;
-            grid-template-columns: 1fr 3fr 100px;
+            grid-template-columns: 1.2fr 2.4fr 120px;
             gap: 12px;
             align-items: center;
-            padding: 10px 8px;
-            border-radius: 12px;
-            transition: background 0.2s ease, transform 0.15s ease;
+            padding: 12px 10px;
+            border-radius: 14px;
+            transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
             cursor: pointer;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(12, 18, 36, 0.04);
         }
 
         .chart-row:hover,
         .chart-row:focus-visible {
-            background: rgba(31, 68, 140, 0.06);
+            background: rgba(255, 255, 255, 0.98);
             transform: translateX(2px);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
         }
 
         .chart-row strong {
@@ -1160,6 +1233,7 @@
             align-items: center;
             gap: 8px;
             color: #4a5675;
+            flex-wrap: wrap;
         }
 
         .legend-dot {
@@ -1190,6 +1264,61 @@
         .chart-pill small {
             color: #6c757d;
             font-weight: 500;
+        }
+
+        .chart-type-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(12, 18, 36, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .chart-type-toggle label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: #1F2A44;
+            cursor: pointer;
+        }
+
+        .chart-type-toggle input {
+            accent-color: #1F448C;
+        }
+
+        .chart-canvas {
+            min-height: 360px;
+        }
+
+        .chart-pie-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .chart-pie-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(12, 18, 36, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+            color: #1F2A44;
+            font-weight: 600;
+        }
+
+        .chart-pie-legend .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            box-shadow: 0 0 0 3px rgba(12, 18, 36, 0.05);
         }
 
         .insight-list {
@@ -2210,25 +2339,36 @@
             </div>
         </div>
 
-        <section class="interactive-hub" aria-label="Laboratório de gráficos interativos">
-            <div class="interactive-header">
+        <section class="visual-section" aria-label="Sessão dedicada de gráficos">
+            <div class="visual-header">
                 <div>
-                    <h3 class="header-label">Laboratório de Gráficos</h3>
-                    <p>Escolha uma métrica e interaja com os itens mais relevantes sem depender de vários campos.</p>
-                    <div class="chart-legend">
-                        <span class="legend-dot" aria-hidden="true"></span>
-                        <small>Mantenha o cursor ou clique em uma barra para explorar detalhes.</small>
+                    <h3 class="header-label">Sessão Interativa de Gráficos</h3>
+                    <p>Visual inspirado no look da busca da Apple: campos suaves, bordas delicadas e foco na leitura.</p>
+                    <div class="lookin-search" aria-label="Filtrar itens desta visualização">
+                        <span aria-hidden="true">🔍</span>
+                        <input type="search" id="chartSearch" placeholder="Look In: itens, famílias ou códigos" aria-describedby="chartSearchHelp">
+                    </div>
+                    <small id="chartSearchHelp" style="color:#6c757d;">Pesquise e mantenha a lista apenas com o que interessa antes de trocar o tipo de gráfico.</small>
+                </div>
+                <div class="visual-actions">
+                    <div class="metric-selector">
+                        <label for="chartMetric">Métrica principal</label>
+                        <select id="chartMetric" aria-label="Escolher métrica do gráfico">
+                            <option value="stock">Estoque consolidado (kg)</option>
+                            <option value="coverage">Cobertura (meses estimados)</option>
+                            <option value="sales">Vendas 3M</option>
+                            <option value="familyStock">Famílias com mais estoque</option>
+                        </select>
+                    </div>
+                    <div class="chart-type-toggle" role="group" aria-label="Tipo de gráfico">
+                        <label><input type="radio" name="chartType" value="bar" checked> Barras</label>
+                        <label><input type="radio" name="chartType" value="pie"> Pizza</label>
                     </div>
                 </div>
-                <div class="metric-selector">
-                    <label for="chartMetric">Métrica principal</label>
-                    <select id="chartMetric" aria-label="Escolher métrica do gráfico">
-                        <option value="stock">Estoque consolidado (kg)</option>
-                        <option value="coverage">Cobertura (meses estimados)</option>
-                        <option value="sales">Vendas 3M</option>
-                        <option value="familyStock">Famílias com mais estoque</option>
-                    </select>
-                </div>
+            </div>
+            <div class="chart-legend">
+                <span class="legend-dot" aria-hidden="true"></span>
+                <small>Interaja com barras ou fatias para focar nos produtos mais relevantes.</small>
             </div>
             <div class="interactive-grid">
                 <div class="interactive-chart-card">
@@ -6025,9 +6165,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             return config.formatter(value);
         }
 
-        function getInteractiveDataset(metricKey) {
+        function getInteractiveDataset(metricKey, filterTerm = '') {
             const config = interactiveMetricConfig[metricKey] || interactiveMetricConfig.stock;
             const rows = [];
+            const normalizedFilter = filterTerm.toString().toLowerCase().trim();
+
+            const passesFilter = function(label, family, code) {
+                if (!normalizedFilter) {
+                    return true;
+                }
+                const fullLabel = `${label || ''} ${family || ''} ${code || ''}`.toLowerCase();
+                return fullLabel.includes(normalizedFilter);
+            };
 
             if (metricKey === 'familyStock') {
                 const totals = new Map();
@@ -6038,7 +6187,7 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 });
 
                 totals.forEach(function(value, family) {
-                    if (Number.isFinite(value) && value >= 0) {
+                    if (Number.isFinite(value) && value >= 0 && passesFilter(family, family, null)) {
                         rows.push({
                             label: family,
                             value: value,
@@ -6049,9 +6198,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             } else {
                 filteredData.forEach(function(product) {
                     const value = config.accessor(product);
-                    if (Number.isFinite(value) && value >= 0) {
+                    const label = product.item || product.code || 'Item sem nome';
+                    if (Number.isFinite(value) && value >= 0 && passesFilter(label, product.family, product.code)) {
                         rows.push({
-                            label: product.item || product.code || 'Item sem nome',
+                            label: label,
                             value: value,
                             code: product.code,
                             family: product.family
@@ -6070,24 +6220,12 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             };
         }
 
-        function renderInteractiveChart(dataset) {
-            const container = document.getElementById('chartCanvas');
-            if (!container) {
-                return;
-            }
-
-            container.innerHTML = '';
-
-            if (!dataset.data.length) {
-                container.innerHTML = `<p class="chart-empty">${dataset.config.empty}</p>`;
-                return;
-            }
-
+        function renderBarChart(dataset, container) {
             const maxValue = dataset.data.reduce(function(max, entry) {
                 return Math.max(max, entry.value);
             }, 0) || 1;
 
-            dataset.data.forEach(function(entry, index) {
+            dataset.data.forEach(function(entry) {
                 const row = document.createElement('div');
                 row.className = 'chart-row';
                 row.tabIndex = 0;
@@ -6130,6 +6268,72 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             });
         }
 
+        function renderPieChart(dataset, container) {
+            const canvas = document.createElement('canvas');
+            canvas.width = container.clientWidth || 620;
+            canvas.height = 340;
+            const ctx = canvas.getContext('2d');
+
+            const total = dataset.data.reduce(function(sum, item) { return sum + item.value; }, 0) || 1;
+            let startAngle = -Math.PI / 2;
+
+            const colors = defaultFamilyAccentPalette;
+            const legend = document.createElement('div');
+            legend.className = 'chart-pie-legend';
+
+            dataset.data.forEach(function(entry, index) {
+                const sliceAngle = (entry.value / total) * Math.PI * 2;
+                const endAngle = startAngle + sliceAngle;
+                const color = colors[index % colors.length];
+
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height / 2);
+                ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) / 2.4, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                const midAngle = startAngle + sliceAngle / 2;
+                const labelX = canvas.width / 2 + Math.cos(midAngle) * (canvas.height / 4);
+                const labelY = canvas.height / 2 + Math.sin(midAngle) * (canvas.height / 4);
+                ctx.fillStyle = '#0b1322';
+                ctx.font = '600 13px "SF Pro Display", "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${Math.round((entry.value / total) * 100)}%`, labelX, labelY);
+
+                const legendItem = document.createElement('span');
+                legendItem.innerHTML = `<span class="legend-color" style="background:${color}"></span>${escapeTooltip(entry.label)}`;
+                legend.appendChild(legendItem);
+
+                startAngle = endAngle;
+            });
+
+            container.appendChild(canvas);
+            container.appendChild(legend);
+        }
+
+        function renderInteractiveChart(dataset, chartType) {
+            const container = document.getElementById('chartCanvas');
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            if (!dataset.data.length) {
+                container.innerHTML = `<p class="chart-empty">${dataset.config.empty}</p>`;
+                return;
+            }
+
+            if (chartType === 'pie') {
+                renderPieChart(dataset, container);
+                return;
+            }
+
+            renderBarChart(dataset, container);
+        }
+
         function renderChartInsights(dataset) {
             const insightContainer = document.getElementById('chartInsightList');
             if (!insightContainer) {
@@ -6166,8 +6370,10 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             }
 
             const metricKey = selector.value || 'stock';
-            const dataset = getInteractiveDataset(metricKey);
-            renderInteractiveChart(dataset);
+            const chartType = (document.querySelector('input[name="chartType"]:checked') || {}).value || 'bar';
+            const searchValue = document.getElementById('chartSearch') ? document.getElementById('chartSearch').value : '';
+            const dataset = getInteractiveDataset(metricKey, searchValue);
+            renderInteractiveChart(dataset, chartType);
             renderChartInsights(dataset);
         }
 
@@ -7255,6 +7461,22 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
             const chartMetricSelect = document.getElementById('chartMetric');
             if (chartMetricSelect) {
                 chartMetricSelect.addEventListener('change', updateInteractiveCharts);
+            }
+
+            const chartTypeRadios = document.querySelectorAll('input[name="chartType"]');
+            if (chartTypeRadios && chartTypeRadios.length) {
+                chartTypeRadios.forEach(function(radio) {
+                    radio.addEventListener('change', updateInteractiveCharts);
+                });
+            }
+
+            const chartSearchInput = document.getElementById('chartSearch');
+            if (chartSearchInput) {
+                let chartSearchTimeout;
+                chartSearchInput.addEventListener('input', function() {
+                    clearTimeout(chartSearchTimeout);
+                    chartSearchTimeout = setTimeout(updateInteractiveCharts, 250);
+                });
             }
         });
 
