@@ -80,6 +80,109 @@
             transform: translateY(0);
         }
 
+        .stock-share-tooltip {
+            position: absolute;
+            z-index: 10000;
+            background: #0b1322;
+            color: #f8fbff;
+            padding: 14px 16px;
+            border-radius: 14px;
+            box-shadow: 0 18px 48px rgba(6, 13, 35, 0.32);
+            width: 280px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .stock-share-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stock-share-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 15px;
+            color: #ffffff;
+        }
+
+        .stock-share-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 12px;
+        }
+
+        .stock-share-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stock-share-chart {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, #0b1322 58%, transparent 58%),
+                conic-gradient(#2d9cdb 0deg, #2d9cdb 0deg, rgba(255, 255, 255, 0.16) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .stock-share-chart::after {
+            content: '';
+            position: absolute;
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: #0b1322;
+        }
+
+        .stock-share-chart.empty {
+            background: radial-gradient(circle at center, #0b1322 58%, transparent 58%),
+                repeating-conic-gradient(
+                    rgba(255, 255, 255, 0.14) 0deg,
+                    rgba(255, 255, 255, 0.14) 8deg,
+                    rgba(255, 255, 255, 0.06) 8deg,
+                    rgba(255, 255, 255, 0.06) 16deg
+                );
+        }
+
+        .stock-share-percent {
+            position: relative;
+            z-index: 1;
+            font-weight: 800;
+            font-size: 20px;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+
+        .stock-share-details {
+            display: grid;
+            gap: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .stock-share-details .detail-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .stock-share-details .detail-line strong {
+            color: #ffffff;
+        }
+
+        .stock-share-details .detail-line.highlight strong {
+            color: #9edcff;
+        }
+
         .info-icon {
             display: inline-flex;
             align-items: center;
@@ -2522,6 +2625,7 @@
         let lastImportedFileName = '';
         let lastImportedSheetName = '';
         let currentlyViewedProductCode = null;
+        let productShareTooltip = null;
         let ptaxState = {
             rate: null,
             date: null,
@@ -2529,6 +2633,106 @@
             loading: true,
             error: null
         };
+
+        function getProductShareTooltipElement() {
+            if (productShareTooltip) {
+                return productShareTooltip;
+            }
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'stock-share-tooltip';
+            tooltip.setAttribute('role', 'tooltip');
+            tooltip.style.display = 'none';
+            document.body.appendChild(tooltip);
+
+            productShareTooltip = tooltip;
+            return tooltip;
+        }
+
+        function hideProductShareTooltip() {
+            const tooltip = getProductShareTooltipElement();
+            tooltip.classList.remove('visible');
+            tooltip.style.display = 'none';
+        }
+
+        function positionProductShareTooltip(event) {
+            const tooltip = getProductShareTooltipElement();
+            const offset = 16;
+            const left = event.clientX + offset + window.scrollX;
+            const top = event.clientY + offset + window.scrollY;
+
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+
+        function computeFamilyStockTotals(dataSet) {
+            const totals = new Map();
+
+            dataSet.forEach(function(product) {
+                const key = normalizeFamilyKey(product.family) || 'sem-familia';
+                const label = (product.family || 'Família não informada').trim() || 'Família não informada';
+                const stock = getProductStock(product);
+
+                if (!totals.has(key)) {
+                    totals.set(key, { label, total: 0 });
+                }
+
+                const entry = totals.get(key);
+                entry.total += stock;
+                totals.set(key, entry);
+            });
+
+            return totals;
+        }
+
+        function buildProductShareChartStyle(share, accentColor) {
+            const remainderColor = 'rgba(255, 255, 255, 0.16)';
+            return `background: radial-gradient(circle at center, #0b1322 58%, transparent 58%), conic-gradient(${accentColor} 0% ${share}%, ${remainderColor} ${share}% 100%);`;
+        }
+
+        function showProductShareTooltip(event, product, familyTotals) {
+            const tooltip = getProductShareTooltipElement();
+            const familyKey = normalizeFamilyKey(product.family) || 'sem-familia';
+            const familyInfo = familyTotals.get(familyKey);
+            const familyTotal = familyInfo ? familyInfo.total : 0;
+            const productStock = getProductStock(product);
+            const hasShare = Number.isFinite(productStock) && productStock > 0 && familyTotal > 0;
+            const share = hasShare ? Math.min(100, Math.max(0, (productStock / familyTotal) * 100)) : null;
+            const accent = getFamilyAccent(product.family);
+            const sliceColor = accent ? accent.chipBackground : '#2D9CDB';
+            const chartStyle = hasShare ? buildProductShareChartStyle(share, sliceColor) : '';
+            const percentLabel = hasShare ? `${share.toFixed(1)}%` : '--';
+            const familyLabel = familyInfo ? familyInfo.label : (product.family || 'Família não informada');
+            const productLabel = escapeTooltip(product.item || 'Produto');
+            const familyStockLabel = formatIntegerValue(familyTotal);
+            const productStockLabel = formatIntegerValue(productStock);
+            const tooltipDescription = hasShare
+                ? `Este item representa ${percentLabel} do estoque da família ${escapeTooltip(familyLabel)} considerando os filtros ativos.`
+                : `Não há estoque suficiente para estimar a participação deste item na família ${escapeTooltip(familyLabel)}.`;
+
+            tooltip.innerHTML = `
+                <div class="stock-share-title">${productLabel}</div>
+                <div class="stock-share-subtitle">Participação no estoque da família</div>
+                <div class="stock-share-grid">
+                    <div class="${hasShare ? 'stock-share-chart' : 'stock-share-chart empty'}" style="${chartStyle}">
+                        <div class="stock-share-percent">${percentLabel}</div>
+                    </div>
+                    <div class="stock-share-details">
+                        <div class="detail-line"><span>Estoque do item</span><strong>${productStockLabel} un</strong></div>
+                        <div class="detail-line"><span>Estoque da família</span><strong>${familyStockLabel} un</strong></div>
+                        <div class="detail-line highlight"><span>${escapeTooltip(familyLabel)}</span><strong>${percentLabel}</strong></div>
+                    </div>
+                </div>
+                <div class="stock-share-subtitle" style="margin-top: 10px;">${tooltipDescription}</div>
+            `;
+
+            positionProductShareTooltip(event);
+            tooltip.style.display = 'block';
+
+            requestAnimationFrame(function() {
+                tooltip.classList.add('visible');
+            });
+        }
 
         const defaultFamilyAccentPalette = Object.freeze([
             '#FF6F61',
@@ -6480,6 +6684,9 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
         function updateTable() {
             const tableBody = document.getElementById('productsTableBody');
             tableBody.innerHTML = '';
+            hideProductShareTooltip();
+
+            const familyStockTotals = computeFamilyStockTotals(filteredData);
 
             filteredData.forEach(function(product) {
                 const row = document.createElement('tr');
@@ -6592,6 +6799,18 @@ console.log('data.js v1.3 carregado com', window.stockData.length, 'produtos');`
                 }
 
                 row.dataset.abcClass = normalizedAbcClass;
+
+                row.addEventListener('mouseenter', function(event) {
+                    showProductShareTooltip(event, product, familyStockTotals);
+                });
+
+                row.addEventListener('mousemove', function(event) {
+                    positionProductShareTooltip(event);
+                });
+
+                row.addEventListener('mouseleave', function() {
+                    hideProductShareTooltip();
+                });
 
                 tableBody.appendChild(row);
             });
