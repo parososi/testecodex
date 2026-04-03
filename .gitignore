@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+samples/*.bmp
+samples/*.png
+samples/*.PP
+samples/*.jpg
+samples/*.jpeg
