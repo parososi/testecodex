@@ -1,4 +1,5 @@
-"""Permite executar com: python -m pied_piper"""
+"""Entry point para: python -m pied_piper"""
+import sys
 from pied_piper.cli import main
 
-main()
+sys.exit(main())

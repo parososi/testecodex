@@ -5,8 +5,24 @@ __pycache__/
 dist/
 build/
 .eggs/
+
+# Build artifacts do motor C
+engine/*.so
+engine/*.dylib
+engine/*.o
+engine/*.dll
+
+# Samples gerados durante testes
 samples/*.bmp
 samples/*.png
 samples/*.PP
 samples/*.jpg
 samples/*.jpeg
+samples/*.tiff
+samples/*.tif
+samples/*.webp
+samples/*.gif
+samples/*.ico
+samples/*.tga
+samples/*.pcx
+samples/*.psd
