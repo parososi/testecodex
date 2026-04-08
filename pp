@@ -48,11 +48,10 @@ def _ensure_pip_deps() -> None:
     print(f"  [pp] Instalando dependencias: {', '.join(missing)} ...")
     try:
         result = subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', '--quiet'] + missing,
-            capture_output=True, text=True
+            [sys.executable, '-m', 'pip', 'install'] + missing,
         )
         if result.returncode != 0:
-            print(f"  [pp] AVISO: pip retornou erro:\n{result.stderr}")
+            print(f"  [pp] AVISO: pip retornou erro.")
             print(f"  [pp] Tente manualmente: pip install {' '.join(missing)}")
         else:
             print(f"  [pp] Dependencias instaladas com sucesso.\n")
@@ -72,35 +71,39 @@ def _ensure_engine_built(root: str) -> None:
     candidates = [
         os.path.join(engine_dir, 'libmiddleout.so'),
         os.path.join(engine_dir, 'libmiddleout.dylib'),
+        os.path.join(engine_dir, 'libmiddleout.dll'),
     ]
     if any(os.path.exists(p) for p in candidates):
         return
 
     if not os.path.isdir(engine_dir):
-        print("  ERRO: Diretorio engine/ nao encontrado.")
-        print("  Execute este script a partir do diretorio do Pied Piper.")
-        sys.exit(1)
+        print("  AVISO: Diretorio engine/ nao encontrado. Motor C desativado.")
+        return
+
+    # No Windows, 'make' geralmente nao esta disponivel
+    if sys.platform == 'win32':
+        print("  [pp] AVISO: Motor C nao compilado (make nao disponivel no Windows).")
+        print("  [pp] Usando implementacao Python pura (mais lenta).")
+        print("  [pp] Para compilar: instale MinGW ou MSYS2 e execute 'make' em engine/")
+        return
 
     print("  [pp] Compilando motor C pela primeira vez...")
     try:
         result = subprocess.run(
             ['make'], cwd=engine_dir,
-            capture_output=True, text=True
         )
         if result.returncode != 0:
-            print("  ERRO: Falha ao compilar motor C:")
-            print(result.stderr)
             print()
+            print("  AVISO: Falha ao compilar motor C. Usando Python puro.")
             print("  Verifique se gcc/make estao instalados:")
             print("    Linux:  sudo apt install build-essential")
             print("    Mac:    xcode-select --install")
-            sys.exit(1)
-        print("  [pp] Motor C compilado com sucesso.\n")
+        else:
+            print("  [pp] Motor C compilado com sucesso.\n")
     except FileNotFoundError:
-        print("  ERRO: 'make' nao encontrado.")
-        print("  Linux:  sudo apt install build-essential")
-        print("  Mac:    xcode-select --install")
-        sys.exit(1)
+        print("  AVISO: 'make' nao encontrado. Usando implementacao Python pura.")
+        print("    Linux:  sudo apt install build-essential")
+        print("    Mac:    xcode-select --install")
 
 
 # ---------------------------------------------------------------------------
