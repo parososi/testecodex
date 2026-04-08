@@ -18,7 +18,7 @@ import threading
 from pied_piper import __version__
 from pied_piper.codec import (
     compress, decompress, info, engine_info, PP_EXTENSION,
-    compress_folder, decompress_bundle, is_bundle,
+    compress_folder, decompress_bundle, is_bundle, quality_check,
 )
 
 
@@ -53,6 +53,12 @@ def _has_unicode():
 
 
 _UNICODE = _COLOR and _has_unicode()
+
+# Caracteres unicode usados em barras/linhas (evita backslash em f-strings no py3.11)
+_BLOCK_FULL  = '\u2588'   # █
+_BLOCK_LIGHT = '\u2591'   # ░
+_HLINE_THIN  = '\u2500'   # ─
+_HLINE_THICK = '\u2550'   # ═
 
 
 def _c(code):
@@ -137,7 +143,7 @@ def _bar(percent: float, width: int = 30) -> str:
     p = max(0.0, min(100.0, percent))
     filled = int(p / 100 * width)
     if _UNICODE:
-        inner = f'{GREEN}{"\u2588" * filled}{GRAY}{"\u2591" * (width - filled)}{RESET}'
+        inner = f'{GREEN}{_BLOCK_FULL * filled}{GRAY}{_BLOCK_LIGHT * (width - filled)}{RESET}'
     else:
         inner = f'{GREEN}{"#" * filled}{DIM}{"." * (width - filled)}{RESET}'
     return f'[{inner}]'
@@ -151,14 +157,14 @@ def _mode_badge(lossless: bool) -> str:
 
 def _hline(W: int = 64) -> None:
     if _UNICODE:
-        print(f'  {DIM}{"\u2500" * W}{RESET}')
+        print(f'  {DIM}{_HLINE_THIN * W}{RESET}')
     else:
         print('  ' + '-' * W)
 
 
 def _dline(W: int = 64) -> None:
     if _UNICODE:
-        print(f'  {CYAN}{"\u2550" * W}{RESET}')
+        print(f'  {CYAN}{_HLINE_THICK * W}{RESET}')
     else:
         print('  ' + '=' * W)
 
@@ -405,23 +411,25 @@ def _print_help() -> None:
         print(f'    {GRAY}>{RESET} {WHITE}{ex}{RESET}{c}')
 
     section('COMANDOS')
-    cmd_line('pp c <imagem|pasta> [-q Q] [-l]', 'Comprime imagem ou pasta \u2192 .PP')
-    cmd_line('pp d <arquivo.PP> [-o SAIDA]',     'Descomprime .PP \u2192 imagem ou pasta')
-    cmd_line('pp i <arquivo.PP>',                'Mostra info do .PP')
-    cmd_line('pp engine',                        'Status do motor de compressao')
-    cmd_line('pp verify <imagem>',               'Verifica integridade lossless')
-    cmd_line('pp help',                          'Esta ajuda')
-    cmd_line('pp version',                       'Versao')
+    cmd_line('pp c <imagem|pasta> [-q Q] [-l]',    'Comprime imagem ou pasta \u2192 .PP')
+    cmd_line('pp d <arquivo.PP> [-o SAIDA]',        'Descomprime .PP \u2192 imagem ou pasta')
+    cmd_line('pp i <arquivo.PP>',                   'Mostra info do .PP')
+    cmd_line('pp quality <original> <restaurada>',  'Avalia qualidade da descompressao')
+    cmd_line('pp engine',                           'Status do motor de compressao')
+    cmd_line('pp verify <imagem>',                  'Verifica integridade lossless')
+    cmd_line('pp help',                             'Esta ajuda')
+    cmd_line('pp version',                          'Versao')
     print()
 
     section('EXEMPLOS — IMAGEM UNICA')
-    example('pp c foto.jpg',          'lossy, qualidade 75 (padrao)')
-    example('pp c foto.jpg -q 90',    'lossy, qualidade alta')
-    example('pp c foto.png -l',       'lossless sem perdas (auto-escolhe melhor estrategia)')
-    example('pp c foto.bmp -o out.PP','saida customizada')
-    example('pp d foto.PP',           'descomprime \u2192 formato original')
-    example('pp d foto.PP -o img.png','descomprime \u2192 PNG especifico')
-    example('pp i foto.PP',           'ver metadados e modo')
+    example('pp c foto.jpg',                    'lossy, qualidade 75 (padrao)')
+    example('pp c foto.jpg -q 90',              'lossy, qualidade alta')
+    example('pp c foto.png -l',                 'lossless sem perdas (auto-escolhe melhor estrategia)')
+    example('pp c foto.bmp -o out.PP',          'saida customizada')
+    example('pp d foto.PP',                     'descomprime \u2192 formato original')
+    example('pp d foto.PP -o img.png',          'descomprime \u2192 PNG especifico')
+    example('pp i foto.PP',                     'ver metadados e modo')
+    example('pp quality foto.jpg foto_restored.jpg', 'avalia perda de qualidade apos compressao')
     print()
 
     section('EXEMPLOS — PASTA INTEIRA')
@@ -709,6 +717,177 @@ def cmd_verify(args: list) -> int:
         return 1
 
 
+def _quality_badge(level: str) -> str:
+    badges = {
+        'perfect':    f'{GREEN}{BOLD}[ PIXEL-PERFEITO ]{RESET}',
+        'excellent':  f'{GREEN}{BOLD}[   EXCELENTE    ]{RESET}',
+        'very_good':  f'{CYAN}{BOLD}[   MUITO BOA    ]{RESET}',
+        'good':       f'{YELLOW}{BOLD}[      BOA       ]{RESET}',
+        'fair':       f'{YELLOW}{BOLD}[    REGULAR     ]{RESET}',
+        'poor':       f'{RED}{BOLD}[     RUIM       ]{RESET}',
+    }
+    return badges.get(level, f'{GRAY}[  DESCONHECIDA  ]{RESET}')
+
+
+def _psnr_bar(psnr: float, width: int = 30) -> str:
+    """Barra de progresso proporcional ao PSNR (0-50 dB range)."""
+    if psnr == float('inf'):
+        pct = 100.0
+    else:
+        pct = min(100.0, max(0.0, psnr / 50.0 * 100.0))
+    filled = int(pct / 100.0 * width)
+    if psnr == float('inf') or psnr >= 40:
+        color = GREEN
+    elif psnr >= 30:
+        color = YELLOW
+    else:
+        color = RED
+    if _UNICODE:
+        inner = f'{color}{_BLOCK_FULL * filled}{GRAY}{_BLOCK_LIGHT * (width - filled)}{RESET}'
+    else:
+        inner = f'{color}{"#" * filled}{DIM}{"." * (width - filled)}{RESET}'
+    return f'[{inner}]'
+
+
+def _print_quality_stats(s: dict) -> None:
+    badge = _quality_badge(s['quality_level'])
+
+    _header(f'PIED PIPER \u2014 AVALIACAO DE QUALIDADE    {badge}')
+    print()
+    _row('Original:', f'{WHITE}{s["original_path"]}{RESET}')
+    _row('Restaurada:', f'{WHITE}{s["restored_path"]}{RESET}')
+    _hline()
+    _row('Formato original:', s['original_format'])
+    _row('Formato restaurado:', s['restored_format'])
+    _row('Dimensoes:', f'{s["width"]} x {s["height"]} pixels')
+    _row('Total de pixels:', f'{s["total_pixels"]:,}')
+    _row('Megapixels:', f'{s["megapixels"]} MP')
+    _hline()
+
+    # Tamanhos
+    orig_h  = _human(s['original_size'])
+    rest_h  = _human(s['restored_size'])
+    diff_pct = s['size_diff_pct']
+    if diff_pct <= -1:
+        diff_str = f'{RED}{diff_pct:+.2f}% (arquivo menor \u2014 possivel perda){RESET}'
+    elif diff_pct >= 1:
+        diff_str = f'{YELLOW}{diff_pct:+.2f}% (arquivo maior){RESET}'
+    else:
+        diff_str = f'{GREEN}{diff_pct:+.2f}% (tamanho similar){RESET}'
+
+    _row('Tamanho original:', orig_h)
+    _row('Tamanho restaurado:', rest_h)
+    _row('Variacao de tamanho:', diff_str)
+    _hline()
+
+    # Metricas de qualidade
+    print(f'  {BOLD}{YELLOW}  METRICAS DE QUALIDADE{RESET}')
+    _hline()
+
+    psnr = s['psnr']
+    if psnr == float('inf'):
+        psnr_color = GREEN
+    elif psnr >= 40:
+        psnr_color = GREEN
+    elif psnr >= 30:
+        psnr_color = YELLOW
+    else:
+        psnr_color = RED
+
+    _row('PSNR geral:', f'{psnr_color}{BOLD}{s["psnr_str"]}{RESET}')
+    if psnr != float('inf'):
+        print(f'  {"":24}{_psnr_bar(psnr)}  {psnr_color}{s["psnr_str"]}{RESET}')
+
+    # PSNR por canal
+    ch_psnr = s['channel_psnr']
+    for ch in ['R', 'G', 'B']:
+        v = ch_psnr[ch]
+        c = GREEN if v == float('inf') or v >= 40 else (YELLOW if v >= 30 else RED)
+        v_str = 'inf' if v == float('inf') else f'{v:.2f} dB'
+        _row(f'  PSNR canal {ch}:', f'{c}{v_str}{RESET}')
+
+    _hline()
+    _row('SSIM:', f'{CYAN}{BOLD}{s["ssim_str"]}{RESET}  {DIM}(1.0 = identico){RESET}')
+    _row('MSE:', f'{s["mse"]:.4f}')
+    _row('MAE:', f'{s["mae"]:.4f}')
+    _row('Diferenca max. pixel:', f'{s["max_diff"]:.0f} niveis')
+    _row('Pixels alterados:', f'{s["changed_pixels"]:,} ({s["changed_pct"]}%)')
+    _hline()
+
+    # Resultado final
+    level = s['quality_level']
+    if level == 'perfect':
+        print(f'  {OK} {GREEN}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Os pixels sao identicos \u2014 nenhuma perda de qualidade.')
+    elif level == 'excellent':
+        print(f'  {OK} {GREEN}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Perda imperceptivel ao olho humano (PSNR >= 40 dB).')
+    elif level == 'very_good':
+        print(f'  {OK} {CYAN}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Diferenca minima, dificilmente visivel (PSNR 35-40 dB).')
+    elif level == 'good':
+        print(f'  {WARN} {YELLOW}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Pequena perda de qualidade, aceitavel para uso geral (PSNR 30-35 dB).')
+    elif level == 'fair':
+        print(f'  {WARN} {YELLOW}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Perda visivelmente noticavel (PSNR 25-30 dB).')
+        print(f'     {DIM}Dica: use -q 90 ou -l para melhor qualidade.{RESET}')
+    else:
+        print(f'  {FAIL} {RED}{BOLD}RESULTADO: {s["quality_label"]}{RESET}')
+        print(f'     Degradacao severa de qualidade (PSNR < 25 dB).')
+        print(f'     {DIM}Dica: use -l (lossless) para preservar o original.{RESET}')
+
+    # Alerta especifico para JPEG re-comprimido
+    if (s['original_format'] in ('JPEG', 'JPG') and
+            s['restored_format'] in ('JPEG', 'JPG') and
+            s['size_diff_pct'] < -5 and level not in ('perfect', 'excellent')):
+        _hline()
+        print(f'  {WARN} {YELLOW}AVISO: Dupla compressao JPEG detectada!{RESET}')
+        print(f'     O JPEG original foi re-codificado com qualidade menor.')
+        print(f'     {DIM}Para preservar o original use: pp c <imagem> -l{RESET}')
+
+    _dline()
+    _row('Tempo de analise:', f'{s["time_seconds"]}s')
+    print()
+
+
+def cmd_quality(args: list) -> int:
+    """Avalia qualidade de imagem restaurada comparando com o original."""
+    positional = _get_positional(args)
+    if len(positional) < 2:
+        print(f'  {FAIL} Informe a imagem original e a restaurada.')
+        print(f'  {DIM}Uso: pp quality <original> <restaurada>{RESET}')
+        return 1
+
+    original_path = positional[0]
+    restored_path = positional[1]
+
+    for p in (original_path, restored_path):
+        if not os.path.exists(p):
+            print(f'  {FAIL} Arquivo nao encontrado: {RED}{p}{RESET}')
+            return 1
+
+    _print_banner()
+    print(f'  {CYAN}Original:{RESET}   {WHITE}{original_path}{RESET}')
+    print(f'  {CYAN}Restaurada:{RESET} {WHITE}{restored_path}{RESET}')
+    print()
+
+    sp = Spinner('Calculando metricas de qualidade...')
+    sp.start()
+
+    try:
+        stats = quality_check(original_path, restored_path)
+        sp.stop(True, 'Analise concluida!')
+        _print_quality_stats(stats)
+        return 0
+    except Exception as e:
+        sp.stop(False, 'Erro na analise de qualidade')
+        print(f'\n  {RED}Detalhe: {e}{RESET}')
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
 def cmd_engine(args: list) -> int:
     _print_banner()
     _print_engine()
@@ -735,6 +914,7 @@ COMMANDS = {
     'x': cmd_decompress,     'extract': cmd_decompress,
     'i': cmd_info,           'info': cmd_info,
     'verify': cmd_verify,    'check': cmd_verify,
+    'quality': cmd_quality,  'q': cmd_quality,             'qcheck': cmd_quality,
     'engine': cmd_engine,
     'version': cmd_version,  '-v': cmd_version,     '--version': cmd_version,
     'help': cmd_help,        '-h': cmd_help,        '--help': cmd_help,

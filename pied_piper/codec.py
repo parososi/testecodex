@@ -1897,6 +1897,189 @@ def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
     }
 
 
+# ==============================================================
+# Avaliacao de qualidade: compara original vs restaurada
+# ==============================================================
+
+def _compute_ssim(img1: np.ndarray, img2: np.ndarray) -> float:
+    """
+    Calcula SSIM (Structural Similarity Index) entre dois arrays RGB float64.
+    Usa scipy.ndimage se disponivel, caso contrario usa janelas 8x8.
+    """
+    C1 = (0.01 * 255) ** 2
+    C2 = (0.03 * 255) ** 2
+
+    # Converte para escala de cinza
+    g1 = 0.299 * img1[..., 0] + 0.587 * img1[..., 1] + 0.114 * img1[..., 2]
+    g2 = 0.299 * img2[..., 0] + 0.587 * img2[..., 1] + 0.114 * img2[..., 2]
+
+    try:
+        from scipy.ndimage import uniform_filter
+        w = 11
+        mu1 = uniform_filter(g1, w)
+        mu2 = uniform_filter(g2, w)
+        mu1_sq  = mu1 ** 2
+        mu2_sq  = mu2 ** 2
+        mu1_mu2 = mu1 * mu2
+        s1  = uniform_filter(g1 * g1, w) - mu1_sq
+        s2  = uniform_filter(g2 * g2, w) - mu2_sq
+        s12 = uniform_filter(g1 * g2, w) - mu1_mu2
+        ssim_map = ((2 * mu1_mu2 + C1) * (2 * s12 + C2)) / (
+            (mu1_sq + mu2_sq + C1) * (s1 + s2 + C2)
+        )
+        return float(np.mean(ssim_map))
+    except ImportError:
+        pass
+
+    # Fallback: janelas 8x8
+    h, w = g1.shape
+    step = 8
+    ssim_vals = []
+    for i in range(0, h - step + 1, step):
+        for j in range(0, w - step + 1, step):
+            p1 = g1[i:i + step, j:j + step].flatten().astype(np.float64)
+            p2 = g2[i:i + step, j:j + step].flatten().astype(np.float64)
+            mu1_p = p1.mean()
+            mu2_p = p2.mean()
+            s1_p  = float(np.mean((p1 - mu1_p) ** 2))
+            s2_p  = float(np.mean((p2 - mu2_p) ** 2))
+            s12_p = float(np.mean((p1 - mu1_p) * (p2 - mu2_p)))
+            num   = (2 * mu1_p * mu2_p + C1) * (2 * s12_p + C2)
+            den   = (mu1_p ** 2 + mu2_p ** 2 + C1) * (s1_p + s2_p + C2)
+            ssim_vals.append(num / den if den != 0 else 1.0)
+    return float(np.mean(ssim_vals)) if ssim_vals else 1.0
+
+
+def quality_check(original_path: str, restored_path: str) -> dict:
+    """
+    Avalia a qualidade de uma imagem restaurada comparando com o original.
+
+    Calcula:
+      - PSNR (Peak Signal-to-Noise Ratio) geral e por canal RGB
+      - SSIM (Structural Similarity Index)
+      - MSE (Mean Squared Error), MAE (Mean Absolute Error)
+      - Diferenca maxima de pixels
+      - Comparacao de tamanho de arquivo
+
+    Args:
+        original_path:  Caminho da imagem original
+        restored_path:  Caminho da imagem restaurada / descomprimida
+
+    Returns:
+        Dicionario com todas as metricas de qualidade
+    """
+    start = time.time()
+
+    if not os.path.exists(original_path):
+        raise FileNotFoundError(f"Original nao encontrado: {original_path}")
+    if not os.path.exists(restored_path):
+        raise FileNotFoundError(f"Imagem restaurada nao encontrada: {restored_path}")
+
+    orig_arr, orig_meta = _load_any_image(original_path)
+    rest_arr, rest_meta = _load_any_image(restored_path)
+
+    orig_size = os.path.getsize(original_path)
+    rest_size = os.path.getsize(restored_path)
+
+    if orig_arr.shape[:2] != rest_arr.shape[:2]:
+        raise ValueError(
+            f"Dimensoes incompativeis: original {orig_arr.shape[:2]} "
+            f"vs restaurada {rest_arr.shape[:2]}"
+        )
+
+    # Garante 3 canais RGB
+    def to_rgb3(arr):
+        if arr.ndim == 2:
+            return np.stack([arr] * 3, axis=-1).astype(np.float64)
+        return arr[..., :3].astype(np.float64)
+
+    orig_rgb = to_rgb3(orig_arr)
+    rest_rgb = to_rgb3(rest_arr)
+
+    height, width = orig_rgb.shape[:2]
+    total_pixels  = height * width
+
+    # PSNR por canal R, G, B
+    ch_names = ['R', 'G', 'B']
+    ch_psnr  = {}
+    ch_mse   = {}
+    for idx, name in enumerate(ch_names):
+        mse = float(np.mean((orig_rgb[..., idx] - rest_rgb[..., idx]) ** 2))
+        ch_mse[name]  = mse
+        ch_psnr[name] = (10.0 * np.log10(255.0 ** 2 / mse)
+                         if mse > 0 else float('inf'))
+
+    # PSNR geral (todos os canais)
+    overall_mse  = float(np.mean((orig_rgb - rest_rgb) ** 2))
+    overall_psnr = (10.0 * np.log10(255.0 ** 2 / overall_mse)
+                    if overall_mse > 0 else float('inf'))
+
+    # MAE e diferenca maxima
+    diff = np.abs(orig_rgb - rest_rgb)
+    mae      = float(np.mean(diff))
+    max_diff = float(np.max(diff))
+
+    # SSIM
+    ssim_val = _compute_ssim(orig_rgb, rest_rgb)
+
+    # Percentual de pixels alterados (diferenca > 1 nivel)
+    changed_pixels = int(np.sum(np.max(diff, axis=-1) > 1.0))
+    changed_pct    = round(changed_pixels / total_pixels * 100, 3)
+
+    # Avaliacao de qualidade por PSNR
+    if overall_psnr == float('inf'):
+        quality_label = 'IDENTICA (pixel-perfeito)'
+        quality_level = 'perfect'
+    elif overall_psnr >= 40:
+        quality_label = 'EXCELENTE'
+        quality_level = 'excellent'
+    elif overall_psnr >= 35:
+        quality_label = 'MUITO BOA'
+        quality_level = 'very_good'
+    elif overall_psnr >= 30:
+        quality_label = 'BOA'
+        quality_level = 'good'
+    elif overall_psnr >= 25:
+        quality_label = 'REGULAR'
+        quality_level = 'fair'
+    else:
+        quality_label = 'RUIM (perda significativa)'
+        quality_level = 'poor'
+
+    elapsed = time.time() - start
+
+    return {
+        'original_path':   original_path,
+        'restored_path':   restored_path,
+        'original_format': orig_meta['original_format'],
+        'restored_format': rest_meta['original_format'],
+        'width':           width,
+        'height':          height,
+        'total_pixels':    total_pixels,
+        'megapixels':      round(total_pixels / 1_000_000, 3),
+        'original_size':   orig_size,
+        'restored_size':   rest_size,
+        'size_ratio':      round(rest_size / orig_size, 4) if orig_size > 0 else 0,
+        'size_diff_pct':   round((rest_size - orig_size) / orig_size * 100, 2)
+                           if orig_size > 0 else 0,
+        'psnr':            overall_psnr,
+        'psnr_str':        ('inf (identico)' if overall_psnr == float('inf')
+                            else f'{overall_psnr:.2f} dB'),
+        'ssim':            ssim_val,
+        'ssim_str':        f'{ssim_val:.6f}',
+        'mse':             overall_mse,
+        'mae':             mae,
+        'max_diff':        max_diff,
+        'channel_psnr':    ch_psnr,
+        'channel_mse':     ch_mse,
+        'changed_pixels':  changed_pixels,
+        'changed_pct':     changed_pct,
+        'quality_label':   quality_label,
+        'quality_level':   quality_level,
+        'time_seconds':    round(elapsed, 3),
+    }
+
+
 def is_bundle(input_path: str) -> bool:
     """Retorna True se o arquivo .PP e um bundle de pasta."""
     if not os.path.exists(input_path):
