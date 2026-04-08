@@ -411,14 +411,16 @@ def _print_help() -> None:
         print(f'    {GRAY}>{RESET} {WHITE}{ex}{RESET}{c}')
 
     section('COMANDOS')
-    cmd_line('pp c <imagem|pasta> [-q Q] [-l]',    'Comprime imagem ou pasta \u2192 .PP')
-    cmd_line('pp d <arquivo.PP> [-o SAIDA]',        'Descomprime .PP \u2192 imagem ou pasta')
-    cmd_line('pp i <arquivo.PP>',                   'Mostra info do .PP')
-    cmd_line('pp quality <original> <restaurada>',  'Avalia qualidade da descompressao')
-    cmd_line('pp engine',                           'Status do motor de compressao')
-    cmd_line('pp verify <imagem>',                  'Verifica integridade lossless')
-    cmd_line('pp help',                             'Esta ajuda')
-    cmd_line('pp version',                          'Versao')
+    cmd_line('pp c <imagem|pasta> [-q Q] [-l]',         'Comprime imagem ou pasta \u2192 .PP')
+    cmd_line('pp d <arquivo.PP> [-o SAIDA]',             'Descomprime .PP \u2192 imagem ou pasta')
+    cmd_line('pp i <arquivo.PP>',                        'Mostra info do .PP')
+    cmd_line('pp q <original> <restaurada>',             'Avalia qualidade da descompressao')
+    cmd_line('pp q <pasta_orig> <pasta_rest>',           'Compara qualidade de pastas inteiras')
+    cmd_line('pp engine',                                'Status do motor de compressao')
+    cmd_line('pp verify <imagem>',                       'Verifica integridade lossless')
+    cmd_line('pp register',                              'Registra .PP no Windows como "Arquivo Pied Piper"')
+    cmd_line('pp help',                                  'Esta ajuda')
+    cmd_line('pp version',                               'Versao')
     print()
 
     section('EXEMPLOS — IMAGEM UNICA')
@@ -429,7 +431,7 @@ def _print_help() -> None:
     example('pp d foto.PP',                     'descomprime \u2192 formato original')
     example('pp d foto.PP -o img.png',          'descomprime \u2192 PNG especifico')
     example('pp i foto.PP',                     'ver metadados e modo')
-    example('pp quality foto.jpg foto_restored.jpg', 'avalia perda de qualidade apos compressao')
+    example('pp q foto.jpg foto_restored.png',  'avalia perda de qualidade apos compressao')
     print()
 
     section('EXEMPLOS — PASTA INTEIRA')
@@ -445,9 +447,12 @@ def _print_help() -> None:
     print(f'    {GREEN}{BOLD}LOSSLESS{RESET}  Multi-estrategia sem perdas \u2014 pixel-perfeito garantido por SHA-256')
     print()
     print(f'    {DIM}  Estrategias lossless (escolhe a menor automaticamente):{RESET}')
-    print(f'    {DIM}  \u2022 stored  \u2014 bytes originais (ideal para JPEG/PNG ja comprimidos){RESET}')
-    print(f'    {DIM}  \u2022 png     \u2014 PNG otimizado em memoria (ideal para BMP/TIFF){RESET}')
-    print(f'    {DIM}  \u2022 dpcm    \u2014 RCT + DPCM espiral + zlib (fallback){RESET}')
+    print(f'    {DIM}  \u2022 stored  \u2014 bytes originais sem re-codificacao (JPEG/WebP ja comprimidos){RESET}')
+    print(f'    {DIM}  \u2022 png     \u2014 PNG otimizado em memoria via DEFLATE (ideal para BMP/TIFF){RESET}')
+    print(f'    {DIM}  \u2022 dpcm    \u2014 RCT + DPCM espiral + zlib/DEFLATE (fallback){RESET}')
+    print()
+    print(f'    {DIM}  NOTA: JPEG e WebP em modo lossy sao armazenados sem re-DCT para{RESET}')
+    print(f'    {DIM}  evitar dupla compressao lossy. A descompressao gera PNG (DEFLATE).{RESET}')
     print()
 
     section('QUALIDADE (modo lossy, flag -q)')
@@ -851,12 +856,93 @@ def _print_quality_stats(s: dict) -> None:
     print()
 
 
+def _image_exts():
+    return {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.gif',
+            '.webp', '.ico', '.tga', '.ppm', '.pgm', '.pbm', '.jp2',
+            '.jpx', '.j2k', '.j2c', '.pcx', '.psd', '.dds'}
+
+
+def _collect_images(folder: str) -> list:
+    """Retorna lista de nomes de arquivo de imagem ordenados na pasta."""
+    exts = _image_exts()
+    return sorted(
+        f for f in os.listdir(folder)
+        if os.path.isfile(os.path.join(folder, f))
+        and os.path.splitext(f)[1].lower() in exts
+    )
+
+
+def _print_folder_quality_stats(results: list, orig_folder: str,
+                                 rest_folder: str) -> None:
+    """Exibe tabela de comparacao para multiplas imagens."""
+    _header('PIED PIPER \u2014 COMPARACAO DE PASTAS')
+    print()
+    _row('Originais:', f'{WHITE}{orig_folder}{RESET}')
+    _row('Restauradas:', f'{WHITE}{rest_folder}{RESET}')
+    _hline()
+
+    ok = [r for r in results if r.get('ok')]
+    fail = [r for r in results if not r.get('ok')]
+
+    if ok:
+        psnrs = [r['psnr'] for r in ok if r['psnr'] != float('inf')]
+        avg_psnr = sum(psnrs) / len(psnrs) if psnrs else float('inf')
+        avg_ssim = sum(r['ssim'] for r in ok) / len(ok)
+        perfect  = sum(1 for r in ok if r['quality_level'] == 'perfect')
+
+        print(f'  {BOLD}{YELLOW}  RESULTADO POR IMAGEM{RESET}')
+        _hline()
+        col_w = 30
+        print(f'  {BOLD}{"Arquivo":<{col_w}} {"PSNR":>10} {"SSIM":>8} {"Nivel"}{RESET}')
+        _hline()
+        for r in ok:
+            p = r['psnr']
+            p_str = 'inf' if p == float('inf') else f'{p:.2f} dB'
+            if p == float('inf') or p >= 40:
+                pc = GREEN
+            elif p >= 30:
+                pc = YELLOW
+            else:
+                pc = RED
+            lvl_labels = {
+                'perfect': 'Perfeito', 'excellent': 'Excelente',
+                'very_good': 'Muito boa', 'good': 'Boa',
+                'fair': 'Regular', 'poor': 'Ruim',
+            }
+            lvl = lvl_labels.get(r['quality_level'], r['quality_level'])
+            name = r['name']
+            if len(name) > col_w - 1:
+                name = name[:col_w - 4] + '...'
+            print(f'  {WHITE}{name:<{col_w}}{RESET} {pc}{p_str:>10}{RESET} '
+                  f'{CYAN}{r["ssim"]:.4f}{RESET}   {lvl}')
+        _hline()
+
+        print(f'  {BOLD}{YELLOW}  RESUMO AGREGADO{RESET}')
+        _hline()
+        _row('Imagens comparadas:', f'{GREEN}{BOLD}{len(ok)}{RESET}')
+        if fail:
+            _row('Falhas:', f'{RED}{len(fail)}{RESET}')
+        psnr_str = 'inf (identico)' if avg_psnr == float('inf') else f'{avg_psnr:.2f} dB'
+        _row('PSNR medio:', f'{GREEN if avg_psnr >= 40 else YELLOW}{BOLD}{psnr_str}{RESET}')
+        if avg_psnr != float('inf'):
+            print(f'  {"":24}{_psnr_bar(avg_psnr)}')
+        _row('SSIM medio:', f'{CYAN}{BOLD}{avg_ssim:.6f}{RESET}')
+        _row('Pixel-perfeitas:', f'{GREEN}{perfect}{RESET} de {len(ok)}')
+
+    for r in fail:
+        print(f'  {FAIL} {RED}{r["name"]}: {r.get("error", "erro desconhecido")}{RESET}')
+
+    _dline()
+    print()
+
+
 def cmd_quality(args: list) -> int:
-    """Avalia qualidade de imagem restaurada comparando com o original."""
+    """Avalia qualidade de imagem(ns) restaurada(s) comparando com o original."""
     positional = _get_positional(args)
     if len(positional) < 2:
-        print(f'  {FAIL} Informe a imagem original e a restaurada.')
-        print(f'  {DIM}Uso: pp quality <original> <restaurada>{RESET}')
+        print(f'  {FAIL} Informe a imagem original e a restaurada (ou duas pastas).')
+        print(f'  {DIM}Uso: pp q <original> <restaurada>{RESET}')
+        print(f'  {DIM}     pp q <pasta_original> <pasta_restaurada>{RESET}')
         return 1
 
     original_path = positional[0]
@@ -864,8 +950,63 @@ def cmd_quality(args: list) -> int:
 
     for p in (original_path, restored_path):
         if not os.path.exists(p):
-            print(f'  {FAIL} Arquivo nao encontrado: {RED}{p}{RESET}')
+            print(f'  {FAIL} Caminho nao encontrado: {RED}{p}{RESET}')
             return 1
+
+    # --- Comparacao de pastas ---
+    if os.path.isdir(original_path) and os.path.isdir(restored_path):
+        _print_banner()
+        print(f'  {CYAN}Originais:{RESET}   {WHITE}{original_path}{RESET}')
+        print(f'  {CYAN}Restauradas:{RESET} {WHITE}{restored_path}{RESET}')
+        print()
+
+        orig_imgs = _collect_images(original_path)
+        rest_imgs = set(_collect_images(restored_path))
+
+        if not orig_imgs:
+            print(f'  {FAIL} Nenhuma imagem encontrada em: {RED}{original_path}{RESET}')
+            return 1
+
+        results = []
+        total = len(orig_imgs)
+        for idx, fname in enumerate(orig_imgs, 1):
+            # Tenta match exato, depois match por nome-sem-extensao
+            base_no_ext = os.path.splitext(fname)[0]
+            match = None
+            if fname in rest_imgs:
+                match = fname
+            else:
+                for r in rest_imgs:
+                    if os.path.splitext(r)[0] == base_no_ext:
+                        match = r
+                        break
+            if match is None:
+                results.append({'name': fname, 'ok': False,
+                                 'error': 'sem correspondente na pasta restaurada'})
+                continue
+
+            sp = Spinner(f'[{idx}/{total}] {fname}')
+            sp.start()
+            try:
+                s = quality_check(
+                    os.path.join(original_path, fname),
+                    os.path.join(restored_path, match),
+                )
+                s['name'] = fname
+                s['ok'] = True
+                results.append(s)
+                sp.stop(True, fname)
+            except Exception as e:
+                sp.stop(False, fname)
+                results.append({'name': fname, 'ok': False, 'error': str(e)})
+
+        _print_folder_quality_stats(results, original_path, restored_path)
+        return 0 if any(r.get('ok') for r in results) else 1
+
+    # --- Comparacao de arquivo individual ---
+    if os.path.isdir(original_path) or os.path.isdir(restored_path):
+        print(f'  {FAIL} Ambos os caminhos devem ser arquivos ou ambos pastas.')
+        return 1
 
     _print_banner()
     print(f'  {CYAN}Original:{RESET}   {WHITE}{original_path}{RESET}')
@@ -885,6 +1026,90 @@ def cmd_quality(args: list) -> int:
         print(f'\n  {RED}Detalhe: {e}{RESET}')
         import traceback
         traceback.print_exc()
+        return 1
+
+
+def cmd_register(args: list) -> int:
+    """Registra a extensao .PP no Windows como 'Arquivo Pied Piper'."""
+    _print_banner()
+
+    if sys.platform != 'win32':
+        print(f'  {WARN} {YELLOW}Registro de tipo de arquivo e especifico do Windows.{RESET}')
+        print(f'  {DIM}Em Linux/macOS use o gerenciador de arquivos para associar .PP{RESET}')
+        print(f'  {DIM}ao comando: python <caminho>/pp d "%f"{RESET}')
+        return 0
+
+    try:
+        import winreg
+
+        pp_script = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'pp')
+        )
+        pp_bat = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'pp.bat')
+        )
+        open_cmd = f'"{pp_bat}" d "%1"'
+
+        # ProgID: PiedPiper.Image.1
+        prog_id = 'PiedPiper.Image.1'
+        friendly = 'Arquivo Pied Piper'
+
+        hkcu_classes = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, r'Software\Classes', 0,
+            winreg.KEY_WRITE | winreg.KEY_CREATE_SUB_KEY,
+        )
+
+        # HKCU\Software\Classes\.PP -> PiedPiper.Image.1
+        with winreg.CreateKeyEx(hkcu_classes, '.PP') as k:
+            winreg.SetValueEx(k, '', 0, winreg.REG_SZ, prog_id)
+            winreg.SetValueEx(k, 'Content Type', 0, winreg.REG_SZ, 'image/pp')
+            winreg.SetValueEx(k, 'PerceivedType', 0, winreg.REG_SZ, 'image')
+
+        # HKCU\Software\Classes\PiedPiper.Image.1
+        with winreg.CreateKeyEx(hkcu_classes, prog_id) as pk:
+            winreg.SetValueEx(pk, '', 0, winreg.REG_SZ, friendly)
+
+            # DefaultIcon
+            with winreg.CreateKeyEx(pk, 'DefaultIcon') as ik:
+                winreg.SetValueEx(ik, '', 0, winreg.REG_SZ, f'"{pp_bat}",0')
+
+            # shell\open\command
+            with winreg.CreateKeyEx(pk, r'shell\open\command') as ck:
+                winreg.SetValueEx(ck, '', 0, winreg.REG_SZ, open_cmd)
+
+            # shell\open (friendly name)
+            with winreg.CreateKeyEx(pk, r'shell\open') as sk:
+                winreg.SetValueEx(sk, 'FriendlyAppName', 0,
+                                   winreg.REG_SZ, 'Pied Piper')
+
+        winreg.CloseKey(hkcu_classes)
+
+        # Notifica o Explorer para recarregar associacoes
+        try:
+            import ctypes
+            ctypes.windll.shell32.SHChangeNotify(0x08000000, 0, None, None)
+        except Exception:
+            pass
+
+        _header('PIED PIPER \u2014 REGISTRO DE TIPO DE ARQUIVO')
+        print()
+        _row('Extensao:', f'{GREEN}.PP{RESET}')
+        _row('Tipo registrado:', f'{GREEN}{BOLD}{friendly}{RESET}')
+        _row('ProgID:', f'{CYAN}{prog_id}{RESET}')
+        _row('Comando abrir:', f'{DIM}{open_cmd}{RESET}')
+        _hline()
+        print(f'  {OK} {GREEN}{BOLD}Registro concluido!{RESET}')
+        print(f'  {DIM}Abra o Explorador de Arquivos — arquivos .PP agora mostram{RESET}')
+        print(f'  {DIM}"{friendly}" em vez de "Arquivo Fonte Perl".{RESET}')
+        _dline()
+        print()
+        return 0
+
+    except ImportError:
+        print(f'  {FAIL} Modulo winreg nao disponivel.')
+        return 1
+    except OSError as e:
+        print(f'  {FAIL} {RED}Erro ao escrever no registro: {e}{RESET}')
         return 1
 
 
@@ -914,7 +1139,8 @@ COMMANDS = {
     'x': cmd_decompress,     'extract': cmd_decompress,
     'i': cmd_info,           'info': cmd_info,
     'verify': cmd_verify,    'check': cmd_verify,
-    'quality': cmd_quality,  'q': cmd_quality,             'qcheck': cmd_quality,
+    'q': cmd_quality,        'quality': cmd_quality,       'qcheck': cmd_quality,
+    'register': cmd_register,
     'engine': cmd_engine,
     'version': cmd_version,  '-v': cmd_version,     '--version': cmd_version,
     'help': cmd_help,        '-h': cmd_help,        '--help': cmd_help,
