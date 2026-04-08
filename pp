@@ -80,30 +80,19 @@ def _ensure_engine_built(root: str) -> None:
         print("  AVISO: Diretorio engine/ nao encontrado. Motor C desativado.")
         return
 
-    # No Windows, 'make' geralmente nao esta disponivel
+    # No Windows, 'make' geralmente nao esta disponivel — usa Python puro silenciosamente
     if sys.platform == 'win32':
-        print("  [pp] AVISO: Motor C nao compilado (make nao disponivel no Windows).")
-        print("  [pp] Usando implementacao Python pura (mais lenta).")
-        print("  [pp] Para compilar: instale MinGW ou MSYS2 e execute 'make' em engine/")
         return
 
-    print("  [pp] Compilando motor C pela primeira vez...")
     try:
         result = subprocess.run(
             ['make'], cwd=engine_dir,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        if result.returncode != 0:
-            print()
-            print("  AVISO: Falha ao compilar motor C. Usando Python puro.")
-            print("  Verifique se gcc/make estao instalados:")
-            print("    Linux:  sudo apt install build-essential")
-            print("    Mac:    xcode-select --install")
-        else:
-            print("  [pp] Motor C compilado com sucesso.\n")
+        if result.returncode == 0:
+            pass  # motor compilado com sucesso
     except FileNotFoundError:
-        print("  AVISO: 'make' nao encontrado. Usando implementacao Python pura.")
-        print("    Linux:  sudo apt install build-essential")
-        print("    Mac:    xcode-select --install")
+        pass  # make nao encontrado — fallback Python sera usado automaticamente
 
 
 # ---------------------------------------------------------------------------
