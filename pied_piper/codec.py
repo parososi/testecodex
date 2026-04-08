@@ -31,7 +31,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # ==============================================================
 
 PP_MAGIC = b'PPMO'          # Pied Piper Middle-Out
-PP_VERSION = 3              # v3: adiciona modo lossless + RCT
+PP_VERSION = 4              # v4: planos de frequencia + DPCM horizontal (numpy puro)
 PP_EXTENSION = '.PP'
 
 # ==============================================================
@@ -59,6 +59,19 @@ QUANT_CHROMINANCE = np.array([
     [99, 99, 99, 99, 99, 99, 99, 99],
     [99, 99, 99, 99, 99, 99, 99, 99],
 ], dtype=np.float64)
+
+# Mapeamento zigzag: posicao i no zigzag → indice row-major no bloco 8x8
+# Concentra coeficientes de alta energia no inicio, trailing zeros sao implicitos
+ZIGZAG_IDX = np.array([
+     0,  1,  8, 16,  9,  2,  3, 10,
+    17, 24, 32, 25, 18, 11,  4,  5,
+    12, 19, 26, 33, 40, 48, 41, 34,
+    27, 20, 13,  6,  7, 14, 21, 28,
+    35, 42, 49, 56, 57, 50, 43, 36,
+    29, 22, 15, 23, 30, 37, 44, 51,
+    58, 59, 52, 45, 38, 31, 39, 46,
+    53, 60, 61, 54, 47, 55, 62, 63,
+], dtype=np.int32)
 
 
 # ==============================================================
@@ -275,6 +288,138 @@ def _get_quant_table(base: np.ndarray, quality: int) -> np.ndarray:
     table = np.floor((base * scale + 50) / 100)
     table = np.clip(table, 1, 255)
     return table
+
+
+# ==============================================================
+# Codec v4 — Numpy vetorizado (planos de frequencia + DPCM horizontal)
+# Substitui o motor C para novos arquivos. Muito mais eficiente para zlib.
+# ==============================================================
+
+def _compress_channel_v4(channel: np.ndarray, quant_table: np.ndarray) -> tuple:
+    """
+    Comprime canal lossy v4: DCT vetorizado + zigzag + planos de frequencia.
+
+    Formato de saida:
+      [4 bytes: n_blocks LE]
+      [64 * n_blocks * 2 bytes: planos de frequencia int16]
+        Plano 0 (DC): DPCM entre blocos consecutivos (varredura raster)
+        Planos 1-63 (AC): coeficientes zigzag brutos
+
+    Retorna (bytes, stats_dict).
+    """
+    h, w = channel.shape
+    bh = (h + 7) // 8
+    bw = (w + 7) // 8
+    ph, pw = bh * 8, bw * 8
+    n_blocks = bh * bw
+
+    # Padding com borda replicada
+    padded = np.zeros((ph, pw), dtype=np.float64)
+    padded[:h, :w] = channel
+    if w < pw:
+        padded[:h, w:] = channel[:, -1:]
+    if h < ph:
+        padded[h:, :] = padded[h - 1:h, :]
+
+    # Reshape em blocos (n_blocks, 8, 8) e centraliza em 0
+    blocks = (padded.reshape(bh, 8, bw, 8)
+                    .transpose(0, 2, 1, 3)
+                    .reshape(n_blocks, 8, 8) - 128.0)
+
+    # DCT 2D vetorizado: D @ block @ D^T para todos os blocos de uma vez
+    dct = (_DCT_M @ blocks) @ _DCT_MT      # (n_blocks, 8, 8)
+
+    # Quantizacao com tabela fixa escalada pela qualidade
+    qflat = quant_table.flatten()          # (64,)
+    quant = np.round(dct.reshape(n_blocks, 64) / qflat).astype(np.int16)  # (n_blocks, 64)
+
+    # Reordenacao zigzag: agrupa zeros no final de cada bloco
+    zz = quant[:, ZIGZAG_IDX]             # (n_blocks, 64)
+
+    # Planos de frequencia: transpoe para (64, n_blocks)
+    # Cada linha = todos os valores daquela frequencia em todos os blocos
+    planes = zz.T.copy()                  # (64, n_blocks)
+
+    # DPCM no coeficiente DC (plano 0): subtrai bloco anterior
+    # Blocos adjacentes na varredura raster tem DCs correlacionados
+    planes[0, 1:] = (planes[0, 1:].astype(np.int32) -
+                     planes[0, :-1].astype(np.int32)).astype(np.int16)
+
+    # Estatisticas
+    total_coeffs = quant.size
+    zero_coeffs  = int((quant == 0).sum())
+    zero_blocks  = int(np.all(quant == 0, axis=1).sum())
+    stats = {
+        'total_blocks':     n_blocks,
+        'zero_blocks':      zero_blocks,
+        'predicted_blocks': n_blocks - 1,
+        'sparsity':         zero_coeffs / total_coeffs * 100.0 if total_coeffs > 0 else 0.0,
+        'avg_energy':       float(np.mean(quant.astype(np.float64) ** 2)),
+    }
+
+    data = n_blocks.to_bytes(4, 'little') + planes.astype(np.int16).tobytes()
+    return data, stats
+
+
+def _decompress_channel_v4(data: bytes, width: int, height: int,
+                            quant_table: np.ndarray) -> np.ndarray:
+    """Descomprime canal lossy v4 (planos de frequencia + DPCM DC)."""
+    bh = (height + 7) // 8
+    bw = (width + 7) // 8
+    ph, pw = bh * 8, bw * 8
+    n_stored = int.from_bytes(data[0:4], 'little')
+
+    # Ler planos de frequencia: (64, n_blocks)
+    raw = np.frombuffer(data[4:4 + n_stored * 64 * 2], dtype=np.int16)
+    planes = raw.reshape(64, n_stored).copy()
+
+    # Desfazer DPCM no plano DC
+    planes[0] = np.cumsum(planes[0].astype(np.int32)).astype(np.int16)
+
+    # Transpor de volta para (n_blocks, 64) em ordem zigzag
+    zz = planes.T                          # (n_stored, 64)
+
+    # Desfazer zigzag: reconstruir ordem row-major
+    quant = np.zeros((n_stored, 64), dtype=np.int16)
+    quant[:, ZIGZAG_IDX] = zz             # quant[b, row_major_pos] = zz[b, zigzag_pos]
+
+    # Dequantizacao
+    qflat = quant_table.flatten()
+    dct = quant.astype(np.float64) * qflat   # (n_blocks, 64)
+
+    # IDCT 2D vetorizado: D^T @ dct_block @ D
+    dct_3d = dct.reshape(n_stored, 8, 8)
+    blocks  = (_DCT_MT @ dct_3d) @ _DCT_M   # (n_blocks, 8, 8)
+
+    # Reconstruir imagem padded
+    padded = np.clip(blocks + 128.0, 0.0, 255.0)
+    padded = (padded.reshape(bh, bw, 8, 8)
+                    .transpose(0, 2, 1, 3)
+                    .reshape(ph, pw))
+
+    return padded[:height, :width]
+
+
+def _compress_lossless_v4(channel: np.ndarray) -> bytes:
+    """
+    Comprime canal lossless v4: DPCM horizontal pixel a pixel.
+
+    Formato: H*W valores int16 em varredura raster.
+    O pixel [r,c] armazena channel[r,c] - channel[r,c-1] (ou channel[r,0] na primeira coluna).
+    Sem overhead de blocos. O zlib final faz a codificacao de entropia.
+    """
+    h, w = channel.shape
+    ch32 = channel.astype(np.int32)
+    dpcm = np.empty((h, w), dtype=np.int16)
+    dpcm[:, 0] = ch32[:, 0]
+    dpcm[:, 1:] = (ch32[:, 1:] - ch32[:, :-1]).astype(np.int16)
+    return dpcm.tobytes()
+
+
+def _decompress_lossless_v4(data: bytes, height: int, width: int) -> np.ndarray:
+    """Descomprime canal lossless v4 (DPCM horizontal)."""
+    dpcm = np.frombuffer(data, dtype=np.int16).reshape(height, width).astype(np.int32)
+    return np.cumsum(dpcm, axis=1).astype(np.int16)
 
 
 # ==============================================================
@@ -859,22 +1004,23 @@ def compress(input_path: str, output_path: str = None,
 
     if lossless:
         # ============================================================
-        # Pipeline Lossless: RCT + Middle-Out DPCM por canal
+        # Pipeline Lossless v4: RCT + DPCM horizontal por canal
+        # Sem blocos, sem RLE por bloco — zlib faz toda a entropia.
         # ============================================================
         y_ch, cb_ch, cr_ch = _rct_forward(rgb)   # RCT: Y, Cb, Cr (int16)
 
-        y_data,  y_stats  = _compress_lossless_channel_c(y_ch)
-        cb_data, cb_stats = _compress_lossless_channel_c(cb_ch)
-        cr_data, cr_stats = _compress_lossless_channel_c(cr_ch)
+        y_data  = _compress_lossless_v4(y_ch)
+        cb_data = _compress_lossless_v4(cb_ch)
+        cr_data = _compress_lossless_v4(cr_ch)
 
         alpha_data = None
-        alpha_stats = None
         if has_alpha:
             alpha_ch = alpha_u8.astype(np.int16)
-            alpha_data, alpha_stats = _compress_lossless_channel_c(alpha_ch)
+            alpha_data = _compress_lossless_v4(alpha_ch)
 
         header = {
             'version': PP_VERSION,
+            'codec': 4,
             'lossless': True,
             'width': int(width),
             'height': int(height),
@@ -893,16 +1039,14 @@ def compress(input_path: str, output_path: str = None,
         if alpha_data:
             all_data += alpha_data
 
-        total_blocks = (y_stats.total_blocks + cb_stats.total_blocks +
-                        cr_stats.total_blocks)
-        predicted = (y_stats.predicted_blocks + cb_stats.predicted_blocks +
-                     cr_stats.predicted_blocks)
-        avg_sparsity = (y_stats.sparsity + cb_stats.sparsity +
-                        cr_stats.sparsity) / 3
+        total_blocks = 0
+        predicted    = 0
+        avg_sparsity = 0.0
 
     else:
         # ============================================================
-        # Pipeline Lossy: DCT + Quantizacao Adaptativa Middle-Out
+        # Pipeline Lossy v4: DCT vetorizado + zigzag + planos de frequencia
+        # Elimina overhead por bloco; zlib explora correlacao entre blocos.
         # ============================================================
         ycbcr = _rgb_to_ycbcr(rgb)
         y_channel  = ycbcr[..., 0]
@@ -915,19 +1059,19 @@ def compress(input_path: str, output_path: str = None,
         quant_y = _get_quant_table(QUANT_LUMINANCE,   quality)
         quant_c = _get_quant_table(QUANT_CHROMINANCE,  quality)
 
-        y_data,  y_stats  = _compress_channel_c(y_channel, quant_y, quality)
-        cb_data, cb_stats = _compress_channel_c(cb_sub,    quant_c, quality)
-        cr_data, cr_stats = _compress_channel_c(cr_sub,    quant_c, quality)
+        y_data,  y_stats  = _compress_channel_v4(y_channel, quant_y)
+        cb_data, cb_stats = _compress_channel_v4(cb_sub,    quant_c)
+        cr_data, cr_stats = _compress_channel_v4(cr_sub,    quant_c)
 
         alpha_data = None
-        alpha_stats = None
         if has_alpha:
             quant_a = _get_quant_table(QUANT_LUMINANCE, max(quality, 90))
-            alpha_data, alpha_stats = _compress_channel_c(
-                alpha_u8.astype(np.float64), quant_a, quality)
+            alpha_data, _ = _compress_channel_v4(
+                alpha_u8.astype(np.float64), quant_a)
 
         header = {
             'version': PP_VERSION,
+            'codec': 4,
             'lossless': False,
             'width': int(width),
             'height': int(height),
@@ -947,26 +1091,56 @@ def compress(input_path: str, output_path: str = None,
         if alpha_data:
             all_data += alpha_data
 
-        total_blocks = (y_stats.total_blocks + cb_stats.total_blocks +
-                        cr_stats.total_blocks)
-        predicted = (y_stats.predicted_blocks + cb_stats.predicted_blocks +
-                     cr_stats.predicted_blocks)
-        avg_sparsity = (y_stats.sparsity + cb_stats.sparsity +
-                        cr_stats.sparsity) / 3
+        total_blocks = (y_stats['total_blocks'] + cb_stats['total_blocks'] +
+                        cr_stats['total_blocks'])
+        predicted    = (y_stats['predicted_blocks'] + cb_stats['predicted_blocks'] +
+                        cr_stats['predicted_blocks'])
+        avg_sparsity = (y_stats['sparsity'] + cb_stats['sparsity'] +
+                        cr_stats['sparsity']) / 3
+        zero_blocks  = (y_stats['zero_blocks'] + cb_stats['zero_blocks'] +
+                        cr_stats['zero_blocks'])
 
-        zero_blocks = (y_stats.zero_blocks + cb_stats.zero_blocks +
-                       cr_stats.zero_blocks)
-
-    header_json = json.dumps(header, separators=(',', ':')).encode('utf-8')
+    header_json      = json.dumps(header, separators=(',', ':')).encode('utf-8')
     final_compressed = zlib.compress(all_data, level=9)
 
-    with open(output_path, 'wb') as f:
-        f.write(PP_MAGIC)
-        f.write(struct.pack('<H', PP_VERSION))
-        f.write(struct.pack('<I', len(header_json)))
-        f.write(header_json)
-        f.write(struct.pack('<I', len(final_compressed)))
-        f.write(final_compressed)
+    # Overhead fixo do contêiner .PP
+    pp_overhead = 4 + 2 + 4 + len(header_json) + 4  # magic+ver+hdr_size+hdr+data_size
+
+    if pp_overhead + len(final_compressed) >= original_size:
+        # Modo armazenado: compressao nao reduziu o tamanho.
+        # Guarda os bytes originais diretamente no container .PP.
+        with open(input_path, 'rb') as _fin:
+            _orig_bytes = _fin.read()
+        stored_header = {
+            'version': PP_VERSION,
+            'codec': 4,
+            'stored': True,
+            'lossless': lossless,
+            'width': int(width),
+            'height': int(height),
+            'quality': 100 if lossless else int(quality),
+            'has_alpha': bool(has_alpha),
+            'original_format': metadata['original_format'],
+            'original_mode':   metadata['original_mode'],
+            'y_size': 0, 'cb_size': 0, 'cr_size': 0, 'alpha_size': 0,
+        }
+        header_json = json.dumps(stored_header, separators=(',', ':')).encode('utf-8')
+        payload     = _orig_bytes        # ja comprimido (JPEG/PNG) ou pequeno o suficiente
+        with open(output_path, 'wb') as f:
+            f.write(PP_MAGIC)
+            f.write(struct.pack('<H', PP_VERSION))
+            f.write(struct.pack('<I', len(header_json)))
+            f.write(header_json)
+            f.write(struct.pack('<I', len(payload)))
+            f.write(payload)
+    else:
+        with open(output_path, 'wb') as f:
+            f.write(PP_MAGIC)
+            f.write(struct.pack('<H', PP_VERSION))
+            f.write(struct.pack('<I', len(header_json)))
+            f.write(header_json)
+            f.write(struct.pack('<I', len(final_compressed)))
+            f.write(final_compressed)
 
     elapsed = time.time() - start_time
     output_size = os.path.getsize(output_path)
@@ -1008,11 +1182,9 @@ def compress(input_path: str, output_path: str = None,
         result['zero_blocks'] = 0
         result['zero_blocks_percent'] = 0.0
     else:
-        zero_blocks_val = (y_stats.zero_blocks + cb_stats.zero_blocks +
-                           cr_stats.zero_blocks)
-        result['zero_blocks'] = int(zero_blocks_val)
+        result['zero_blocks'] = int(zero_blocks)
         result['zero_blocks_percent'] = round(
-            (zero_blocks_val / total_blocks * 100) if total_blocks > 0 else 0, 2)
+            (zero_blocks / total_blocks * 100) if total_blocks > 0 else 0, 2)
         result['psnr'] = None
         result['psnr_str'] = 'N/A (use pp d para calcular)'
 
@@ -1062,18 +1234,49 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         data_size = struct.unpack('<I', f.read(4))[0]
         final_compressed = f.read(data_size)
 
-    pp_file_size = os.path.getsize(input_path)
-    all_data = zlib.decompress(final_compressed)
-
+    pp_file_size  = os.path.getsize(input_path)
+    codec_version = header.get('codec', 3)   # 3 = legado C engine, 4 = numpy v4
     width     = header['width']
     height    = header['height']
     quality   = header['quality']
     has_alpha = header['has_alpha']
     is_lossless = header.get('lossless', False)
 
+    # ------------------------------------------------------------------
+    # Modo armazenado: arquivo original guardado diretamente no container
+    # ------------------------------------------------------------------
+    if header.get('stored', False):
+        import io as _io
+        img = Image.open(_io.BytesIO(final_compressed))
+        img.load()
+        img.save(output_path)
+        elapsed = time.time() - start_time
+        restored_size = os.path.getsize(output_path)
+        return {
+            'input_file': input_path,
+            'output_file': output_path,
+            'original_format': header.get('original_format', 'UNKNOWN'),
+            'lossless': is_lossless,
+            'width': width,
+            'height': height,
+            'total_pixels': width * height,
+            'megapixels': round(width * height / 1_000_000, 3),
+            'has_alpha': has_alpha,
+            'pp_size': pp_file_size,
+            'restored_size': restored_size,
+            'quality': quality,
+            'psnr': None,
+            'psnr_str': 'N/A (modo armazenado)',
+            'integrity_verified': None,
+            'time_seconds': round(elapsed, 3),
+            'pixels_per_second': int(width * height / elapsed) if elapsed > 0 else 0,
+        }
+
+    all_data = zlib.decompress(final_compressed)
+
     if is_lossless:
         # ============================================================
-        # Descompressao Lossless: Middle-Out DPCM -> RCT inversa
+        # Descompressao Lossless
         # ============================================================
         y_size     = header['y_size']
         cb_size    = header['cb_size']
@@ -1086,14 +1289,24 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         cr_data = all_data[offset:offset + cr_size];  offset += cr_size
         alpha_data = all_data[offset:offset + alpha_size] if alpha_size > 0 else None
 
-        y_ch  = _decompress_lossless_channel_c(y_data,  width, height)
-        cb_ch = _decompress_lossless_channel_c(cb_data, width, height)
-        cr_ch = _decompress_lossless_channel_c(cr_data, width, height)
+        if codec_version >= 4:
+            # v4: DPCM horizontal + numpy
+            y_ch  = _decompress_lossless_v4(y_data,  height, width)
+            cb_ch = _decompress_lossless_v4(cb_data, height, width)
+            cr_ch = _decompress_lossless_v4(cr_data, height, width)
+        else:
+            # v3: motor C legado (Middle-Out DPCM por blocos)
+            y_ch  = _decompress_lossless_channel_c(y_data,  width, height)
+            cb_ch = _decompress_lossless_channel_c(cb_data, width, height)
+            cr_ch = _decompress_lossless_channel_c(cr_data, width, height)
 
         rgb = _rct_inverse(y_ch, cb_ch, cr_ch)
 
         if has_alpha and alpha_data:
-            alpha_ch = _decompress_lossless_channel_c(alpha_data, width, height)
+            if codec_version >= 4:
+                alpha_ch = _decompress_lossless_v4(alpha_data, height, width)
+            else:
+                alpha_ch = _decompress_lossless_channel_c(alpha_data, width, height)
             alpha = np.clip(alpha_ch, 0, 255).astype(np.uint8)
             img = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
             restored_array = np.dstack([rgb, alpha])
@@ -1103,7 +1316,6 @@ def decompress(input_path: str, output_path: str = None) -> dict:
 
         img.save(output_path)
 
-        # Verificacao de integridade lossless
         restored_hash = _sha256_array(restored_array)
         original_hash = header.get('original_hash', '')
         verified = (original_hash == restored_hash) if original_hash else None
@@ -1135,7 +1347,7 @@ def decompress(input_path: str, output_path: str = None) -> dict:
 
     else:
         # ============================================================
-        # Descompressao Lossy: IDCT + Dequantizacao
+        # Descompressao Lossy
         # ============================================================
         y_size     = header['y_size']
         cb_size    = header['cb_size']
@@ -1151,12 +1363,19 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         quant_y = _get_quant_table(QUANT_LUMINANCE,  quality)
         quant_c = _get_quant_table(QUANT_CHROMINANCE, quality)
 
-        y_channel = _decompress_channel_c(y_data, width, height, quant_y, quality)
-
         cb_h, cb_w = header['cb_shape']
         cr_h, cr_w = header['cr_shape']
-        cb_sub = _decompress_channel_c(cb_data, cb_w, cb_h, quant_c, quality)
-        cr_sub = _decompress_channel_c(cr_data, cr_w, cr_h, quant_c, quality)
+
+        if codec_version >= 4:
+            # v4: planos de frequencia + numpy
+            y_channel = _decompress_channel_v4(y_data, width, height, quant_y)
+            cb_sub    = _decompress_channel_v4(cb_data, cb_w, cb_h, quant_c)
+            cr_sub    = _decompress_channel_v4(cr_data, cr_w, cr_h, quant_c)
+        else:
+            # v3: motor C legado (Middle-Out + RLE por bloco)
+            y_channel = _decompress_channel_c(y_data, width, height, quant_y, quality)
+            cb_sub    = _decompress_channel_c(cb_data, cb_w, cb_h, quant_c, quality)
+            cr_sub    = _decompress_channel_c(cr_data, cr_w, cr_h, quant_c, quality)
 
         cb_full = _upsample_420(cb_sub, height, width)
         cr_full = _upsample_420(cr_sub, height, width)
@@ -1166,7 +1385,10 @@ def decompress(input_path: str, output_path: str = None) -> dict:
 
         if has_alpha and alpha_data:
             quant_a = _get_quant_table(QUANT_LUMINANCE, max(quality, 90))
-            alpha = _decompress_channel_c(alpha_data, width, height, quant_a, quality)
+            if codec_version >= 4:
+                alpha = _decompress_channel_v4(alpha_data, width, height, quant_a)
+            else:
+                alpha = _decompress_channel_c(alpha_data, width, height, quant_a, quality)
             alpha = np.clip(alpha, 0, 255).astype(np.uint8)
             img = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
         else:
