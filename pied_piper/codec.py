@@ -1347,6 +1347,11 @@ def decompress(input_path: str, output_path: str = None) -> dict:
             orig_fmt = header.get('original_format', 'PNG').upper()
             ext = _fmt_ext.get(orig_fmt, '.png')
             output_path = base + '_restored' + ext
+        elif not is_lossless:
+            # Modo lossy: restaura no formato original para evitar inchaço de PNG
+            orig_fmt = header.get('original_format', 'PNG').upper()
+            ext = _fmt_ext.get(orig_fmt, '.png')
+            output_path = base + '_restored' + ext
         else:
             output_path = base + '_restored.png'
 
@@ -1474,7 +1479,7 @@ def decompress(input_path: str, output_path: str = None) -> dict:
             img = Image.fromarray(rgb, 'RGB')
             restored_array = rgb
 
-        img.save(output_path)
+        img.save(output_path, compress_level=9, optimize=True)
 
         restored_hash = _sha256_array(restored_array)
         original_hash = header.get('original_hash', '')
@@ -1555,7 +1560,14 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         else:
             img = Image.fromarray(rgb, 'RGB')
 
-        img.save(output_path)
+        _out_ext = os.path.splitext(output_path)[1].lower()
+        if _out_ext in ('.jpg', '.jpeg'):
+            # JPEG nao suporta alpha; converte RGBA->RGB e aplica qualidade
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            img.save(output_path, quality=min(quality + 5, 95), subsampling=0)
+        else:
+            img.save(output_path)
 
         elapsed = time.time() - start_time
         restored_size = os.path.getsize(output_path)
