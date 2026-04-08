@@ -2,12 +2,12 @@
 Pied Piper CLI - Interface de linha de comando.
 
 Comandos:
-    pp c <imagem> [-q 75] [-l]  Comprimir imagem para .PP
-    pp d <arquivo.PP>            Descomprimir .PP para PNG
-    pp i <arquivo.PP>            Mostrar informacoes do .PP
-    pp engine                    Status do motor de compressao
-    pp verify <img>              Verificar integridade lossless
-    pp help                      Mostrar ajuda
+    pp c <imagem|pasta> [-q 75] [-l]  Comprimir imagem ou pasta para .PP
+    pp d <arquivo.PP> [-o SAIDA]       Descomprimir .PP para imagem/pasta
+    pp i <arquivo.PP>                  Mostrar informacoes do .PP
+    pp engine                          Status do motor de compressao
+    pp verify <img>                    Verificar integridade lossless
+    pp help                            Mostrar ajuda
 """
 
 import os
@@ -17,7 +17,8 @@ import threading
 
 from pied_piper import __version__
 from pied_piper.codec import (
-    compress, decompress, info, engine_info, PP_EXTENSION
+    compress, decompress, info, engine_info, PP_EXTENSION,
+    compress_folder, decompress_bundle, is_bundle,
 )
 
 
@@ -230,8 +231,8 @@ def _print_compress_stats(s: dict) -> None:
     print(f'  {BOLD}{YELLOW}  ALGORITMO MIDDLE-OUT \u2014 ESTATISTICAS{RESET}')
     _hline()
     if lossless:
-        _row('Modo:', f'{GREEN}LOSSLESS \u2013 RCT + DPCM espiral{RESET}')
-        _row('Transformada cor:', 'RCT JPEG 2000 reversivel')
+        strategy_label = s.get('lossless_strategy_label', 'Pixel-perfeito')
+        _row('Modo:', f'{GREEN}LOSSLESS \u2013 {strategy_label}{RESET}')
         _row('PSNR:', s['psnr_str'])
     else:
         _row('Modo:', f'{YELLOW}LOSSY \u2013 DCT + Quantizacao adaptativa{RESET}')
@@ -268,6 +269,14 @@ def _print_decompress_stats(s: dict) -> None:
     _row('Tamanho .PP:', _human(s['pp_size']))
     _row('Tamanho restaurado:', _human(s['restored_size']))
     if lossless:
+        strat = s.get('lossless_strategy', '')
+        strat_labels = {
+            'stored': 'Bytes originais (sem re-codificacao)',
+            'png':    'PNG pixel-perfeito (deflate otimizado)',
+            'dpcm':   'RCT + DPCM espiral + zlib',
+        }
+        if strat:
+            _row('Estrategia:', f'{GREEN}{strat_labels.get(strat, strat)}{RESET}')
         _row('PSNR:', s['psnr_str'])
         v = s.get('integrity_verified')
         if v is True:
@@ -285,6 +294,59 @@ def _print_decompress_stats(s: dict) -> None:
     _row('Throughput:', f'{s["pixels_per_second"]:,} px/s')
     _dline()
     print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
+    print()
+
+
+def _print_compress_folder_stats(s: dict) -> None:
+    _header('PIED PIPER \u2014 PASTA COMPRIMIDA')
+    print()
+    _row('Pasta de entrada:', f'{WHITE}{s["input_folder"]}{RESET}')
+    _row('Saida (.PP bundle):', f'{WHITE}{s["output_file"]}{RESET}')
+    _row('Modo:', f'{GREEN}LOSSLESS{RESET}' if s['lossless'] else f'{YELLOW}LOSSY (q={s["quality"]}){RESET}')
+    _hline()
+    _row('Imagens comprimidas:', f'{GREEN}{BOLD}{s["total_images"]}{RESET}')
+    if s['skipped_files']:
+        _row('Arquivos ignorados:', f'{YELLOW}{len(s["skipped_files"])} (nao-imagem){RESET}')
+    _hline()
+    _row('Tamanho original total:', _human(s['total_original_size']))
+    _row('Tamanho bundle .PP:', _human(s['total_compressed_size']))
+    r = s['reduction_percent']
+    _row('Taxa de compressao:', f'{GREEN}{BOLD}{s["compression_ratio"]}:1{RESET}')
+    if r >= 0:
+        _row('Reducao:', f'{GREEN}{BOLD}{r}%{RESET}')
+        print(f'  {"":24}{_bar(r)}  {GREEN}{r}%{RESET}')
+    else:
+        _row('Reducao:', f'{RED}{r}% (bundle cresceu){RESET}')
+    _hline()
+    _row('Tempo:', f'{s["time_seconds"]}s')
+    _dline()
+    print(f'  {OK} {GREEN}{BOLD}Bundle criado com sucesso!{RESET}')
+    print()
+
+
+def _print_decompress_bundle_stats(s: dict) -> None:
+    _header('PIED PIPER \u2014 PASTA DESCOMPRIMIDA')
+    print()
+    _row('Bundle .PP:', f'{WHITE}{s["input_file"]}{RESET}')
+    _row('Pasta de saida:', f'{WHITE}{s["output_dir"]}{RESET}')
+    _row('Pasta original:', f'{WHITE}{s["source_folder"]}{RESET}')
+    _hline()
+    ok_count   = s['files_extracted']
+    fail_count = s['files_failed']
+    _row('Arquivos extraidos:', f'{GREEN}{BOLD}{ok_count}{RESET}')
+    if fail_count:
+        _row('Falhas:', f'{RED}{fail_count}{RESET}')
+    _hline()
+    for r in s['results']:
+        icon = OK if r['ok'] else FAIL
+        if r['ok']:
+            print(f'    {icon} {WHITE}{r["name"]}{RESET}  {GRAY}({_human(r["size"])}){RESET}')
+        else:
+            print(f'    {icon} {RED}{r["name"]}{RESET}  {GRAY}{r.get("error","")}{RESET}')
+    _hline()
+    _row('Tempo:', f'{s["time_seconds"]}s')
+    _dline()
+    print(f'  {OK} {GREEN}{BOLD}Extracao concluida!{RESET}')
     print()
 
 
@@ -343,28 +405,41 @@ def _print_help() -> None:
         print(f'    {GRAY}>{RESET} {WHITE}{ex}{RESET}{c}')
 
     section('COMANDOS')
-    cmd_line('pp c <imagem> [-q Q] [-l]', 'Comprime imagem \u2192 .PP')
-    cmd_line('pp d <arquivo.PP> [-o SAIDA]', 'Descomprime .PP \u2192 imagem')
-    cmd_line('pp i <arquivo.PP>', 'Mostra info do .PP')
-    cmd_line('pp engine', 'Status do motor de compressao')
-    cmd_line('pp verify <imagem>', 'Verifica integridade lossless')
-    cmd_line('pp help', 'Esta ajuda')
-    cmd_line('pp version', 'Versao')
+    cmd_line('pp c <imagem|pasta> [-q Q] [-l]', 'Comprime imagem ou pasta \u2192 .PP')
+    cmd_line('pp d <arquivo.PP> [-o SAIDA]',     'Descomprime .PP \u2192 imagem ou pasta')
+    cmd_line('pp i <arquivo.PP>',                'Mostra info do .PP')
+    cmd_line('pp engine',                        'Status do motor de compressao')
+    cmd_line('pp verify <imagem>',               'Verifica integridade lossless')
+    cmd_line('pp help',                          'Esta ajuda')
+    cmd_line('pp version',                       'Versao')
     print()
 
-    section('EXEMPLOS')
-    example('pp c foto.jpg', 'lossy, qualidade 75 (padrao)')
-    example('pp c foto.jpg -q 90', 'lossy, qualidade alta')
-    example('pp c foto.png -l', 'lossless, pixel-perfeito')
-    example('pp c foto.bmp -q 50 -o out.PP', 'saida customizada')
-    example('pp d foto.PP', 'descomprime \u2192 PNG')
-    example('pp d foto.PP -o saida.jpg', 'descomprime \u2192 JPG')
-    example('pp i foto.PP', 'ver metadados e modo')
+    section('EXEMPLOS — IMAGEM UNICA')
+    example('pp c foto.jpg',          'lossy, qualidade 75 (padrao)')
+    example('pp c foto.jpg -q 90',    'lossy, qualidade alta')
+    example('pp c foto.png -l',       'lossless sem perdas (auto-escolhe melhor estrategia)')
+    example('pp c foto.bmp -o out.PP','saida customizada')
+    example('pp d foto.PP',           'descomprime \u2192 formato original')
+    example('pp d foto.PP -o img.png','descomprime \u2192 PNG especifico')
+    example('pp i foto.PP',           'ver metadados e modo')
+    print()
+
+    section('EXEMPLOS — PASTA INTEIRA')
+    example('pp c /fotos/',           'comprime todas as imagens da pasta \u2192 fotos.PP')
+    example('pp c /fotos/ -l',        'lossless (padrao para pastas)')
+    example('pp c /fotos/ -q 80',     'lossy qualidade 80 para toda a pasta')
+    example('pp d fotos.PP',          'extrai todas as imagens \u2192 fotos_extracted/')
+    example('pp d fotos.PP -o /dest/','extrai para pasta especifica')
     print()
 
     section('MODOS DE COMPRESSAO')
-    print(f'    {YELLOW}{BOLD}LOSSY{RESET}     DCT + Quantizacao adaptativa \u2014 menor arquivo, qualidade configuravel')
-    print(f'    {GREEN}{BOLD}LOSSLESS{RESET}  DPCM + RCT, verificado por SHA-256 \u2014 pixel-perfeito garantido')
+    print(f'    {YELLOW}{BOLD}LOSSY{RESET}     DCT + Quantizacao adaptativa \u2014 maxima reducao, qualidade configuravel')
+    print(f'    {GREEN}{BOLD}LOSSLESS{RESET}  Multi-estrategia sem perdas \u2014 pixel-perfeito garantido por SHA-256')
+    print()
+    print(f'    {DIM}  Estrategias lossless (escolhe a menor automaticamente):{RESET}')
+    print(f'    {DIM}  \u2022 stored  \u2014 bytes originais (ideal para JPEG/PNG ja comprimidos){RESET}')
+    print(f'    {DIM}  \u2022 png     \u2014 PNG otimizado em memoria (ideal para BMP/TIFF){RESET}')
+    print(f'    {DIM}  \u2022 dpcm    \u2014 RCT + DPCM espiral + zlib (fallback){RESET}')
     print()
 
     section('QUALIDADE (modo lossy, flag -q)')
@@ -430,8 +505,8 @@ def _get_positional(args: list) -> list:
 def cmd_compress(args: list) -> int:
     positional = _get_positional(args)
     if not positional:
-        print(f'  {FAIL} Informe a imagem a ser comprimida.')
-        print(f'  {DIM}Uso: pp c <imagem> [-q QUALIDADE] [-l] [-o SAIDA]{RESET}')
+        print(f'  {FAIL} Informe a imagem ou pasta a ser comprimida.')
+        print(f'  {DIM}Uso: pp c <imagem|pasta> [-q QUALIDADE] [-l] [-o SAIDA]{RESET}')
         return 1
 
     input_path  = positional[0]
@@ -440,9 +515,35 @@ def cmd_compress(args: list) -> int:
     output_path = _parse_output(args)
 
     if not os.path.exists(input_path):
-        print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
+        print(f'  {FAIL} Caminho nao encontrado: {RED}{input_path}{RESET}')
         return 1
 
+    # --- Compressao de pasta (bundle) ---
+    if os.path.isdir(input_path):
+        _print_banner()
+        print(f'  {CYAN}Pasta:{RESET}     {WHITE}{input_path}{RESET}')
+        if lossless:
+            print(f'  {CYAN}Modo:{RESET}      {GREEN}LOSSLESS{RESET} \u2013 sem perdas (padrao para pastas)')
+        else:
+            print(f'  {CYAN}Modo:{RESET}      {YELLOW}LOSSY{RESET} \u2013 DCT + Quantizacao adaptativa')
+            print(f'  {CYAN}Qualidade:{RESET} {quality}/100')
+        print()
+        sp = Spinner('Comprimindo pasta...')
+        sp.start()
+        try:
+            stats = compress_folder(input_path, output_path,
+                                    quality=quality, lossless=lossless)
+            sp.stop(True, 'Pasta comprimida!')
+            _print_compress_folder_stats(stats)
+            return 0
+        except Exception as e:
+            sp.stop(False, 'Erro ao comprimir pasta')
+            print(f'\n  {RED}Detalhe: {e}{RESET}')
+            import traceback
+            traceback.print_exc()
+            return 1
+
+    # --- Compressao de imagem individual ---
     if not lossless and not 1 <= quality <= 100:
         print(f'  {FAIL} Qualidade deve estar entre 1 e 100 (recebido: {quality})')
         return 1
@@ -450,7 +551,7 @@ def cmd_compress(args: list) -> int:
     _print_banner()
     print(f'  {CYAN}Arquivo:{RESET}   {WHITE}{input_path}{RESET}')
     if lossless:
-        print(f'  {CYAN}Modo:{RESET}      {GREEN}LOSSLESS{RESET} \u2013 Middle-Out DPCM + RCT')
+        print(f'  {CYAN}Modo:{RESET}      {GREEN}LOSSLESS{RESET} \u2013 multi-estrategia sem perdas')
     else:
         print(f'  {CYAN}Modo:{RESET}      {YELLOW}LOSSY{RESET} \u2013 DCT + Quantizacao adaptativa')
         print(f'  {CYAN}Qualidade:{RESET} {quality}/100')
@@ -476,7 +577,7 @@ def cmd_decompress(args: list) -> int:
     positional = _get_positional(args)
     if not positional:
         print(f'  {FAIL} Informe o arquivo .PP a descomprimir.')
-        print(f'  {DIM}Uso: pp d <arquivo.PP> [-o SAIDA]{RESET}')
+        print(f'  {DIM}Uso: pp d <arquivo.PP> [-o SAIDA|PASTA]{RESET}')
         return 1
 
     input_path  = positional[0]
@@ -486,6 +587,27 @@ def cmd_decompress(args: list) -> int:
         print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
         return 1
 
+    # --- Auto-detecta bundle (pasta comprimida) ---
+    if is_bundle(input_path):
+        _print_banner()
+        print(f'  {CYAN}Bundle:{RESET}   {WHITE}{input_path}{RESET}')
+        print(f'  {DIM}(arquivo de pasta comprimida — extraindo imagens...){RESET}')
+        print()
+        sp = Spinner('Extraindo pasta...')
+        sp.start()
+        try:
+            stats = decompress_bundle(input_path, output_path)
+            sp.stop(True, 'Extracao concluida!')
+            _print_decompress_bundle_stats(stats)
+            return 0
+        except Exception as e:
+            sp.stop(False, 'Erro ao extrair bundle')
+            print(f'\n  {RED}Detalhe: {e}{RESET}')
+            import traceback
+            traceback.print_exc()
+            return 1
+
+    # --- Imagem individual ---
     _print_banner()
     print(f'  {CYAN}Arquivo:{RESET}  {WHITE}{input_path}{RESET}')
     print()

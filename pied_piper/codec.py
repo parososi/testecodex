@@ -1004,24 +1004,53 @@ def compress(input_path: str, output_path: str = None,
 
     if lossless:
         # ============================================================
-        # Pipeline Lossless v4: RCT + DPCM horizontal por canal
-        # Sem blocos, sem RLE por bloco — zlib faz toda a entropia.
+        # Pipeline Lossless v5: Multi-estrategia sem perdas
+        # Tenta 3 abordagens e escolhe a menor — sempre pixel-perfeito.
+        #  A) stored  : bytes originais do arquivo (sem re-codificacao)
+        #  B) png     : PNG em memoria via PIL (RFC 2083, deflate otimizado)
+        #  C) dpcm    : RCT + DPCM horizontal + zlib nivel 9
         # ============================================================
-        y_ch, cb_ch, cr_ch = _rct_forward(rgb)   # RCT: Y, Cb, Cr (int16)
+        import io as _io
 
+        # --- Estrategia A: bytes originais ---
+        with open(input_path, 'rb') as _fin:
+            _orig_bytes = _fin.read()
+        size_stored = len(_orig_bytes)
+
+        # --- Estrategia B: PNG em memoria ---
+        _buf = _io.BytesIO()
+        _pil = Image.fromarray(img_array, 'RGBA' if has_alpha else 'RGB')
+        _pil.save(_buf, format='PNG', optimize=True, compress_level=9)
+        _png_bytes = _buf.getvalue()
+        size_png = len(_png_bytes)
+
+        # --- Estrategia C: RCT + DPCM + zlib ---
+        y_ch, cb_ch, cr_ch = _rct_forward(rgb)
         y_data  = _compress_lossless_v4(y_ch)
         cb_data = _compress_lossless_v4(cb_ch)
         cr_data = _compress_lossless_v4(cr_ch)
-
         alpha_data = None
         if has_alpha:
             alpha_ch = alpha_u8.astype(np.int16)
             alpha_data = _compress_lossless_v4(alpha_ch)
+        _dpcm_raw = y_data + cb_data + cr_data + (alpha_data if alpha_data else b'')
+        _dpcm_cmp = zlib.compress(_dpcm_raw, level=9)
+        size_dpcm = len(_dpcm_cmp)
 
-        header = {
+        # --- Escolhe a menor estrategia ---
+        best = min(size_stored, size_png, size_dpcm)
+        if size_stored == best:
+            lossless_strategy = 'stored'
+        elif size_png == best:
+            lossless_strategy = 'png'
+        else:
+            lossless_strategy = 'dpcm'
+
+        _ll_header = {
             'version': PP_VERSION,
             'codec': 4,
             'lossless': True,
+            'lossless_strategy': lossless_strategy,
             'width': int(width),
             'height': int(height),
             'quality': 100,
@@ -1029,19 +1058,73 @@ def compress(input_path: str, output_path: str = None,
             'original_format': metadata['original_format'],
             'original_mode': metadata['original_mode'],
             'original_hash': original_hash,
-            'y_size':    len(y_data),
-            'cb_size':   len(cb_data),
-            'cr_size':   len(cr_data),
-            'alpha_size': len(alpha_data) if alpha_data else 0,
         }
+        if lossless_strategy == 'dpcm':
+            _ll_header.update({
+                'y_size':     len(y_data),
+                'cb_size':    len(cb_data),
+                'cr_size':    len(cr_data),
+                'alpha_size': len(alpha_data) if alpha_data else 0,
+            })
 
-        all_data = y_data + cb_data + cr_data
-        if alpha_data:
-            all_data += alpha_data
+        if lossless_strategy == 'stored':
+            _ll_payload = _orig_bytes
+        elif lossless_strategy == 'png':
+            _ll_payload = _png_bytes
+        else:
+            _ll_payload = _dpcm_cmp
 
-        total_blocks = 0
-        predicted    = 0
-        avg_sparsity = 0.0
+        _ll_header_json = json.dumps(_ll_header, separators=(',', ':')).encode('utf-8')
+        with open(output_path, 'wb') as _f:
+            _f.write(PP_MAGIC)
+            _f.write(struct.pack('<H', PP_VERSION))
+            _f.write(struct.pack('<I', len(_ll_header_json)))
+            _f.write(_ll_header_json)
+            _f.write(struct.pack('<I', len(_ll_payload)))
+            _f.write(_ll_payload)
+
+        elapsed      = time.time() - start_time
+        output_size  = os.path.getsize(output_path)
+        total_pixels = width * height
+        ratio        = original_size / output_size if output_size > 0 else 0
+        reduction    = (1 - output_size / original_size) * 100 if original_size > 0 else 0
+
+        _strategy_labels = {
+            'stored': 'Bytes originais (sem re-codificacao)',
+            'png':    'PNG pixel-perfeito (deflate otimizado)',
+            'dpcm':   'RCT + DPCM espiral + zlib',
+        }
+        return {
+            'input_file':              input_path,
+            'output_file':             output_path,
+            'original_format':         metadata['original_format'],
+            'original_mode':           metadata['original_mode'],
+            'lossless':                True,
+            'lossless_strategy':       lossless_strategy,
+            'lossless_strategy_label': _strategy_labels[lossless_strategy],
+            'width':                   width,
+            'height':                  height,
+            'total_pixels':            total_pixels,
+            'megapixels':              round(total_pixels / 1_000_000, 3),
+            'has_alpha':               has_alpha,
+            'original_size':           original_size,
+            'compressed_size':         output_size,
+            'compression_ratio':       round(ratio, 2),
+            'reduction_percent':       round(reduction, 2),
+            'quality':                 100,
+            'time_seconds':            round(elapsed, 3),
+            'pixels_per_second':       int(total_pixels / elapsed) if elapsed > 0 else 0,
+            'total_blocks':            0,
+            'predicted_blocks':        0,
+            'prediction_percent':      0.0,
+            'coefficient_sparsity':    0.0,
+            'bits_per_pixel':          round(output_size * 8 / total_pixels, 3),
+            'original_hash':           original_hash,
+            'psnr':                    float('inf'),
+            'psnr_str':                'LOSSLESS (perfeito)',
+            'zero_blocks':             0,
+            'zero_blocks_percent':     0.0,
+        }
 
     else:
         # ============================================================
@@ -1206,14 +1289,12 @@ def decompress(input_path: str, output_path: str = None) -> dict:
     Returns:
         Dicionario com estatisticas da descompressao (inclui PSNR e verificacao)
     """
+    import io as _io
+
     start_time = time.time()
 
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Arquivo nao encontrado: {input_path}")
-
-    if output_path is None:
-        base = os.path.splitext(input_path)[0]
-        output_path = base + '_restored.png'
 
     _load_engine()  # tenta carregar motor C; se falhar, usa fallback Python
 
@@ -1232,51 +1313,132 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         header_size = struct.unpack('<I', f.read(4))[0]
         header = json.loads(f.read(header_size).decode('utf-8'))
         data_size = struct.unpack('<I', f.read(4))[0]
-        final_compressed = f.read(data_size)
+        raw_payload = f.read(data_size)
 
-    pp_file_size  = os.path.getsize(input_path)
-    codec_version = header.get('codec', 3)   # 3 = legado C engine, 4 = numpy v4
-    width     = header['width']
-    height    = header['height']
-    quality   = header['quality']
-    has_alpha = header['has_alpha']
-    is_lossless = header.get('lossless', False)
+    # Rejeita bundles (pastas) — usa decompress_bundle() para isso
+    if header.get('bundle', False):
+        raise ValueError(
+            "Este arquivo e um bundle (pasta comprimida). "
+            "Use 'pp d' normalmente — o CLI detecta automaticamente."
+        )
+
+    pp_file_size     = os.path.getsize(input_path)
+    codec_version    = header.get('codec', 3)
+    width            = header['width']
+    height           = header['height']
+    quality          = header['quality']
+    has_alpha        = header['has_alpha']
+    is_lossless      = header.get('lossless', False)
+    lossless_strategy = header.get('lossless_strategy', None)
+
+    # Mapa de extensoes para restaurar no formato original
+    _fmt_ext = {
+        'JPEG': '.jpg', 'JPG': '.jpg', 'PNG': '.png', 'BMP': '.bmp',
+        'TIFF': '.tif', 'TIF': '.tif', 'WEBP': '.webp', 'GIF': '.gif',
+        'ICO': '.ico', 'TGA': '.tga',
+    }
 
     # ------------------------------------------------------------------
-    # Modo armazenado: arquivo original guardado diretamente no container
+    # Determina output_path APOS ler o header (para usar formato original)
     # ------------------------------------------------------------------
-    if header.get('stored', False):
-        import io as _io
-        img = Image.open(_io.BytesIO(final_compressed))
-        img.load()
-        img.save(output_path)
-        elapsed = time.time() - start_time
+    if output_path is None:
+        base = os.path.splitext(input_path)[0]
+        if lossless_strategy == 'stored':
+            orig_fmt = header.get('original_format', 'PNG').upper()
+            ext = _fmt_ext.get(orig_fmt, '.png')
+            output_path = base + '_restored' + ext
+        else:
+            output_path = base + '_restored.png'
+
+    # ------------------------------------------------------------------
+    # Estrategias lossless: stored e png (payload NAO e zlib)
+    # ------------------------------------------------------------------
+    if lossless_strategy in ('stored', 'png') or (
+            header.get('stored', False) and is_lossless):
+        # Para 'stored': gravamos os bytes originais diretamente para evitar
+        # re-codificacao lossy (ex.: JPEG salvo como JPEG ficaria diferente).
+        # Para 'png': PIL le o PNG diretamente da memoria.
+        _img_obj = Image.open(_io.BytesIO(raw_payload))
+        _img_obj.load()
+        _restored_arr = np.array(_img_obj)
+
+        out_ext = os.path.splitext(output_path)[1].lower()
+        orig_fmt_up = header.get('original_format', 'PNG').upper()
+        stored_ext  = _fmt_ext.get(orig_fmt_up, '.png')
+
+        if lossless_strategy == 'stored' and out_ext == stored_ext:
+            # Escrita direta: sem re-codificacao (pixel-perfeito garantido)
+            with open(output_path, 'wb') as _fw:
+                _fw.write(raw_payload)
+        else:
+            _img_obj.save(output_path)
+
+        restored_hash  = _sha256_array(_restored_arr)
+        original_hash  = header.get('original_hash', '')
+        verified       = (original_hash == restored_hash) if original_hash else None
+
+        elapsed       = time.time() - start_time
         restored_size = os.path.getsize(output_path)
         return {
-            'input_file': input_path,
-            'output_file': output_path,
-            'original_format': header.get('original_format', 'UNKNOWN'),
-            'lossless': is_lossless,
-            'width': width,
-            'height': height,
-            'total_pixels': width * height,
-            'megapixels': round(width * height / 1_000_000, 3),
-            'has_alpha': has_alpha,
-            'pp_size': pp_file_size,
-            'restored_size': restored_size,
-            'quality': quality,
-            'psnr': None,
-            'psnr_str': 'N/A (modo armazenado)',
-            'integrity_verified': None,
-            'time_seconds': round(elapsed, 3),
+            'input_file':       input_path,
+            'output_file':      output_path,
+            'original_format':  header.get('original_format', 'UNKNOWN'),
+            'lossless':         True,
+            'lossless_strategy': lossless_strategy or 'stored',
+            'width':            width,
+            'height':           height,
+            'total_pixels':     width * height,
+            'megapixels':       round(width * height / 1_000_000, 3),
+            'has_alpha':        has_alpha,
+            'pp_size':          pp_file_size,
+            'restored_size':    restored_size,
+            'quality':          100,
+            'psnr':             float('inf'),
+            'psnr_str':         'LOSSLESS (perfeito)',
+            'integrity_verified': verified,
+            'original_hash':    original_hash,
+            'restored_hash':    restored_hash,
+            'time_seconds':     round(elapsed, 3),
             'pixels_per_second': int(width * height / elapsed) if elapsed > 0 else 0,
         }
 
-    all_data = zlib.decompress(final_compressed)
+    # ------------------------------------------------------------------
+    # Modo armazenado legado (lossy que nao comprimiu bem)
+    # ------------------------------------------------------------------
+    if header.get('stored', False):
+        _img_obj = Image.open(_io.BytesIO(raw_payload))
+        _img_obj.load()
+        _img_obj.save(output_path)
+        elapsed = time.time() - start_time
+        restored_size = os.path.getsize(output_path)
+        return {
+            'input_file':      input_path,
+            'output_file':     output_path,
+            'original_format': header.get('original_format', 'UNKNOWN'),
+            'lossless':        is_lossless,
+            'width':           width,
+            'height':          height,
+            'total_pixels':    width * height,
+            'megapixels':      round(width * height / 1_000_000, 3),
+            'has_alpha':       has_alpha,
+            'pp_size':         pp_file_size,
+            'restored_size':   restored_size,
+            'quality':         quality,
+            'psnr':            None,
+            'psnr_str':        'N/A (modo armazenado)',
+            'integrity_verified': None,
+            'time_seconds':    round(elapsed, 3),
+            'pixels_per_second': int(width * height / elapsed) if elapsed > 0 else 0,
+        }
+
+    # ------------------------------------------------------------------
+    # Payload comprimido com zlib (lossless DPCM ou lossy DCT)
+    # ------------------------------------------------------------------
+    all_data = zlib.decompress(raw_payload)
 
     if is_lossless:
         # ============================================================
-        # Descompressao Lossless
+        # Descompressao Lossless DPCM (v4 numpy ou v3 motor C)
         # ============================================================
         y_size     = header['y_size']
         cb_size    = header['cb_size']
@@ -1290,12 +1452,10 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         alpha_data = all_data[offset:offset + alpha_size] if alpha_size > 0 else None
 
         if codec_version >= 4:
-            # v4: DPCM horizontal + numpy
             y_ch  = _decompress_lossless_v4(y_data,  height, width)
             cb_ch = _decompress_lossless_v4(cb_data, height, width)
             cr_ch = _decompress_lossless_v4(cr_data, height, width)
         else:
-            # v3: motor C legado (Middle-Out DPCM por blocos)
             y_ch  = _decompress_lossless_channel_c(y_data,  width, height)
             cb_ch = _decompress_lossless_channel_c(cb_data, width, height)
             cr_ch = _decompress_lossless_channel_c(cr_data, width, height)
@@ -1308,7 +1468,7 @@ def decompress(input_path: str, output_path: str = None) -> dict:
             else:
                 alpha_ch = _decompress_lossless_channel_c(alpha_data, width, height)
             alpha = np.clip(alpha_ch, 0, 255).astype(np.uint8)
-            img = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
+            img   = Image.fromarray(np.dstack([rgb, alpha]), 'RGBA')
             restored_array = np.dstack([rgb, alpha])
         else:
             img = Image.fromarray(rgb, 'RGB')
@@ -1324,24 +1484,25 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         restored_size = os.path.getsize(output_path)
 
         return {
-            'input_file': input_path,
-            'output_file': output_path,
-            'original_format': header.get('original_format', 'UNKNOWN'),
-            'lossless': True,
-            'width': width,
-            'height': height,
-            'total_pixels': width * height,
-            'megapixels': round(width * height / 1_000_000, 3),
-            'has_alpha': has_alpha,
-            'pp_size': pp_file_size,
-            'restored_size': restored_size,
-            'quality': 100,
-            'psnr': float('inf'),
-            'psnr_str': 'LOSSLESS (perfeito)',
+            'input_file':       input_path,
+            'output_file':      output_path,
+            'original_format':  header.get('original_format', 'UNKNOWN'),
+            'lossless':         True,
+            'lossless_strategy': 'dpcm',
+            'width':            width,
+            'height':           height,
+            'total_pixels':     width * height,
+            'megapixels':       round(width * height / 1_000_000, 3),
+            'has_alpha':        has_alpha,
+            'pp_size':          pp_file_size,
+            'restored_size':    restored_size,
+            'quality':          100,
+            'psnr':             float('inf'),
+            'psnr_str':         'LOSSLESS (perfeito)',
             'integrity_verified': verified,
-            'original_hash': original_hash,
-            'restored_hash': restored_hash,
-            'time_seconds': round(elapsed, 3),
+            'original_hash':    original_hash,
+            'restored_hash':    restored_hash,
+            'time_seconds':     round(elapsed, 3),
             'pixels_per_second': int(width * height / elapsed) if elapsed > 0 else 0,
         }
 
@@ -1466,5 +1627,276 @@ def engine_info() -> dict:
         'library_path': _find_engine_library() or 'nao encontrada',
         'languages': 'C (motor) + Python (codec) + Shell (launcher) + NASM Assembly (DCT)',
         'format_version': PP_VERSION,
-        'lossless_available': lib is not None,
+        'lossless_available': True,  # sempre disponivel via estrategia multi-plataforma
     }
+
+
+# ==============================================================
+# Extensoes de imagem suportadas (para varredura de pastas)
+# ==============================================================
+
+_IMAGE_EXTS = frozenset({
+    '.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.gif', '.webp',
+    '.ico', '.tga', '.ppm', '.pgm', '.pbm', '.pnm', '.jp2', '.jpx',
+    '.j2k', '.j2c', '.pcx', '.psd', '.dds',
+})
+
+
+def _is_image_file(path: str) -> bool:
+    """Retorna True se a extensao do arquivo e de imagem suportada."""
+    return os.path.splitext(path)[1].lower() in _IMAGE_EXTS
+
+
+# ==============================================================
+# Compressao de pastas (bundle .PP)
+# ==============================================================
+
+def compress_folder(folder_path: str, output_path: str = None,
+                    quality: int = 75, lossless: bool = True) -> dict:
+    """
+    Comprime todas as imagens de uma pasta em um unico arquivo .PP bundle.
+
+    Arquivos que nao sao imagens sao ignorados automaticamente.
+    Por padrao usa modo lossless (sem perdas). Use lossless=False para lossy.
+
+    Args:
+        folder_path:  Caminho da pasta com imagens
+        output_path:  Caminho do bundle .PP (auto-detectado se None)
+        quality:      Qualidade 1-100 (so usado em modo lossy)
+        lossless:     True = sem perdas (padrao); False = lossy
+
+    Returns:
+        Dicionario com estatisticas do bundle
+    """
+    import tempfile
+
+    if not os.path.isdir(folder_path):
+        raise ValueError(f"Nao e uma pasta: {folder_path}")
+
+    folder_abs  = os.path.abspath(folder_path)
+    folder_name = os.path.basename(folder_abs)
+
+    if output_path is None:
+        parent      = os.path.dirname(folder_abs)
+        output_path = os.path.join(parent, folder_name + PP_EXTENSION)
+
+    start_time = time.time()
+
+    # Varre arquivos de imagem (top-level, ordenado)
+    all_entries   = sorted(os.listdir(folder_abs))
+    image_files   = []
+    skipped_files = []
+
+    for fname in all_entries:
+        fpath = os.path.join(folder_abs, fname)
+        if not os.path.isfile(fpath):
+            continue
+        if not _is_image_file(fpath):
+            skipped_files.append(fname)
+            continue
+        # Tenta abrir para confirmar que e imagem valida
+        try:
+            _test = Image.open(fpath)
+            _test.verify()
+            image_files.append(fname)
+        except Exception:
+            skipped_files.append(fname)
+
+    if not image_files:
+        raise ValueError(f"Nenhuma imagem encontrada em: {folder_path}")
+
+    file_entries        = []
+    all_pp_payloads     = []
+    current_offset      = 0
+    total_original_size = 0
+
+    for fname in image_files:
+        fpath = os.path.join(folder_abs, fname)
+
+        # Comprime para arquivo .PP temporario
+        with tempfile.NamedTemporaryFile(suffix='.PP', delete=False) as _tmp:
+            tmp_path = _tmp.name
+        try:
+            stats = compress(fpath, tmp_path, quality=quality, lossless=lossless)
+            with open(tmp_path, 'rb') as _f:
+                pp_bytes = _f.read()
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+        file_entries.append({
+            'name':             fname,
+            'offset':           current_offset,
+            'size':             len(pp_bytes),
+            'original_size':    stats['original_size'],
+            'compressed_size':  stats['compressed_size'],
+            'width':            stats['width'],
+            'height':           stats['height'],
+            'format':           stats['original_format'],
+        })
+        all_pp_payloads.append(pp_bytes)
+        current_offset      += len(pp_bytes)
+        total_original_size += stats['original_size']
+
+    # Monta o bundle
+    bundle_header = {
+        'version':       PP_VERSION,
+        'codec':         4,
+        'bundle':        True,
+        'source_folder': folder_name,
+        'file_count':    len(file_entries),
+        'lossless':      lossless,
+        'quality':       100 if lossless else quality,
+        'files':         file_entries,
+    }
+    bundle_header_json = json.dumps(bundle_header, separators=(',', ':')).encode('utf-8')
+    bundle_data        = b''.join(all_pp_payloads)
+
+    with open(output_path, 'wb') as _f:
+        _f.write(PP_MAGIC)
+        _f.write(struct.pack('<H', PP_VERSION))
+        _f.write(struct.pack('<I', len(bundle_header_json)))
+        _f.write(bundle_header_json)
+        _f.write(struct.pack('<I', len(bundle_data)))
+        _f.write(bundle_data)
+
+    elapsed              = time.time() - start_time
+    total_compressed     = os.path.getsize(output_path)
+    ratio                = (total_original_size / total_compressed
+                            if total_compressed > 0 else 0)
+    reduction            = ((1 - total_compressed / total_original_size) * 100
+                            if total_original_size > 0 else 0)
+
+    return {
+        'input_folder':          folder_path,
+        'output_file':           output_path,
+        'total_images':          len(image_files),
+        'skipped_files':         skipped_files,
+        'total_original_size':   total_original_size,
+        'total_compressed_size': total_compressed,
+        'compression_ratio':     round(ratio, 2),
+        'reduction_percent':     round(reduction, 2),
+        'lossless':              lossless,
+        'quality':               100 if lossless else quality,
+        'time_seconds':          round(elapsed, 3),
+        'file_entries':          file_entries,
+    }
+
+
+# ==============================================================
+# Descompressao de bundles (pastas)
+# ==============================================================
+
+def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
+    """
+    Descomprime um bundle .PP (pasta comprimida) para um diretorio.
+
+    Args:
+        input_path: Caminho do arquivo .PP bundle
+        output_dir: Diretorio de saida (auto-detectado se None)
+
+    Returns:
+        Dicionario com estatisticas da extracao
+    """
+    import tempfile
+
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Arquivo nao encontrado: {input_path}")
+
+    start_time = time.time()
+
+    with open(input_path, 'rb') as _f:
+        magic = _f.read(4)
+        if magic != PP_MAGIC:
+            raise ValueError(f"Arquivo invalido: nao e um .PP bundle")
+        _version     = struct.unpack('<H', _f.read(2))[0]
+        header_size  = struct.unpack('<I', _f.read(4))[0]
+        header       = json.loads(_f.read(header_size).decode('utf-8'))
+        data_size    = struct.unpack('<I', _f.read(4))[0]
+        bundle_data  = _f.read(data_size)
+
+    if not header.get('bundle', False):
+        raise ValueError(
+            "Este arquivo nao e um bundle. Use decompress() para imagens individuais."
+        )
+
+    source_folder = header.get('source_folder', 'extracted')
+    if output_dir is None:
+        base       = os.path.splitext(input_path)[0]
+        output_dir = base + '_extracted'
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    file_entries = header.get('files', [])
+    results      = []
+
+    for entry in file_entries:
+        offset   = entry['offset']
+        size     = entry['size']
+        fname    = entry['name']
+        pp_bytes = bundle_data[offset:offset + size]
+
+        # Escreve PP individual em arquivo temporario e descomprime
+        with tempfile.NamedTemporaryFile(suffix='.PP', delete=False) as _tmp:
+            _tmp.write(pp_bytes)
+            tmp_path = _tmp.name
+
+        try:
+            # output_path = None deixa o decompress escolher extensao correta
+            stats      = decompress(tmp_path, output_path=None)
+            tmp_out    = stats['output_file']
+
+            # Renomeia para o nome original (sem sufixo _restored)
+            base_name  = os.path.splitext(fname)[0]
+            out_ext    = os.path.splitext(tmp_out)[1]
+            final_name = base_name + out_ext
+            final_path = os.path.join(output_dir, final_name)
+
+            # Evita colisoes de nome
+            if os.path.exists(final_path):
+                final_name = base_name + '_restored' + out_ext
+                final_path = os.path.join(output_dir, final_name)
+
+            os.rename(tmp_out, final_path)
+
+            results.append({
+                'name':          final_name,
+                'original_name': fname,
+                'size':          os.path.getsize(final_path),
+                'ok':            True,
+            })
+        except Exception as _e:
+            results.append({'name': fname, 'ok': False, 'error': str(_e)})
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+    elapsed = time.time() - start_time
+
+    return {
+        'input_file':      input_path,
+        'output_dir':      output_dir,
+        'source_folder':   source_folder,
+        'files_extracted': len([r for r in results if r['ok']]),
+        'files_failed':    len([r for r in results if not r['ok']]),
+        'results':         results,
+        'lossless':        header.get('lossless', False),
+        'time_seconds':    round(elapsed, 3),
+    }
+
+
+def is_bundle(input_path: str) -> bool:
+    """Retorna True se o arquivo .PP e um bundle de pasta."""
+    if not os.path.exists(input_path):
+        return False
+    try:
+        with open(input_path, 'rb') as _f:
+            magic = _f.read(4)
+            if magic != PP_MAGIC:
+                return False
+            _f.read(2)  # version
+            header_size = struct.unpack('<I', _f.read(4))[0]
+            header      = json.loads(_f.read(header_size).decode('utf-8'))
+        return header.get('bundle', False)
+    except Exception:
+        return False

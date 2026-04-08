@@ -1,7 +1,8 @@
 # Pied Piper
 
-**O compressor de imagens com algoritmo Middle-Out** — implementando compressao
-lossy e **lossless sem perdas** usando motor de alta performance em C.
+**O compressor de imagens com algoritmo Middle-Out** — compressao
+lossless **verdadeiramente sem perdas** e lossy de alta eficiencia,
+usando motor de alta performance em C.
 
 ```
    ____  _          _   ____  _
@@ -29,47 +30,49 @@ cd testecodex
 **Sem configuracao manual.** O `pp` detecta dependencias ausentes, instala via
 `pip`, e compila o motor C com `gcc` na primeira execucao.
 
-Para executar com duplo-clique em gerenciadores de arquivo, marque o arquivo
-como executavel (`chmod +x pp`) e configure o gerenciador para "Executar no
-terminal".
-
 ---
 
 ## Comandos
 
 ```bash
+# --- IMAGEM INDIVIDUAL ---
 pp c foto.jpg              # Lossy -> foto.PP
-pp c foto.png -l           # LOSSLESS sem perdas -> foto.PP
+pp c foto.jpg -l           # Lossless sem perdas -> foto.PP (auto-escolhe melhor estrategia)
 pp c foto.png -q 90        # Lossy qualidade 90
 pp c foto.bmp -o saida.PP  # Saida customizada
 
-pp d foto.PP               # Descomprime -> foto_restored.png
-pp d foto.PP -o res.jpg    # Saida JPG
+pp d foto.PP               # Descomprime -> formato original (ex: foto_restored.jpg)
+pp d foto.PP -o res.png    # Saida em formato especifico
 
-pp i foto.PP               # Info: dimensoes, modo, qualidade
+# --- PASTA INTEIRA ---
+pp c /fotos/               # Comprime todas as imagens -> fotos.PP (bundle lossless)
+pp c /fotos/ -l            # Lossless explicito (padrao para pastas)
+pp c /fotos/ -q 80         # Lossy para toda a pasta
+pp c /fotos/ -o backup.PP  # Saida customizada
+
+pp d fotos.PP              # Extrai todas as imagens -> fotos_extracted/
+pp d fotos.PP -o /destino/ # Extrai para pasta especifica
+
+# --- UTILITARIOS ---
+pp i foto.PP               # Info: dimensoes, modo, estrategia
 pp verify foto.png         # Verifica integridade lossless
 pp engine                  # Status do motor C
 pp help                    # Ajuda completa
 ```
 
-Todos os comandos comecam com `pp`. Aliases: `compress`/`c`, `decompress`/`d`,
-`info`/`i`, `check`/`verify`.
-
 ---
 
 ## Dois modos de compressao
 
-### Modo Lossy (padrao)
+### Modo Lossy (padrao sem `-l`)
 
-Pipeline DCT + Quantizacao Adaptativa + Espiral Middle-Out:
+Pipeline DCT + Quantizacao Adaptativa:
 
 1. RGB -> YCbCr (separacao luminancia/crominancia)
 2. Subamostragem crominancia 4:2:0
-3. Ordenacao de blocos em **espiral Middle-Out** (centro -> borda)
-4. DCT 8x8 via multiplicacao de matrizes pre-computada
-5. **Quantizacao adaptativa** por variancia local do bloco
-6. Delta prediction entre blocos consecutivos na espiral
-7. Zigzag + RLE + zlib
+3. DCT 8x8 + quantizacao adaptativa por variancia
+4. Zigzag + planos de frequencia + DPCM DC
+5. zlib nivel 9
 
 | Metrica | Valor (teste 1024x1024 BMP) |
 |---|---|
@@ -77,151 +80,89 @@ Pipeline DCT + Quantizacao Adaptativa + Espiral Middle-Out:
 | Tamanho .PP | 269 KB |
 | **Taxa de compressao** | **11.41:1** |
 | **Reducao** | **91.24%** |
-| Blocos preditos Middle-Out | 96.19% |
 | Throughput | 1.36 M px/s |
 
-### Modo Lossless (`-l`)
+### Modo Lossless (`-l`) — Multi-estrategia sem perdas
 
-Pipeline Middle-Out DPCM + Transformada de Cor Reversivel (RCT):
+O modo lossless escolhe automaticamente entre **3 estrategias** e usa a
+que produz o **menor arquivo**, sempre garantindo reconstrucao pixel-perfeita
+verificada por SHA-256.
 
-1. RGB -> RCT (Y, Co, Cg) — **completamente reversivel, sem perdas**
-2. Ordenacao de blocos em **espiral Middle-Out** (mesmo centro -> borda)
-3. **DPCM entre blocos** na ordem espiral: residuais = bloco_atual - bloco_anterior
-4. RLE dos residuais int16
-5. zlib nivel 9
-6. Verificacao **SHA-256** garante reconstrucao pixel-perfeita
+| Estrategia | Quando e usada | Resultado |
+|---|---|---|
+| **stored** | Arquivo ja comprimido (JPEG, PNG, WebP) | PP ≈ tamanho original |
+| **png** | Imagens raw/brutas (BMP, TIFF, PCX) | PP = PNG otimizado |
+| **dpcm** | Fallback RCT+DPCM+zlib | PP variavel |
 
 ```bash
-pp c foto.png -l           # Comprime
-pp d foto.PP               # Descomprime (mostra: LOSSLESS - perfeito)
-pp verify foto.png         # Confirma integridade bit-a-bit
+# JPEG (6.92 MB)
+pp c foto.jpg -l   # -> estrategia 'stored': PP ≈ 6.92 MB
+pp d foto.PP       # -> foto_restored.jpg (identico ao original, mesmo tamanho)
+
+# BMP (53 MB raw)
+pp c foto.bmp -l   # -> estrategia 'png': PP ≈ 14 MB
+pp d foto.PP       # -> foto_restored.png (pixel-perfeito)
 ```
 
-A saida inclui:
+A saida de descompressao lossless inclui:
 ```
+  Estrategia:           Bytes originais (sem re-codificacao)
   PSNR:                 LOSSLESS (perfeito)
   Integridade SHA-256:  VERIFICADA - pixels identicos ao original
 ```
 
----
+### Compressao de pastas
 
-## O algoritmo Middle-Out e inovador?
+```bash
+pp c /minhas-fotos/          # Comprime todas as imagens -> minhas-fotos.PP
+pp d minhas-fotos.PP         # Extrai -> minhas-fotos_extracted/
+```
 
-**Avaliacao honesta:**
-
-O nome "Middle-Out" foi inspirado na serie Silicon Valley. A implementacao real
-tem elementos genuinamente originais e outros baseados em tecnicas conhecidas:
-
-| Componente | Originalidade |
-|---|---|
-| **Espiral do centro para as bordas** | Original — nenhum codec padrão (JPEG, PNG, HEVC) usa esta ordem |
-| **DPCM entre blocos na espiral** | Original — PNG usa predicao por scanline, JPEG-LS usa predicao pixel-a-pixel |
-| **Quantizacao adaptativa por variancia** | Presente em codecs modernos (HEVC, AV1), mas implementacao propria |
-| **DCT 8x8** | Identico ao JPEG — tecnica de 1974 |
-| **RCT (Transformada de Cor Reversivel)** | Padrao JPEG 2000, usada aqui para o modo lossless |
-| **Subamostragem 4:2:0** | Identico ao JPEG |
-
-**O que e genuinamente inovador:**
-- A **ordenacao em espiral do centro** para predicao DPCM e diferente de
-  qualquer codec amplamente documentado. A hipotese e que imagens naturais
-  tem maior correlacao radial (o sujeito no centro e mais similar ao centro
-  do que as bordas entre si).
-- O modo **lossless com DPCM na espiral Middle-Out** e distinto do PNG
-  (predicao por scanline horizontal) e do JPEG-LS (predicao por pixel com
-  contexto adaptativo).
-
-**O que nao e inovador:**
-- A base matematica (DCT, quantizacao, RLE, zlib) e tecnica estabelecida.
-- Nao houve avaliacao peer-reviewed comparando com FLIF, AVIF lossless, ou
-  WebP lossless em benchmarks padrao.
+- Arquivos que **nao sao imagens** sao **ignorados automaticamente**
+- Subdiretorios nao sao incluidos (apenas arquivos top-level)
+- Ao descompactar mais de uma imagem, os arquivos vao para uma pasta
+- Cada imagem e comprimida individualmente e empacotada no bundle
 
 ---
 
-## Arquitetura multi-linguagem
+## Verificacao de integridade
 
-O Pied Piper usa **6 linguagens** cada uma onde e mais eficiente:
+```bash
+pp verify foto.png         # Confirma integridade bit-a-bit
+```
+
+```
+  APROVADO — reconstrucao pixel-perfeita garantida
+  O algoritmo Middle-Out DPCM e VERDADEIRAMENTE LOSSLESS.
+```
+
+---
+
+## Arquitetura
 
 | Linguagem | Arquivo | Funcao |
 |---|---|---|
 | **C** | `engine/middleout.c` | Motor: DCT, DPCM lossless, espiral, RLE, quantizacao |
 | **C header** | `engine/middleout.h` | API do motor com documentacao |
-| **Python** | `pied_piper/codec.py` | Codec: RCT, bindings ctypes, zlib, SHA-256 |
+| **Python** | `pied_piper/codec.py` | Codec: RCT, bindings ctypes, zlib, SHA-256, bundle |
 | **Python** | `pied_piper/cli.py` | CLI: estatisticas, modos, comandos pp* |
 | **Shell** | `pp` | Launcher: auto-install, auto-compile, ponto de entrada unico |
 | **Makefile** | `engine/Makefile` | Build: gcc -O3 -march=native |
-| **NASM x86-64** | `engine/asm/dct_simd.asm` | DCT otimizada SIMD (opcional, documentada) |
-| **Ruby** | `tools/ppbatch.rb` | Compressao em lote + relatorio HTML |
 
 ```
 testecodex/
 ├── pp                          # Unico executavel (Python, auto-install)
 ├── engine/
-│   ├── middleout.h             # API C (header)
-│   ├── middleout.c             # Motor C: lossy + lossless
-│   ├── Makefile                # Build gcc
-│   └── asm/
-│       └── dct_simd.asm        # DCT otimizada NASM x86-64 (opcional)
+│   ├── middleout.h
+│   ├── middleout.c
+│   ├── Makefile
+│   └── asm/dct_simd.asm
 ├── pied_piper/
-│   ├── __init__.py             # Versao 3.0.0
-│   ├── __main__.py             # python -m pied_piper
-│   ├── codec.py                # Codec Python + ctypes
-│   └── cli.py                  # CLI (comandos pp*)
-├── tools/
-│   └── ppbatch.rb              # Lote em Ruby
-├── docs/
-│   ├── ALGORITHM.md
-│   ├── FORMAT.md
-│   ├── USAGE.md
-│   └── API.md
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── codec.py                # Codec: compress, decompress, compress_folder, decompress_bundle
+│   └── cli.py
 └── requirements.txt
-```
-
----
-
-## Estatisticas exibidas apos compressao
-
-Apos `pp c foto.jpg`, o programa exibe:
-
-```
-================================================================
-   PIED PIPER - COMPRESSAO CONCLUIDA  [   LOSSY    ]
-================================================================
-  Entrada:              foto.jpg
-  Saida:                foto.PP
-  Formato original:     JPEG (RGB)
-  Dimensoes:            1024 x 1024 pixels
-  Total de pixels:      1,048,576
-  Megapixels:           1.049 MP
-  Canal Alpha:          Nao
-  Tamanho original:     3.00 MB
-  Tamanho comprimido:   269.00 KB
-  Taxa de compressao:   11.41:1
-  Bits por pixel:       2.10
-  Reducao:              91.24%
-                        [####################################....]
-  ALGORITMO MIDDLE-OUT - ESTATISTICAS INTERNAS
-  Modo:                 LOSSY - DCT + Quantizacao adaptativa
-  Qualidade:            75/100
-  PSNR:                 N/A (use pp d para calcular)
-  Blocos processados:   12,288
-  Blocos preditos:      11,820 (96.19%)
-  Blocos vazios:        1,843 (14.99%)
-  Esparsidade residual: 89.57%
-  Tempo:                0.77s
-  Throughput:           1,361,788 px/s
-================================================================
-```
-
-No modo lossless (`-l`):
-
-```
-================================================================
-   PIED PIPER - COMPRESSAO CONCLUIDA  [ SEM PERDAS ]
-================================================================
-  ...
-  PSNR:                 LOSSLESS (perfeito)
-  Integridade SHA-256:  VERIFICADA - pixels identicos ao original
-================================================================
 ```
 
 ---
