@@ -1130,7 +1130,74 @@ def compress(input_path: str, output_path: str = None,
         # ============================================================
         # Pipeline Lossy v4: DCT vetorizado + zigzag + planos de frequencia
         # Elimina overhead por bloco; zlib explora correlacao entre blocos.
+        #
+        # Formatos ja comprimidos com codec lossy (JPEG, WebP…) sao armazenados
+        # diretamente no container .PP sem re-aplicar DCT. Isso evita dupla
+        # compressao lossy que degradaria qualidade sem reducao de tamanho.
+        # O zlib (DEFLATE) e aplicado como segunda etapa de entropia — esse
+        # dois estagios (DCT+DEFLATE) sao equivalentes ao pipeline JPEG
+        # (DCT+Huffman) e nao constituem "dupla compressao" no sentido negativo.
         # ============================================================
+        _PRECOMPRESSED_FMTS = {'JPEG', 'JPG', 'WEBP', 'HEIC', 'HEIF'}
+        if metadata['original_format'].upper() in _PRECOMPRESSED_FMTS:
+            # Formato ja e DCT-lossy: armazena bytes originais no container PP
+            # para preservar qualidade original sem re-codificacao.
+            with open(input_path, 'rb') as _fin:
+                _orig_bytes = _fin.read()
+            _stored_hdr = {
+                'version': PP_VERSION, 'codec': 4, 'stored': True,
+                'lossless': False,
+                'width': int(width), 'height': int(height),
+                'quality': int(quality), 'has_alpha': bool(has_alpha),
+                'original_format': metadata['original_format'],
+                'original_mode':   metadata['original_mode'],
+                'y_size': 0, 'cb_size': 0, 'cr_size': 0, 'alpha_size': 0,
+            }
+            _stored_hdr_json = json.dumps(_stored_hdr, separators=(',', ':')).encode('utf-8')
+            with open(output_path, 'wb') as _f:
+                _f.write(PP_MAGIC)
+                _f.write(struct.pack('<H', PP_VERSION))
+                _f.write(struct.pack('<I', len(_stored_hdr_json)))
+                _f.write(_stored_hdr_json)
+                _f.write(struct.pack('<I', len(_orig_bytes)))
+                _f.write(_orig_bytes)
+            elapsed      = time.time() - start_time
+            output_size  = os.path.getsize(output_path)
+            total_pixels = width * height
+            ratio        = original_size / output_size if output_size > 0 else 0
+            reduction    = (1 - output_size / original_size) * 100 if original_size > 0 else 0
+            return {
+                'input_file':            input_path,
+                'output_file':           output_path,
+                'original_format':       metadata['original_format'],
+                'original_mode':         metadata['original_mode'],
+                'lossless':              False,
+                'lossless_strategy':     'stored',
+                'lossless_strategy_label': 'Bytes originais (sem re-codificacao DCT)',
+                'width':                 width,
+                'height':                height,
+                'total_pixels':          total_pixels,
+                'megapixels':            round(total_pixels / 1_000_000, 3),
+                'has_alpha':             has_alpha,
+                'original_size':         original_size,
+                'compressed_size':       output_size,
+                'compression_ratio':     round(ratio, 2),
+                'reduction_percent':     round(reduction, 2),
+                'quality':               quality,
+                'time_seconds':          round(elapsed, 3),
+                'pixels_per_second':     int(total_pixels / elapsed) if elapsed > 0 else 0,
+                'total_blocks':          0,
+                'predicted_blocks':      0,
+                'prediction_percent':    0.0,
+                'coefficient_sparsity':  0.0,
+                'bits_per_pixel':        round(output_size * 8 / total_pixels, 3),
+                'original_hash':         '',
+                'psnr':                  float('inf'),
+                'psnr_str':              'ARMAZENADO (sem re-codificacao)',
+                'zero_blocks':           0,
+                'zero_blocks_percent':   0.0,
+            }
+
         ycbcr = _rgb_to_ycbcr(rgb)
         y_channel  = ycbcr[..., 0]
         cb_channel = ycbcr[..., 1]
@@ -1347,12 +1414,10 @@ def decompress(input_path: str, output_path: str = None) -> dict:
             orig_fmt = header.get('original_format', 'PNG').upper()
             ext = _fmt_ext.get(orig_fmt, '.png')
             output_path = base + '_restored' + ext
-        elif not is_lossless:
-            # Modo lossy: restaura no formato original para evitar inchaço de PNG
-            orig_fmt = header.get('original_format', 'PNG').upper()
-            ext = _fmt_ext.get(orig_fmt, '.png')
-            output_path = base + '_restored' + ext
         else:
+            # Lossy e lossless DPCM: sempre PNG.
+            # PNG usa DEFLATE (lossless), evitando aplicar compressao lossy
+            # adicional sobre pixels ja processados pelo codec.
             output_path = base + '_restored.png'
 
     # ------------------------------------------------------------------
@@ -1562,11 +1627,13 @@ def decompress(input_path: str, output_path: str = None) -> dict:
 
         _out_ext = os.path.splitext(output_path)[1].lower()
         if _out_ext in ('.jpg', '.jpeg'):
-            # JPEG nao suporta alpha; converte RGBA->RGB e aplica qualidade
+            # Usuario especificou saida JPEG explicitamente via -o
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
             img.save(output_path, quality=min(quality + 5, 95), subsampling=0)
         else:
+            # Padrao PNG: usa DEFLATE (lossless) para preservar exatamente
+            # os pixels descomprimidos sem adicionar nova camada lossy.
             img.save(output_path)
 
         elapsed = time.time() - start_time
