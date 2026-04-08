@@ -85,8 +85,10 @@ def _find_engine_library():
     candidates = [
         os.path.join(here, '..', 'engine', 'libmiddleout.so'),
         os.path.join(here, '..', 'engine', 'libmiddleout.dylib'),
+        os.path.join(here, '..', 'engine', 'libmiddleout.dll'),
         os.path.join(here, 'libmiddleout.so'),
         os.path.join(here, 'libmiddleout.dylib'),
+        os.path.join(here, 'libmiddleout.dll'),
         '/usr/local/lib/libmiddleout.so',
     ]
     for path in candidates:
@@ -128,12 +130,14 @@ def _load_engine():
             POINTER(c_double), c_int,
         ]
 
-        # libc para free() — tipo explicito por seguranca cross-platform
-        libc_name = None
+        # libc para free() — cross-platform (Unix usa None, Windows usa msvcrt)
         try:
             libc = ctypes.CDLL(None)
         except OSError:
-            libc = ctypes.CDLL("libc.so.6")
+            try:
+                libc = ctypes.CDLL("msvcrt")  # Windows
+            except OSError:
+                libc = ctypes.CDLL("libc.so.6")  # Linux fallback
         libc.free.argtypes = [ctypes.c_void_p]
         libc.free.restype = None
 
@@ -274,17 +278,366 @@ def _get_quant_table(base: np.ndarray, quality: int) -> np.ndarray:
 
 
 # ==============================================================
+# Implementacao Python pura (fallback quando motor C indisponivel)
+# ==============================================================
+
+def _make_dct_matrix():
+    D = np.zeros((8, 8))
+    for i in range(8):
+        for j in range(8):
+            if i == 0:
+                D[i, j] = 1.0 / np.sqrt(8.0)
+            else:
+                D[i, j] = np.sqrt(2.0 / 8.0) * np.cos((2 * j + 1) * i * np.pi / 16.0)
+    return D
+
+_DCT_M  = _make_dct_matrix()
+_DCT_MT = _DCT_M.T
+
+
+def _dct8x8_py(block):
+    M = block.reshape(8, 8)
+    return (_DCT_M @ M @ _DCT_MT).flatten()
+
+
+def _idct8x8_py(block):
+    M = block.reshape(8, 8)
+    return (_DCT_MT @ M @ _DCT_M).flatten()
+
+
+def _spiral_order_py(img_width, img_height):
+    """Gera ordem espiral Middle-Out identica ao motor C."""
+    bw = (img_width + 7) // 8
+    bh = (img_height + 7) // 8
+    total = bw * bh
+    visited = [False] * (bw * bh)
+    dr = [0, 1, 0, -1]
+    dc = [1, 0, -1, 0]
+    rows, cols = [], []
+    r, c = bh // 2, bw // 2
+    direction = 0
+    steps = 1
+    step_count = 0
+    turns = 0
+    if 0 <= r < bh and 0 <= c < bw:
+        rows.append(r); cols.append(c)
+        visited[r * bw + c] = True
+    while len(rows) < total:
+        r += dr[direction]
+        c += dc[direction]
+        step_count += 1
+        if 0 <= r < bh and 0 <= c < bw and not visited[r * bw + c]:
+            rows.append(r); cols.append(c)
+            visited[r * bw + c] = True
+        if step_count >= steps:
+            step_count = 0
+            direction = (direction + 1) % 4
+            turns += 1
+            if turns % 2 == 0:
+                steps += 1
+        if r < -bh or r >= 2 * bh or c < -bw or c >= 2 * bw:
+            for i in range(bh):
+                for j in range(bw):
+                    if not visited[i * bw + j]:
+                        rows.append(i); cols.append(j)
+                        visited[i * bw + j] = True
+            break
+    return rows, cols
+
+
+def _rle_encode_py(data):
+    """Codifica array int16 com RLE identico ao motor C."""
+    out = bytearray()
+    zeros = 0
+    for v in data:
+        v = int(v)
+        if v == 0:
+            zeros += 1
+            if zeros == 255:
+                out += b'\xff\x00\x00'
+                zeros = 0
+        else:
+            out += bytes([zeros & 0xFF, v & 0xFF, (v >> 8) & 0xFF])
+            zeros = 0
+    out += b'\xff\x00\x00'
+    return bytes(out)
+
+
+def _rle_decode_py(data, length=64):
+    """Decodifica RLE identico ao motor C."""
+    out = np.zeros(length, dtype=np.int16)
+    out_pos = 0
+    in_pos = 0
+    while in_pos + 2 < len(data) and out_pos < length:
+        skip = data[in_pos]
+        val = int.from_bytes(bytes(data[in_pos + 1:in_pos + 3]),
+                             byteorder='little', signed=True)
+        in_pos += 3
+        if skip == 0xFF and val == 0:
+            break
+        for _ in range(skip):
+            if out_pos < length:
+                out_pos += 1
+        if not (skip == 255 and val == 0):
+            if out_pos < length:
+                out[out_pos] = val
+                out_pos += 1
+    return out
+
+
+def _adaptive_quant_factor_py(block, quality):
+    variance = float(np.var(block))
+    norm_var = variance / (255.0 * 255.0)
+    factor = 1.0 - 0.5 * (norm_var / (norm_var + 0.01))
+    if quality < 50:
+        q_scale = 5000.0 / quality
+    else:
+        q_scale = 200.0 - 2.0 * quality
+    q_scale /= 100.0
+    return factor * q_scale
+
+
+class _PyStats:
+    """Substituto Python para MOStats (usado no fallback sem motor C)."""
+    def __init__(self):
+        self.total_blocks = 0
+        self.zero_blocks = 0
+        self.predicted_blocks = 0
+        self.avg_energy = 0.0
+        self.sparsity = 0.0
+
+
+def _compress_channel_py(channel: np.ndarray, quant_table: np.ndarray,
+                         quality: int) -> tuple:
+    """Comprime canal usando DCT + quantizacao adaptativa Middle-Out (Python puro)."""
+    h, w = channel.shape
+    bw = (w + 7) // 8
+    bh = (h + 7) // 8
+    pw = bw * 8
+    ph = bh * 8
+
+    padded = np.zeros((ph, pw), dtype=np.float64)
+    padded[:h, :w] = channel
+    if w < pw:
+        padded[:h, w:] = channel[:, w - 1:w]
+    if h < ph:
+        padded[h:, :] = padded[h - 1:h, :]
+
+    spiral_rows, spiral_cols = _spiral_order_py(pw, ph)
+    n_blocks = len(spiral_rows)
+    stats = _PyStats()
+    stats.total_blocks = n_blocks
+
+    out = bytearray()
+    out += n_blocks.to_bytes(4, 'little')
+
+    qflat = quant_table.flatten()
+    prev_quant = None
+    total_coeffs = 0
+    zero_coeffs = 0
+
+    for b in range(n_blocks):
+        py_off = spiral_rows[b] * 8
+        px_off = spiral_cols[b] * 8
+        block = padded[py_off:py_off + 8, px_off:px_off + 8].flatten() - 128.0
+
+        adapt = _adaptive_quant_factor_py(block, quality)
+        dct_block = _dct8x8_py(block)
+        qf = np.maximum(qflat * adapt, 1.0)
+        curr_quant = np.round(dct_block / qf).astype(np.int16)
+
+        if prev_quant is not None:
+            delta = (curr_quant.astype(np.int32) - prev_quant.astype(np.int32)).astype(np.int16)
+            e_orig  = int(np.sum(curr_quant.astype(np.int32) ** 2))
+            e_delta = int(np.sum(delta.astype(np.int32) ** 2))
+            if e_delta < e_orig * 8 // 10:
+                encoded = delta
+                used_delta = 1
+            else:
+                encoded = curr_quant.copy()
+                used_delta = 0
+        else:
+            encoded = curr_quant.copy()
+            used_delta = 0
+
+        adapt_byte = min(255, int(adapt * 25.5))
+        rle_data = _rle_encode_py(encoded)
+        out += bytes([used_delta, adapt_byte])
+        out += len(rle_data).to_bytes(2, 'little')
+        out += rle_data
+
+        zero_coeffs += int(np.sum(curr_quant == 0))
+        total_coeffs += 64
+        if int(np.all(curr_quant == 0)):
+            stats.zero_blocks += 1
+        if used_delta:
+            stats.predicted_blocks += 1
+        stats.avg_energy += float(np.sum(curr_quant.astype(np.float64) ** 2))
+        prev_quant = curr_quant.copy()
+
+    if n_blocks > 0:
+        stats.avg_energy /= n_blocks
+        stats.sparsity = (zero_coeffs / total_coeffs * 100.0) if total_coeffs > 0 else 0.0
+
+    return bytes(out), stats
+
+
+def _decompress_channel_py(data: bytes, width: int, height: int,
+                           quant_table: np.ndarray, quality: int) -> np.ndarray:
+    """Descomprime canal usando IDCT + dequantizacao (Python puro)."""
+    bw = (width + 7) // 8
+    bh = (height + 7) // 8
+    pw = bw * 8
+    ph = bh * 8
+    padded = np.zeros((ph, pw), dtype=np.float64)
+
+    n_blocks = int.from_bytes(data[0:4], 'little')
+    in_pos = 4
+    spiral_rows, spiral_cols = _spiral_order_py(pw, ph)
+    qflat = quant_table.flatten()
+    prev_quant = None
+
+    for b in range(min(n_blocks, len(spiral_rows))):
+        if in_pos + 4 > len(data):
+            break
+        py_off = spiral_rows[b] * 8
+        px_off = spiral_cols[b] * 8
+
+        used_delta = data[in_pos]; in_pos += 1
+        adapt_byte = data[in_pos]; in_pos += 1
+        adapt = adapt_byte / 25.5
+        rle_size = int.from_bytes(data[in_pos:in_pos + 2], 'little'); in_pos += 2
+
+        decoded_rle = _rle_decode_py(data[in_pos:in_pos + rle_size])
+        in_pos += rle_size
+
+        if used_delta and prev_quant is not None:
+            curr_quant = (decoded_rle.astype(np.int32) + prev_quant.astype(np.int32)).astype(np.int16)
+        else:
+            curr_quant = decoded_rle.copy()
+
+        qf = np.maximum(qflat * adapt, 1.0)
+        dct_block = curr_quant.astype(np.float64) * qf
+        block = _idct8x8_py(dct_block)
+        padded[py_off:py_off + 8, px_off:px_off + 8] = np.clip(
+            block.reshape(8, 8) + 128.0, 0, 255)
+        prev_quant = curr_quant.copy()
+
+    return padded[:height, :width]
+
+
+def _compress_lossless_channel_py(channel: np.ndarray) -> tuple:
+    """Comprime canal int16 usando DPCM Middle-Out lossless (Python puro)."""
+    h, w = channel.shape
+    bw = (w + 7) // 8
+    bh = (h + 7) // 8
+    pw = bw * 8
+    ph = bh * 8
+
+    padded = np.zeros((ph, pw), dtype=np.int16)
+    padded[:h, :w] = channel
+    if w < pw:
+        padded[:h, w:] = channel[:, w - 1:w]
+    if h < ph:
+        padded[h:, :] = padded[h - 1:h, :]
+
+    spiral_rows, spiral_cols = _spiral_order_py(pw, ph)
+    n_blocks = len(spiral_rows)
+    stats = _PyStats()
+    stats.total_blocks = n_blocks
+
+    out = bytearray()
+    out += n_blocks.to_bytes(4, 'little')
+    out += pw.to_bytes(2, 'little')
+    out += ph.to_bytes(2, 'little')
+
+    prev_block = None
+    total_res = 0
+    zero_res = 0
+
+    for b in range(n_blocks):
+        py_off = spiral_rows[b] * 8
+        px_off = spiral_cols[b] * 8
+        curr = padded[py_off:py_off + 8, px_off:px_off + 8].flatten().astype(np.int16)
+
+        if prev_block is not None:
+            delta = (curr.astype(np.int32) - prev_block.astype(np.int32)).astype(np.int16)
+            e_raw   = int(np.sum(curr.astype(np.int32) ** 2))
+            e_delta = int(np.sum(delta.astype(np.int32) ** 2))
+            if e_delta <= e_raw * 9 // 10:
+                residuals = delta
+                used_delta = 1
+            else:
+                residuals = curr.copy()
+                used_delta = 0
+        else:
+            residuals = curr.copy()
+            used_delta = 0
+
+        zero_res += int(np.sum(residuals == 0))
+        total_res += 64
+        if used_delta:
+            stats.predicted_blocks += 1
+
+        rle_data = _rle_encode_py(residuals)
+        out += bytes([used_delta])
+        out += len(rle_data).to_bytes(2, 'little')
+        out += rle_data
+        prev_block = curr.copy()
+
+    stats.sparsity = (zero_res / total_res * 100.0) if total_res > 0 else 0.0
+    return bytes(out), stats
+
+
+def _decompress_lossless_channel_py(data: bytes, width: int,
+                                     height: int) -> np.ndarray:
+    """Descomprime canal lossless (Python puro)."""
+    bw = (width + 7) // 8
+    bh = (height + 7) // 8
+    pw = bw * 8
+    ph = bh * 8
+
+    n_blocks = int.from_bytes(data[0:4], 'little')
+    padded = np.zeros((ph, pw), dtype=np.int16)
+    spiral_rows, spiral_cols = _spiral_order_py(pw, ph)
+    prev_block = None
+    in_pos = 8
+
+    for b in range(min(n_blocks, len(spiral_rows))):
+        if in_pos + 3 > len(data):
+            break
+        py_off = spiral_rows[b] * 8
+        px_off = spiral_cols[b] * 8
+
+        used_delta = data[in_pos]; in_pos += 1
+        rle_size = int.from_bytes(data[in_pos:in_pos + 2], 'little'); in_pos += 2
+
+        residuals = _rle_decode_py(data[in_pos:in_pos + rle_size])
+        in_pos += rle_size
+
+        if used_delta and prev_block is not None:
+            curr = (residuals.astype(np.int32) + prev_block.astype(np.int32)).astype(np.int16)
+        else:
+            curr = residuals.copy()
+
+        padded[py_off:py_off + 8, px_off:px_off + 8] = curr.reshape(8, 8)
+        prev_block = curr.copy()
+
+    return padded[:height, :width]
+
+
+# ==============================================================
 # Pipeline Middle-Out Lossless (C engine)
 # ==============================================================
 
 def _compress_lossless_channel_c(channel: np.ndarray) -> tuple:
     """
     Comprime canal int16 usando Middle-Out DPCM lossless.
-    Retorna (bytes_comprimidos, MOStats).
+    Usa motor C se disponivel, senao fallback Python puro.
     """
     lib = _load_engine()
     if not lib:
-        raise RuntimeError("Motor C nao disponivel")
+        return _compress_lossless_channel_py(channel)
 
     flat = np.ascontiguousarray(channel.flatten(), dtype=np.int16)
     h, w = channel.shape
@@ -299,7 +652,7 @@ def _compress_lossless_channel_c(channel: np.ndarray) -> tuple:
     )
 
     if not ptr or size_out.value <= 0:
-        raise RuntimeError("Falha na compressao lossless do canal")
+        return _compress_lossless_channel_py(channel)
 
     data = bytes(ctypes.string_at(ptr, size_out.value))
     _LIBC.free(ptr)
@@ -309,12 +662,12 @@ def _compress_lossless_channel_c(channel: np.ndarray) -> tuple:
 def _decompress_lossless_channel_c(data: bytes, width: int,
                                     height: int) -> np.ndarray:
     """
-    Descomprime canal lossless produzido por _compress_lossless_channel_c.
-    Retorna array int16 shape (height, width).
+    Descomprime canal lossless.
+    Usa motor C se disponivel, senao fallback Python puro.
     """
     lib = _load_engine()
     if not lib:
-        raise RuntimeError("Motor C nao disponivel")
+        return _decompress_lossless_channel_py(data, width, height)
 
     buf = (c_uint8 * len(data)).from_buffer_copy(data)
 
@@ -324,7 +677,7 @@ def _decompress_lossless_channel_c(data: bytes, width: int,
     )
 
     if not ptr:
-        raise RuntimeError("Falha na descompressao lossless do canal")
+        return _decompress_lossless_channel_py(data, width, height)
 
     int16_ptr = ctypes.cast(ptr, POINTER(c_int16))
     arr = np.ctypeslib.as_array(int16_ptr, shape=(height, width)).copy()
@@ -338,10 +691,10 @@ def _decompress_lossless_channel_c(data: bytes, width: int,
 
 def _compress_channel_c(channel: np.ndarray, quant_table: np.ndarray,
                         quality: int) -> bytes:
-    """Comprime canal usando motor C."""
+    """Comprime canal usando motor C, ou fallback Python puro."""
     lib = _load_engine()
     if not lib:
-        raise RuntimeError("Motor C nao disponivel. Execute 'make' em engine/")
+        return _compress_channel_py(channel, quant_table, quality)
 
     h, w = channel.shape
     flat = np.ascontiguousarray(channel.flatten(), dtype=np.float64)
@@ -360,21 +713,19 @@ def _compress_channel_c(channel: np.ndarray, quant_table: np.ndarray,
     )
 
     if not ptr or size_out.value <= 0:
-        raise RuntimeError("Falha na compressao do canal")
+        return _compress_channel_py(channel, quant_table, quality)
 
-    # Copia dados do ponteiro C para bytes Python
     data = bytes(ctypes.string_at(ptr, size_out.value))
-    # Libera memoria alocada pelo C
     _LIBC.free(ptr)
     return data, stats
 
 
 def _decompress_channel_c(data: bytes, width: int, height: int,
                           quant_table: np.ndarray, quality: int) -> np.ndarray:
-    """Descomprime canal usando motor C."""
+    """Descomprime canal usando motor C, ou fallback Python puro."""
     lib = _load_engine()
     if not lib:
-        raise RuntimeError("Motor C nao disponivel")
+        return _decompress_channel_py(data, width, height, quant_table, quality)
 
     qflat = np.ascontiguousarray(quant_table.flatten(), dtype=np.float64)
     buf = (c_uint8 * len(data)).from_buffer_copy(data)
@@ -387,9 +738,8 @@ def _decompress_channel_c(data: bytes, width: int, height: int,
     )
 
     if not ptr:
-        raise RuntimeError("Falha na descompressao do canal")
+        return _decompress_channel_py(data, width, height, quant_table, quality)
 
-    # Cast void* para double* para ler como array
     double_ptr = ctypes.cast(ptr, POINTER(c_double))
     arr = np.ctypeslib.as_array(double_ptr, shape=(height, width)).copy()
     _LIBC.free(ptr)
@@ -490,10 +840,7 @@ def compress(input_path: str, output_path: str = None,
         base = os.path.splitext(input_path)[0]
         output_path = base + PP_EXTENSION
 
-    if not _load_engine():
-        raise RuntimeError(
-            "Motor C nao encontrado. Compile com: cd engine && make"
-        )
+    _load_engine()  # tenta carregar motor C; se falhar, usa fallback Python
 
     original_size = os.path.getsize(input_path)
     img_array, metadata = _load_any_image(input_path)
@@ -696,8 +1043,7 @@ def decompress(input_path: str, output_path: str = None) -> dict:
         base = os.path.splitext(input_path)[0]
         output_path = base + '_restored.png'
 
-    if not _load_engine():
-        raise RuntimeError("Motor C nao encontrado")
+    _load_engine()  # tenta carregar motor C; se falhar, usa fallback Python
 
     with open(input_path, 'rb') as f:
         magic = f.read(4)
