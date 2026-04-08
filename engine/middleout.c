@@ -427,6 +427,248 @@ int mo_rle_decode(const uint8_t *input, int input_length,
     return out_pos;
 }
 
+/* ===== Compressao Lossless Middle-Out DPCM ===== */
+
+/*
+ * mo_compress_lossless_ch:
+ *   Comprime um canal usando DPCM entre blocos consecutivos na ordem Middle-Out.
+ *   100% lossless: armazena residuais exatos sem quantizacao.
+ *
+ * Formato de saida:
+ *   [4 bytes: n_blocks LE]
+ *   [2 bytes: pw LE] [2 bytes: ph LE]
+ *   Para cada bloco:
+ *     [1 byte: used_delta]
+ *     [2 bytes: rle_size LE]
+ *     [rle_size bytes: dados RLE dos residuais int16]
+ */
+uint8_t* mo_compress_lossless_ch(const int16_t *channel, int width, int height,
+                                  int *out_size, MOStats *stats) {
+    int bw = (width  + MO_BLOCK_SIZE - 1) / MO_BLOCK_SIZE;
+    int bh = (height + MO_BLOCK_SIZE - 1) / MO_BLOCK_SIZE;
+    int total_blocks = bw * bh;
+    int pw = bw * MO_BLOCK_SIZE;
+    int ph = bh * MO_BLOCK_SIZE;
+
+    /* Padding com borda replicada */
+    int16_t *padded = (int16_t *)calloc(pw * ph, sizeof(int16_t));
+    if (!padded) { *out_size = 0; return NULL; }
+
+    int i, j;
+    for (i = 0; i < height; i++) {
+        for (j = 0; j < width; j++)
+            padded[i * pw + j] = channel[i * width + j];
+        for (j = width; j < pw; j++)
+            padded[i * pw + j] = channel[i * width + (width - 1)];
+    }
+    for (i = height; i < ph; i++)
+        memcpy(&padded[i * pw], &padded[(height - 1) * pw], pw * sizeof(int16_t));
+
+    /* Gera ordem Middle-Out */
+    int *spiral_r = (int *)malloc(total_blocks * sizeof(int));
+    int *spiral_c = (int *)malloc(total_blocks * sizeof(int));
+    if (!spiral_r || !spiral_c) {
+        free(padded); free(spiral_r); free(spiral_c);
+        *out_size = 0; return NULL;
+    }
+    int n_blocks = mo_spiral_order(pw, ph, spiral_r, spiral_c, total_blocks);
+
+    /* Buffer de saida: header(8) + por bloco: flag(1)+rle_size(2)+rle(max ~195) */
+    int max_out = 8 + n_blocks * 200;
+    uint8_t *output = (uint8_t *)malloc(max_out);
+    if (!output) {
+        free(padded); free(spiral_r); free(spiral_c);
+        *out_size = 0; return NULL;
+    }
+
+    int out_pos = 0;
+
+    /* Header */
+    output[out_pos++] = (uint8_t)(n_blocks        & 0xFF);
+    output[out_pos++] = (uint8_t)((n_blocks >>  8) & 0xFF);
+    output[out_pos++] = (uint8_t)((n_blocks >> 16) & 0xFF);
+    output[out_pos++] = (uint8_t)((n_blocks >> 24) & 0xFF);
+    output[out_pos++] = (uint8_t)(pw & 0xFF);
+    output[out_pos++] = (uint8_t)((pw >> 8) & 0xFF);
+    output[out_pos++] = (uint8_t)(ph & 0xFF);
+    output[out_pos++] = (uint8_t)((ph >> 8) & 0xFF);
+
+    if (stats) {
+        memset(stats, 0, sizeof(MOStats));
+        stats->total_blocks = n_blocks;
+    }
+
+    int16_t prev_block[64];
+    int has_prev = 0;
+    long total_res = 0, zero_res = 0;
+
+    for (int b = 0; b < n_blocks; b++) {
+        int br = spiral_r[b];
+        int bc = spiral_c[b];
+        int py = br * MO_BLOCK_SIZE;
+        int px = bc * MO_BLOCK_SIZE;
+
+        /* Extrai bloco atual */
+        int16_t curr[64];
+        for (i = 0; i < MO_BLOCK_SIZE; i++)
+            for (j = 0; j < MO_BLOCK_SIZE; j++)
+                curr[i * MO_BLOCK_SIZE + j] = padded[(py + i) * pw + (px + j)];
+
+        /* DPCM: escolhe entre raw e delta */
+        int16_t residuals[64];
+        int used_delta = 0;
+
+        if (has_prev) {
+            long e_raw = 0, e_delta = 0;
+            for (int k = 0; k < 64; k++) {
+                int16_t d = curr[k] - prev_block[k];
+                e_raw   += (long)curr[k] * curr[k];
+                e_delta += (long)d * d;
+                residuals[k] = d;
+            }
+            /* Usa delta se reduz energia em pelo menos 10% */
+            if (e_delta <= e_raw * 9 / 10) {
+                used_delta = 1;
+            } else {
+                memcpy(residuals, curr, 64 * sizeof(int16_t));
+            }
+        } else {
+            memcpy(residuals, curr, 64 * sizeof(int16_t));
+        }
+
+        /* Estatisticas */
+        for (int k = 0; k < 64; k++) {
+            total_res++;
+            if (residuals[k] == 0) zero_res++;
+        }
+
+        /* Escreve flag + RLE */
+        output[out_pos++] = (uint8_t)used_delta;
+
+        int rle_size = mo_rle_encode(residuals, 64,
+                                     &output[out_pos + 2],
+                                     max_out - out_pos - 2);
+        output[out_pos++] = (uint8_t)(rle_size & 0xFF);
+        output[out_pos++] = (uint8_t)((rle_size >> 8) & 0xFF);
+        out_pos += rle_size;
+
+        if (stats && used_delta) stats->predicted_blocks++;
+
+        memcpy(prev_block, curr, 64 * sizeof(int16_t));
+        has_prev = 1;
+    }
+
+    if (stats && n_blocks > 0)
+        stats->sparsity = total_res > 0
+            ? (double)zero_res / total_res * 100.0 : 0.0;
+
+    *out_size = out_pos;
+    free(padded);
+    free(spiral_r);
+    free(spiral_c);
+
+    uint8_t *shrunk = (uint8_t *)realloc(output, out_pos);
+    return shrunk ? shrunk : output;
+}
+
+/*
+ * mo_decompress_lossless_ch:
+ *   Descomprime canal produzido por mo_compress_lossless_ch.
+ *   Retorna buffer int16 alocado width*height (caller deve free()).
+ */
+int16_t* mo_decompress_lossless_ch(const uint8_t *data, int data_size,
+                                    int width, int height) {
+    if (!data || data_size < 8) return NULL;
+
+    int n_blocks = (int)( data[0]
+                        | ((uint32_t)data[1] <<  8)
+                        | ((uint32_t)data[2] << 16)
+                        | ((uint32_t)data[3] << 24) );
+    int pw = (int)(data[4] | (data[5] << 8));
+    int ph = (int)(data[6] | (data[7] << 8));
+
+    int bw = (width  + MO_BLOCK_SIZE - 1) / MO_BLOCK_SIZE;
+    int bh = (height + MO_BLOCK_SIZE - 1) / MO_BLOCK_SIZE;
+    int total_blocks = bw * bh;
+
+    int16_t *padded = (int16_t *)calloc(pw * ph, sizeof(int16_t));
+    if (!padded) return NULL;
+
+    int *spiral_r = (int *)malloc(total_blocks * sizeof(int));
+    int *spiral_c = (int *)malloc(total_blocks * sizeof(int));
+    if (!spiral_r || !spiral_c) {
+        free(padded); free(spiral_r); free(spiral_c); return NULL;
+    }
+    mo_spiral_order(pw, ph, spiral_r, spiral_c, total_blocks);
+
+    int16_t prev_block[64];
+    int has_prev = 0;
+    int in_pos = 8;
+    int i, j;
+
+    for (int b = 0; b < n_blocks && in_pos < data_size; b++) {
+        int br = spiral_r[b];
+        int bc = spiral_c[b];
+        int py = br * MO_BLOCK_SIZE;
+        int px = bc * MO_BLOCK_SIZE;
+
+        uint8_t used_delta = data[in_pos++];
+        if (in_pos + 2 > data_size) break;
+        int rle_size = (int)(data[in_pos] | (data[in_pos + 1] << 8));
+        in_pos += 2;
+        if (in_pos + rle_size > data_size) break;
+
+        int16_t residuals[64];
+        memset(residuals, 0, sizeof(residuals));
+        mo_rle_decode(&data[in_pos], rle_size, residuals, 64);
+        in_pos += rle_size;
+
+        /* Reconstroi bloco */
+        int16_t curr[64];
+        if (used_delta && has_prev) {
+            for (int k = 0; k < 64; k++)
+                curr[k] = residuals[k] + prev_block[k];
+        } else {
+            memcpy(curr, residuals, 64 * sizeof(int16_t));
+        }
+
+        /* Coloca bloco na imagem padded */
+        for (i = 0; i < MO_BLOCK_SIZE; i++)
+            for (j = 0; j < MO_BLOCK_SIZE; j++)
+                padded[(py + i) * pw + (px + j)] = curr[i * MO_BLOCK_SIZE + j];
+
+        memcpy(prev_block, curr, 64 * sizeof(int16_t));
+        has_prev = 1;
+    }
+
+    /* Extrai area util */
+    int16_t *output = (int16_t *)malloc(width * height * sizeof(int16_t));
+    if (output) {
+        for (i = 0; i < height; i++)
+            for (j = 0; j < width; j++)
+                output[i * width + j] = padded[i * pw + j];
+    }
+
+    free(padded);
+    free(spiral_r);
+    free(spiral_c);
+    return output;
+}
+
+/* Calcula PSNR entre canal original (double) e restaurado (double). */
+double mo_psnr(const double *original, const double *restored,
+               int size, double max_val) {
+    double mse = 0.0;
+    int i;
+    for (i = 0; i < size; i++) {
+        double diff = original[i] - restored[i];
+        mse += diff * diff;
+    }
+    mse /= size;
+    if (mse < 1e-10) return 999.99;  /* lossless / praticamente lossless */
+    return 10.0 * log10((max_val * max_val) / mse);
+}
+
 /* ===== Processamento completo de canal ===== */
 
 uint8_t* mo_compress_channel(const double *channel, int width, int height,

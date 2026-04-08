@@ -11,7 +11,7 @@ Uso rapido:
     stats = decompress("foto.PP", "foto_restaurada.png")
 """
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 __author__ = "Pied Piper"
 __license__ = "Proprietary"
 

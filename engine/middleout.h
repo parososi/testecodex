@@ -123,7 +123,7 @@ int mo_rle_encode(const int16_t *data, int length,
 int mo_rle_decode(const uint8_t *input, int input_length,
                   int16_t *output, int max_output);
 
-/* ===== Processamento completo de canal ===== */
+/* ===== Processamento completo de canal (LOSSY) ===== */
 
 /*
  * Processa um canal inteiro: Middle-Out ordering -> DCT -> Quant -> Delta -> Zigzag -> RLE
@@ -135,11 +135,41 @@ uint8_t* mo_compress_channel(const double *channel, int width, int height,
                              int *compressed_size, MOStats *stats);
 
 /*
- * Reconstroi canal a partir dos dados comprimidos.
+ * Reconstroi canal a partir dos dados comprimidos (LOSSY).
  * Retorna buffer alocado com canal reconstruido (caller deve free()).
  */
 double* mo_decompress_channel(const uint8_t *compressed, int compressed_size,
                               int width, int height,
                               const double *quant_table, int quality);
+
+/* ===== Compressao Lossless (sem perdas) - Middle-Out DPCM ===== */
+
+/*
+ * Algoritmo Middle-Out DPCM Lossless:
+ *   1. Ordena blocos 8x8 em espiral do centro para as bordas
+ *   2. Para cada bloco: calcula residuais do bloco anterior (DPCM)
+ *   3. Codifica residuais com RLE (int16, faixa -255..255)
+ *   4. Retorna dados brutos para compressao zlib externa
+ *
+ * Diferente do PNG (predicao por scanline) e do JPEG-LS (predicao pixel-a-pixel):
+ * aqui a predicao e feita em blocos 8x8 na ordem espiral Middle-Out,
+ * explorando correlacao radial das imagens naturais (centro mais correlacionado).
+ *
+ * Entrada: canal uint8 como int16 (0-255), ou canal de diferenca (-255..255)
+ * Retorna buffer alocado (caller deve free()), *out_size com tamanho.
+ */
+uint8_t* mo_compress_lossless_ch(const int16_t *channel, int width, int height,
+                                  int *out_size, MOStats *stats);
+
+/*
+ * Descomprime canal produzido por mo_compress_lossless_ch.
+ * Retorna buffer int16 alocado (caller deve free()).
+ */
+int16_t* mo_decompress_lossless_ch(const uint8_t *data, int data_size,
+                                    int width, int height);
+
+/* Calcula PSNR entre canal original e restaurado. */
+double mo_psnr(const double *original, const double *restored,
+               int size, double max_val);
 
 #endif /* MIDDLEOUT_H */
