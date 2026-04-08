@@ -1,230 +1,239 @@
-# O Algoritmo Middle-Out Compression
-
-Este documento explica em profundidade o algoritmo exclusivo usado pelo Pied Piper para comprimir imagens no formato `.PP`.
-
-## 1. Visão Geral
-
-O Middle-Out Compression é um pipeline de 7 estágios que combina técnicas de processamento de sinal, predição, e codificação de entropia. A inovação central está na **ordem de processamento em espiral do centro para fora** combinada com **predição inter-blocos por delta**, explorando duas propriedades estatísticas das imagens naturais:
-
-1. **O sujeito de interesse tende a estar no centro** — informação de maior importância perceptual
-2. **Blocos espacialmente adjacentes são altamente correlacionados** — podem ser codificados como diferenças
-
-```
-  Imagem RGB            Canal YCbCr         Espiral Middle-Out
-   ┌─────┐                ┌─────┐             ┌─────────┐
-   │ ▓▓▓ │    ───>        │ YYY │    ───>     │ 9 2 3 4 │
-   │ ▓█▓ │                │ YYY │             │ 8 1 → 5 │  centro=1
-   │ ▓▓▓ │                │ YYY │             │ 7 6 ↓ ← │
-   └─────┘                └─────┘             └─────────┘
-```
-
-## 2. Pipeline Completo
-
-```
-Imagem de entrada (qualquer formato)
-        │
-        ▼
-[1] Carregamento (Pillow) — converte para RGB/RGBA uint8
-        │
-        ▼
-[2] RGB → YCbCr — separa luminância de crominância
-        │
-        ▼
-[3] Subamostragem 4:2:0 — reduz Cb/Cr pela metade
-        │
-        ▼
-[4] Motor C (middleout.c):
-    │
-    ├── [4a] Gera ordem espiral Middle-Out dos blocos 8x8
-    │
-    ├── [4b] Para cada bloco (do centro para fora):
-    │       │
-    │       ├── Calcula variância local
-    │       ├── Deriva fator adaptativo de quantização
-    │       ├── DCT 8x8 (via multiplicação de matrizes pré-computadas)
-    │       ├── Quantização adaptativa
-    │       ├── Delta encoding contra bloco anterior na espiral
-    │       ├── Zigzag scan
-    │       └── RLE encoding
-    │
-    └── [4c] Retorna buffer comprimido por canal
-        │
-        ▼
-[5] Compressão zlib final — extrai redundância residual
-        │
-        ▼
-[6] Serialização do formato .PP (header JSON + payload binário)
-        │
-        ▼
-Arquivo .PP de saída
-```
-
-## 3. Os Estágios em Detalhes
-
-### Estágio 1: Leitura Universal de Imagens
-
-O Pied Piper aceita **qualquer formato de imagem suportado pelo Pillow**: PNG, JPEG, BMP, TIFF, GIF, WebP, ICO, TGA, PCX, PPM, PGM, PSD, DDS, APNG, JP2, e dezenas de outros. A imagem é convertida para RGB ou RGBA (se tiver alpha) em arrays NumPy `uint8`.
-
-### Estágio 2: Conversão para YCbCr
-
-O olho humano é muito mais sensível a variações de brilho (luminância) do que a variações de cor (crominância). Convertemos RGB para YCbCr para aproveitar isso:
-
-```
-Y  =  0.299·R + 0.587·G + 0.114·B        (luminância)
-Cb = -0.168736·R - 0.331264·G + 0.5·B + 128    (crominância azul)
-Cr =  0.5·R - 0.418688·G - 0.081312·B + 128    (crominância vermelha)
-```
-
-### Estágio 3: Subamostragem 4:2:0
-
-Como a sensibilidade à cor é baixa, reduzimos os canais Cb e Cr pela metade em cada dimensão. Um bloco de 4 pixels de crominância vira 1 pixel (média). Isso já elimina 50% dos dados de cor com perda imperceptível.
-
-### Estágio 4a: Ordenação Middle-Out em Espiral
-
-**Esta é a grande inovação do Pied Piper.** Em vez de processar blocos linearmente (linha por linha, como JPEG), o Pied Piper gera uma ordem em espiral começando do centro da imagem:
-
-```
-Exemplo 5x5:
-      25 24 23 22 21
-      10  9  8  7 20
-      11  2  1  6 19
-      12  3  4  5 18
-      13 14 15 16 17
-```
-
-O bloco `1` é o centro geométrico. `2,3,4,5` são os vizinhos imediatos, e assim por diante. A espiral se expande para fora em quadrados concêntricos.
-
-**Por que?**
-- O centro geralmente contém o "sujeito" da imagem (rosto, objeto principal)
-- Blocos consecutivos na espiral são espacialmente adjacentes → altamente correlacionados
-- Permite predição eficiente: cada bloco tende a ser muito parecido com o anterior
-
-Implementação no motor C: `mo_spiral_order()` em `engine/middleout.c`.
-
-### Estágio 4b: Para Cada Bloco
-
-Dado um bloco 8x8 na ordem da espiral:
-
-#### Quantização Adaptativa por Variância
-
-Primeiro, calcula a variância do bloco:
-
-```c
-double variance = (sum_of_squares / n) - (mean * mean);
-double norm_var = variance / (255.0 * 255.0);
-double factor = 1.0 - 0.5 * (norm_var / (norm_var + 0.01));
-```
-
-- **Alta variância** (textura complexa, bordas) → `factor` baixo → quantização mais leve → preserva detalhes
-- **Baixa variância** (área suave, céu, parede) → `factor` alto → quantização agressiva → comprime mais
-
-Este é um **refinamento perceptual**: o olho humano nota artefatos em áreas lisas (banding) mais facilmente do que em áreas complexas.
-
-#### DCT 8x8 Rápida
-
-A DCT 2D é computada via multiplicação de matrizes pré-calculadas:
-
-```
-DCT(block) = D × block × Dᵀ
-```
-
-Onde `D` é a matriz DCT 8x8:
-
-```c
-D[i][j] = sqrt(2/N) · cos((2j+1)·i·π / 16)    para i > 0
-D[0][j] = 1/sqrt(N)                            para i = 0
-```
-
-Essa abordagem roda em O(N³) = 512 operações por bloco, vs O(N⁴) = 4096 operações do cálculo direto. No motor C com `-O3 -march=native`, isso processa milhões de pixels por segundo.
-
-#### Quantização
-
-Cada coeficiente DCT é dividido pela tabela de quantização escalada pelo fator adaptativo:
-
-```c
-quantized[i] = round(dct[i] / (quant_table[i] * adapt_factor));
-```
-
-As tabelas base são as do JPEG, mas o Pied Piper as escala **localmente por bloco**, não globalmente.
-
-#### Predição por Delta (inter-blocos)
-
-Aqui a espiral Middle-Out brilha. Para cada bloco, tentamos codificá-lo como a **diferença** do bloco anterior na espiral:
-
-```c
-delta[i] = current[i] - reference[i];
-```
-
-Se a energia do delta (Σ delta²) for **pelo menos 20% menor** que a energia do bloco original, usamos o delta; caso contrário, mantemos o bloco original. Um flag de 1 byte indica a escolha.
-
-**Por que funciona:** na espiral, o bloco anterior é espacialmente adjacente. Céus contínuos, texturas uniformes, gradientes — tudo isso gera deltas quase zero, que comprimem extraordinariamente bem. Em nossos testes, **96% dos blocos** em imagens reais usam delta encoding.
-
-#### Zigzag Scan
-
-Reorganiza o bloco 8x8 em um vetor de 64 posições percorrendo na ordem zigzag. Isso agrupa as baixas frequências no início e as altas frequências (geralmente zero após quantização) no fim, maximizando runs de zeros para o RLE.
-
-#### RLE (Run-Length Encoding)
-
-Codificação compacta para runs de zeros:
-
-```
-Formato: (skip, value)
-  skip  = número de zeros antes do valor (1 byte, 0-255)
-  value = coeficiente int16 (2 bytes little-endian)
-
-Marcador de fim: (0xFF, 0x00, 0x00)
-Flush de zeros (quando skip=255): (0xFF, 0x00, 0x00) também usado
-```
-
-Após quantização adaptativa, tipicamente **~85% dos coeficientes são zero**, tornando o RLE altamente eficaz.
-
-### Estágio 5: Compressão zlib Final
-
-O buffer de todos os canais (Y + Cb + Cr + [Alpha]) é então passado por `zlib.compress(level=9)`. Isso extrai redundância residual que o RLE não capturou, especialmente padrões repetitivos entre blocos adjacentes.
-
-### Estágio 6: Serialização do Formato .PP
-
-O arquivo final tem a estrutura descrita em [FORMAT.md](FORMAT.md).
-
-## 4. Métricas Capturadas
-
-O motor C reporta estatísticas detalhadas por canal:
-
-- `total_blocks` — número total de blocos 8x8
-- `zero_blocks` — blocos inteiramente zerados após quantização
-- `predicted_blocks` — blocos que usaram delta encoding
-- `avg_energy` — energia média dos blocos quantizados
-- `sparsity` — porcentagem de coeficientes zerados
-
-## 5. Descompressão
-
-A descompressão segue exatamente o pipeline reverso, reconstruindo a espiral Middle-Out na mesma ordem (o bloco anterior serve de referência para decodificar os deltas). A reconstrução Middle-Out é determinística: dados os mesmos parâmetros (dimensões), o receptor gera a mesma espiral que o emissor.
-
-## 6. Trade-offs do Algoritmo
-
-| Aspecto | Vantagem | Limitação |
-|---|---|---|
-| **Espiral Middle-Out** | Alta correlação entre blocos vizinhos → delta encoding eficaz | Ligeiramente mais caro que ordem raster |
-| **Quantização adaptativa** | Preserva detalhes onde importa | Adiciona 1 byte por bloco |
-| **Delta encoding** | Reduz energia de 80% dos blocos | Adiciona 1 byte de flag por bloco |
-| **Wavelet disponível** | Permite multi-resolução | Implementada mas não usada no pipeline padrão |
-
-## 7. Comparação com JPEG
-
-| Característica | JPEG | Pied Piper |
-|---|---|---|
-| Ordem de blocos | Raster (linha por linha) | **Espiral do centro** |
-| Quantização | Global | **Adaptativa por bloco** |
-| Predição entre blocos | Só DC (DPCM) | **Delta completo em todo bloco** |
-| Codec | Huffman | RLE + zlib |
-| Alpha | Não | **Sim, com tabela dedicada** |
-
-## 8. Arquivos Relevantes
-
-- `engine/middleout.h` — API do motor
-- `engine/middleout.c` — Implementação completa (~600 linhas de C)
-- `pied_piper/codec.py` — Orquestração Python e bindings ctypes
+# Algoritmo Middle-Out Compression — Documentacao Tecnica
+
+Este documento descreve o algoritmo implementado no Pied Piper v3.0,
+incluindo uma avaliacao honesta do que e original e o que usa tecnicas
+estabelecidas, e a documentacao completa do novo modo lossless.
 
 ---
 
-Para a especificação binária do formato .PP, veja [FORMAT.md](FORMAT.md).
+## 1. Visao Geral
+
+O Pied Piper implementa **dois modos** de compressao, ambos usando a ordenacao
+em espiral Middle-Out como inovacao central:
+
+| Modo | Flag | Perda de dados | Algoritmo base |
+|------|------|:--------------:|----------------|
+| **Lossy** | (padrao) | Sim (ajustavel por qualidade) | DCT + Quantizacao adaptativa |
+| **Lossless** | `-l` | **Nao** | DPCM + RCT reversivel |
+
+A ordem em espiral do centro para as bordas e o elemento genuinamente original.
+
+```
+Espiral Middle-Out (blocos 8x8):
+
+ Bloco 9  Bloco 2  Bloco 3  Bloco 4
+ Bloco 8  CENTRO   →        Bloco 5
+ Bloco 7  Bloco 6  ↓        ←
+ ...
+
+O primeiro bloco processado e o central.
+Cada bloco seguinte e processado usando o anterior como referencia.
+```
+
+---
+
+## 2. Modo Lossy — Pipeline DCT Middle-Out
+
+### Estagio 1: Carregamento
+Pillow carrega qualquer formato (PNG, JPEG, BMP, TIFF, GIF, WEBP, etc.)
+e converte para RGB uint8 ou RGBA uint8.
+
+### Estagio 2: Conversao de Cor RGB -> YCbCr
+Separa luminancia (Y) de crominancia (Cb, Cr):
+```
+Y  =  0.299 R + 0.587 G + 0.114 B
+Cb = -0.169 R - 0.331 G + 0.500 B + 128
+Cr =  0.500 R - 0.419 G - 0.081 B + 128
+```
+O olho humano e mais sensivel a variacao de Y do que de Cb/Cr.
+
+### Estagio 3: Subamostragem 4:2:0
+Reduz Cb e Cr para metade da resolucao em cada eixo.
+**Nota:** Este estagio e identico ao JPEG e e lossy.
+
+### Estagio 4: Ordenacao em Espiral Middle-Out
+```c
+// Gera a ordem dos blocos 8x8 comecando do centro
+int n = mo_spiral_order(width, height, spiral_r, spiral_c, max_blocks);
+```
+A espiral começa no bloco central e se expande para direita, baixo,
+esquerda, cima — padrão de expansão quadrangular.
+
+### Estagio 5: DCT 8x8 por Bloco
+DCT-II bidimensional via multiplicacao de matrizes pre-computadas:
+```
+DCT(bloco) = D * bloco * D^T
+```
+Concentra energia em coeficientes de baixa frequencia.
+
+### Estagio 6: Quantizacao Adaptativa
+**Diferente do JPEG:** O fator de quantizacao e ajustado por variancia local:
+```c
+double adapt = mo_adaptive_quant_factor(block, 64, quality);
+// Blocos complexos (alta variancia) -> quantizacao mais leve
+// Blocos suaves (baixa variancia)   -> quantizacao mais agressiva
+```
+Isso preserva detalhes onde o olho humano nota mais.
+
+### Estagio 7: Delta Prediction + RLE + zlib
+Para cada bloco na ordem espiral, calcula se e mais eficiente armazenar
+o bloco diretamente ou como diferenca do bloco anterior:
+```
+energia_delta < energia_raw * 90% -> usa delta
+```
+Os coeficientes quantizados passam por zigzag scan + RLE + zlib.
+
+---
+
+## 3. Modo Lossless — Middle-Out DPCM + RCT
+
+### Inovacao: DPCM na Ordem Espiral
+
+Diferente do PNG (predicao horizontal por scanline) e do JPEG-LS
+(predicao pixel a pixel com contexto adaptativo), o modo lossless do
+Pied Piper usa **predicao entre blocos 8x8 na ordem espiral Middle-Out**.
+
+Hipotese: em imagens naturais, a correlacao entre blocos decresce
+conforme a distancia do centro. Processar em espiral maximiza a
+correlacao entre blocos consecutivos.
+
+### Pipeline Lossless
+
+```
+Imagem RGB (uint8)
+       |
+       v
+[1] RCT - Transformada de Cor Reversivel (JPEG 2000 padrao)
+       Y  = G
+       Co = R - B
+       Cg = G - floor((R + B) / 2)
+       |
+       v (todos int16, sem arredondamento, sem perdas)
+       |
+[2] Para cada canal (Y, Co, Cg):
+       |
+       v
+[3] Gera espiral Middle-Out dos blocos 8x8
+       |
+       v
+[4] Para cada bloco na espiral:
+       - Extrai 8x8 valores int16
+       - Calcula residuais do bloco anterior (DPCM)
+       - Se energia_delta < 90% da energia_raw: usa delta
+       - Senao: armazena bloco raw
+       |
+       v
+[5] RLE dos residuais int16 (faixa -255..255)
+       |
+       v
+[6] Concatena todos os canais
+       |
+       v
+[7] zlib nivel 9
+       |
+       v
+[8] Salva arquivo .PP com header JSON
+    (inclui hash SHA-256 do original para verificacao)
+```
+
+### Garantia de Lossless
+
+A reconstrucao e exata porque:
+1. RCT e invertivel em aritmetica inteira (sem arredondamento acumulado)
+2. DPCM e invertivel: bloco = residual + bloco_anterior
+3. RLE e invertivel
+4. zlib e invertivel
+
+A verificacao SHA-256 confirma que os pixels reconstruidos sao bit-a-bit
+identicos aos originais:
+
+```bash
+pp c foto.png -l       # Comprime (grava hash no .PP)
+pp d foto.PP           # Descomprime (compara hash, exibe VERIFICADA)
+pp verify foto.png     # Pipeline completo de verificacao automatica
+```
+
+---
+
+## 4. Avaliacao de Originalidade
+
+| Componente | Tecnica | Originalidade |
+|---|---|---|
+| Espiral do centro para bordas | Original | Nao documentada em codec padrão |
+| DPCM entre blocos na espiral | Original | Distinto de PNG e JPEG-LS |
+| DCT 8x8 | JPEG (1974) | Tecnica estabelecida |
+| Quantizacao adaptativa por variancia | Parcial (HEVC usa algo similar) | Implementacao propria |
+| Subamostragem 4:2:0 | JPEG padrao | Nenhuma |
+| RCT (Y, Co, Cg) | JPEG 2000 padrao | Nenhuma |
+| RLE de coeficientes | JPEG padrao | Nenhuma |
+| zlib | Padrao universal | Nenhuma |
+| SHA-256 para verificacao | Padrao de segurança | Aplicacao ao contexto |
+
+**Resumo:** O elemento central original e a **espiral Middle-Out para
+predicao DPCM**. O restante combina tecnicas estabelecidas de forma
+eficiente. A originalidade esta na composicao e na aplicacao da ordenacao
+espiral para predicao entre blocos.
+
+---
+
+## 5. Comparacao com Formatos Existentes
+
+| Formato | Tipo | Predicao | Ordenacao |
+|---|---|---|---|
+| PNG | Lossless | Pixel (Paeth filter) | Scanline esquerda->direita |
+| JPEG | Lossy | Delta entre blocos DC | Raster esquerda->direita |
+| JPEG-LS | Lossless | Pixel (LOCO-I adaptativo) | Scanline esquerda->direita |
+| JPEG 2000 | Lossy/Lossless | Wavelet multinivel | Particionamento em tiles |
+| HEVC | Lossy | Intra prediction 35 modos | Raster com quad-tree |
+| **PP (Lossy)** | **Lossy** | **Delta bloco->bloco** | **Espiral Middle-Out** |
+| **PP (Lossless)** | **Lossless** | **DPCM bloco->bloco** | **Espiral Middle-Out** |
+
+A ordenacao em espiral e a principal diferenca arquitetural do Pied Piper.
+
+---
+
+## 6. Complexidade Computacional
+
+| Operacao | Complexidade |
+|---|---|
+| Geracao da espiral | O(n_blocos) |
+| DCT 8x8 por bloco | O(n^2) com pre-computacao = 128 mul + 128 add |
+| DPCM lossless | O(64) por bloco = 64 sub |
+| RLE | O(64) por bloco |
+| zlib | O(dados) |
+| **Total** | **O(W * H)** linear nos pixels |
+
+Throughput medido: ~1.36 M pixels/segundo com motor C (gcc -O3).
+
+---
+
+## 7. Formato do Arquivo .PP (v3)
+
+```
+[4 bytes] Magic: "PPMO" (Pied Piper Middle-Out)
+[2 bytes] Version: 3 (uint16 LE)
+[4 bytes] Header size (uint32 LE)
+[N bytes] Header JSON UTF-8:
+    {
+      "version": 3,
+      "lossless": true/false,
+      "width": 1024,
+      "height": 1024,
+      "quality": 75,          // ou 100 se lossless
+      "has_alpha": false,
+      "original_format": "PNG",
+      "original_mode": "RGB",
+      "original_hash": "sha256...",  // apenas se lossless
+      // Lossy:
+      "cb_shape": [512, 512],
+      "cr_shape": [512, 512],
+      "y_size": N, "cb_size": N, "cr_size": N, "alpha_size": 0
+      // Lossless:
+      "y_size": N, "co_size": N, "cg_size": N, "alpha_size": 0
+    }
+[4 bytes] Data size (uint32 LE)
+[M bytes] zlib-compressed channel data
+```
+
+Backward compatibility: arquivos .PP v2 (lossy) sao lidos corretamente pelo
+codec v3.
