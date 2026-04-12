@@ -1,13 +1,25 @@
 """
-Pied Piper Codec - Wrapper Python do motor C Middle-Out.
+Pied Piper Codec - Motor de compressao universal.
 
-Este modulo faz a ponte entre Python e o motor C de alta performance,
-e gerencia todo o pipeline de compressao/descompressao de imagens .PP
+Este modulo gerencia todo o pipeline de compressao/descompressao .PP
+para QUALQUER tipo de arquivo, nao apenas imagens.
 
 Modos suportados:
-  - Lossy  (padrao): DCT + quantizacao adaptativa + espiral Middle-Out
-  - Lossless (-l):   DPCM entre blocos na espiral Middle-Out, sem perdas
-                     Transformada de cor reversivel (RCT) preserva pixels exatos
+  - Imagens Lossy  (padrao): DCT + quantizacao adaptativa + espiral Middle-Out
+  - Imagens Lossless (-l):   DPCM entre blocos na espiral Middle-Out, sem perdas
+  - Arquivos universais:     Multi-algoritmo (LZMA/BZ2/DEFLATE/BWT+MTF)
+                             Sempre lossless, inspirado no 7-Zip e WinRAR
+
+Tipos de arquivo suportados:
+  - Imagens: PNG, JPEG, BMP, TIFF, GIF, WEBP, etc. (via Pillow)
+  - Texto: TXT, CSV, JSON, XML, HTML, MD, LOG, etc.
+  - Codigo: PY, JS, TS, C, CPP, H, JAVA, RS, GO, etc.
+  - Documentos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT, etc.
+  - Audio: WAV, FLAC, MP3, OGG, AAC, etc.
+  - Video: MP4, AVI, MKV, MOV, WEBM, etc.
+  - Executaveis: EXE, DLL, SO, BIN, etc.
+  - Arquivos: ZIP, TAR, GZ, 7Z, RAR (armazenados sem recompressao)
+  - Qualquer outro formato binario ou texto
 """
 
 import ctypes
@@ -1661,6 +1673,233 @@ def decompress(input_path: str, output_path: str = None) -> dict:
 
 
 # ==============================================================
+# Compressao universal (qualquer tipo de arquivo)
+# ==============================================================
+
+def _is_image_path(path: str) -> bool:
+    """Detecta se um arquivo e imagem pela extensao."""
+    ext = os.path.splitext(path)[1].lower()
+    image_exts = {
+        '.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.gif', '.webp',
+        '.ico', '.tga', '.ppm', '.pgm', '.pbm', '.pnm', '.jp2', '.jpx',
+        '.j2k', '.j2c', '.pcx', '.psd', '.dds', '.xbm', '.xpm', '.dib',
+        '.sgi', '.apng', '.jfif',
+    }
+    return ext in image_exts
+
+
+def compress_file(input_path: str, output_path: str = None) -> dict:
+    """
+    Comprime QUALQUER arquivo para o formato .PP usando compressao universal.
+    Sempre lossless (sem perdas). Inspirado no 7-Zip e WinRAR.
+
+    Pipeline:
+      1. Le bytes brutos do arquivo
+      2. Testa LZMA (7-Zip), BZ2 (bzip2), DEFLATE (zlib), BWT+MTF, Delta+LZMA
+      3. Escolhe a estrategia com melhor compressao
+      4. Empacota no container .PP com verificacao SHA-256
+
+    Args:
+        input_path:  Caminho do arquivo de entrada (qualquer formato)
+        output_path: Caminho do arquivo .PP (auto-detectado se None)
+
+    Returns:
+        Dicionario com estatisticas completas da compressao
+    """
+    from pied_piper.compressors.pipeline import compress_universal
+
+    start_time = time.time()
+
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Arquivo nao encontrado: {input_path}")
+
+    if output_path is None:
+        base = os.path.splitext(input_path)[0]
+        output_path = base + PP_EXTENSION
+
+    original_size = os.path.getsize(input_path)
+    filename = os.path.basename(input_path)
+    original_ext = os.path.splitext(input_path)[1]
+
+    with open(input_path, 'rb') as f:
+        raw_data = f.read()
+
+    # Comprime usando pipeline universal
+    compressed_payload, comp_stats = compress_universal(raw_data)
+
+    # Monta header JSON
+    header = {
+        'version': PP_VERSION,
+        'codec': 4,
+        'universal': True,
+        'lossless': True,
+        'filename': filename,
+        'original_ext': original_ext,
+        'original_size': original_size,
+        'strategy': comp_stats['strategy_name'],
+        'hash': comp_stats['hash'],
+    }
+
+    header_json = json.dumps(header, separators=(',', ':')).encode('utf-8')
+
+    with open(output_path, 'wb') as f:
+        f.write(PP_MAGIC)
+        f.write(struct.pack('<H', PP_VERSION))
+        f.write(struct.pack('<I', len(header_json)))
+        f.write(header_json)
+        f.write(struct.pack('<I', len(compressed_payload)))
+        f.write(compressed_payload)
+
+    elapsed = time.time() - start_time
+    output_size = os.path.getsize(output_path)
+
+    ratio = original_size / output_size if output_size > 0 else 0
+    reduction = (1 - output_size / original_size) * 100 if original_size > 0 else 0
+
+    return {
+        'input_file': input_path,
+        'output_file': output_path,
+        'filename': filename,
+        'original_ext': original_ext,
+        'original_size': original_size,
+        'compressed_size': output_size,
+        'payload_size': comp_stats['compressed_size'],
+        'compression_ratio': round(ratio, 2),
+        'reduction_percent': round(reduction, 2),
+        'strategy': comp_stats['strategy_name'],
+        'all_results': comp_stats.get('all_results', {}),
+        'hash': comp_stats['hash'],
+        'lossless': True,
+        'universal': True,
+        'time_seconds': round(elapsed, 3),
+        'bytes_per_second': int(original_size / elapsed) if elapsed > 0 else 0,
+    }
+
+
+def decompress_file(input_path: str, output_path: str = None) -> dict:
+    """
+    Descomprime um arquivo .PP universal de volta ao formato original.
+
+    Args:
+        input_path:  Caminho do arquivo .PP
+        output_path: Caminho de saida (auto-detectado se None)
+
+    Returns:
+        Dicionario com estatisticas da descompressao
+    """
+    from pied_piper.compressors.pipeline import decompress_universal
+
+    start_time = time.time()
+
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Arquivo nao encontrado: {input_path}")
+
+    with open(input_path, 'rb') as f:
+        magic = f.read(4)
+        if magic != PP_MAGIC:
+            raise ValueError(f"Arquivo invalido: nao e um arquivo .PP")
+        version = struct.unpack('<H', f.read(2))[0]
+        header_size = struct.unpack('<I', f.read(4))[0]
+        header = json.loads(f.read(header_size).decode('utf-8'))
+        data_size = struct.unpack('<I', f.read(4))[0]
+        raw_payload = f.read(data_size)
+
+    if not header.get('universal', False):
+        raise ValueError("Este arquivo .PP nao e universal. Use decompress().")
+
+    filename = header.get('filename', 'output')
+    original_ext = header.get('original_ext', '')
+
+    if output_path is None:
+        base = os.path.splitext(input_path)[0]
+        output_path = base + '_restored' + original_ext
+
+    # Descomprime usando pipeline universal
+    original_data, dec_stats = decompress_universal(raw_payload)
+
+    with open(output_path, 'wb') as f:
+        f.write(original_data)
+
+    elapsed = time.time() - start_time
+    pp_size = os.path.getsize(input_path)
+    restored_size = os.path.getsize(output_path)
+
+    return {
+        'input_file': input_path,
+        'output_file': output_path,
+        'filename': filename,
+        'original_ext': original_ext,
+        'original_size': header.get('original_size', 0),
+        'pp_size': pp_size,
+        'restored_size': restored_size,
+        'strategy': dec_stats['strategy_name'],
+        'integrity_verified': dec_stats['integrity_verified'],
+        'hash': dec_stats['hash'],
+        'lossless': True,
+        'universal': True,
+        'time_seconds': round(elapsed, 3),
+        'bytes_per_second': int(restored_size / elapsed) if elapsed > 0 else 0,
+    }
+
+
+def is_universal(input_path: str) -> bool:
+    """Retorna True se o arquivo .PP e formato universal (nao-imagem)."""
+    if not os.path.exists(input_path):
+        return False
+    try:
+        with open(input_path, 'rb') as f:
+            magic = f.read(4)
+            if magic != PP_MAGIC:
+                return False
+            f.read(2)  # version
+            header_size = struct.unpack('<I', f.read(4))[0]
+            header = json.loads(f.read(header_size).decode('utf-8'))
+        return header.get('universal', False)
+    except Exception:
+        return False
+
+
+def smart_compress(input_path: str, output_path: str = None,
+                   quality: int = 75, lossless: bool = False) -> dict:
+    """
+    Comprime qualquer arquivo de forma inteligente:
+    - Se for imagem: usa pipeline de imagem (lossy ou lossless)
+    - Se nao for imagem: usa pipeline universal (sempre lossless)
+
+    Esta funcao substitui compress() como ponto de entrada principal.
+    """
+    if os.path.isdir(input_path):
+        return compress_folder(input_path, output_path,
+                               quality=quality, lossless=lossless)
+
+    # Tenta como imagem primeiro
+    if _is_image_path(input_path):
+        try:
+            img = Image.open(input_path)
+            img.verify()
+            return compress(input_path, output_path, quality, lossless)
+        except Exception:
+            pass  # Nao e imagem valida, usa universal
+
+    # Qualquer outro arquivo: compressao universal
+    return compress_file(input_path, output_path)
+
+
+def smart_decompress(input_path: str, output_path: str = None) -> dict:
+    """
+    Descomprime qualquer arquivo .PP de forma inteligente:
+    - Se for bundle: usa decompress_bundle()
+    - Se for universal: usa decompress_file()
+    - Se for imagem: usa decompress()
+    """
+    if is_bundle(input_path):
+        return decompress_bundle(input_path, output_path)
+    if is_universal(input_path):
+        return decompress_file(input_path, output_path)
+    return decompress(input_path, output_path)
+
+
+# ==============================================================
 # Info - le header sem descomprimir
 # ==============================================================
 
@@ -1680,20 +1919,38 @@ def info(input_path: str) -> dict:
         data_size = struct.unpack('<I', f.read(4))[0]
 
     file_size = os.path.getsize(input_path)
+
+    # Arquivo universal (nao-imagem)
+    if header.get('universal', False):
+        return {
+            'file': input_path,
+            'file_size': file_size,
+            'version': version,
+            'header_size': header_size,
+            'data_size': data_size,
+            'universal': True,
+            'filename': header.get('filename', 'N/A'),
+            'original_ext': header.get('original_ext', 'N/A'),
+            'original_size': header.get('original_size', 0),
+            'strategy': header.get('strategy', 'N/A'),
+            'lossless': True,
+            'hash': header.get('hash', 'N/A'),
+        }
+
     return {
         'file': input_path,
         'file_size': file_size,
         'version': version,
         'header_size': header_size,
         'data_size': data_size,
-        'width': header['width'],
-        'height': header['height'],
-        'quality': header['quality'],
-        'has_alpha': header['has_alpha'],
+        'width': header.get('width', 0),
+        'height': header.get('height', 0),
+        'quality': header.get('quality', 0),
+        'has_alpha': header.get('has_alpha', False),
         'lossless': header.get('lossless', False),
         'original_format': header.get('original_format', 'N/A'),
         'original_mode': header.get('original_mode', 'N/A'),
-        'total_pixels': header['width'] * header['height'],
+        'total_pixels': header.get('width', 0) * header.get('height', 0),
     }
 
 
@@ -1701,12 +1958,19 @@ def engine_info() -> dict:
     """Retorna informacoes sobre o motor de compressao."""
     lib = _load_engine()
     return {
-        'engine': 'C (libmiddleout)' if lib else 'Nao disponivel',
+        'engine': 'C (libmiddleout) + Python (universal)',
         'c_engine_available': lib is not None,
         'library_path': _find_engine_library() or 'nao encontrada',
-        'languages': 'C (motor) + Python (codec) + Shell (launcher) + NASM Assembly (DCT)',
+        'languages': 'C (motor) + Python (codec/universal) + Shell (launcher) + NASM Assembly (DCT)',
         'format_version': PP_VERSION,
-        'lossless_available': True,  # sempre disponivel via estrategia multi-plataforma
+        'lossless_available': True,
+        'universal_available': True,
+        'algorithms': [
+            'LZMA (7-Zip)', 'BZ2 (bzip2)', 'DEFLATE (zlib)',
+            'BWT+MTF (Burrows-Wheeler)', 'Delta+LZMA',
+            'DCT+Quantizacao (imagens lossy)',
+            'RCT+DPCM (imagens lossless)',
+        ],
     }
 
 
@@ -1733,16 +1997,16 @@ def _is_image_file(path: str) -> bool:
 def compress_folder(folder_path: str, output_path: str = None,
                     quality: int = 75, lossless: bool = True) -> dict:
     """
-    Comprime todas as imagens de uma pasta em um unico arquivo .PP bundle.
+    Comprime TODOS os arquivos de uma pasta em um unico arquivo .PP bundle.
 
-    Arquivos que nao sao imagens sao ignorados automaticamente.
-    Por padrao usa modo lossless (sem perdas). Use lossless=False para lossy.
+    Imagens sao comprimidas com o pipeline de imagem (lossy ou lossless).
+    Demais arquivos sao comprimidos com o pipeline universal (sempre lossless).
 
     Args:
-        folder_path:  Caminho da pasta com imagens
+        folder_path:  Caminho da pasta com arquivos
         output_path:  Caminho do bundle .PP (auto-detectado se None)
-        quality:      Qualidade 1-100 (so usado em modo lossy)
-        lossless:     True = sem perdas (padrao); False = lossy
+        quality:      Qualidade 1-100 (so usado em modo lossy para imagens)
+        lossless:     True = sem perdas (padrao); False = lossy (so imagens)
 
     Returns:
         Dicionario com estatisticas do bundle
@@ -1761,58 +2025,67 @@ def compress_folder(folder_path: str, output_path: str = None,
 
     start_time = time.time()
 
-    # Varre arquivos de imagem (top-level, ordenado)
+    # Varre TODOS os arquivos (top-level, ordenado)
     all_entries   = sorted(os.listdir(folder_abs))
     image_files   = []
+    other_files   = []
     skipped_files = []
 
     for fname in all_entries:
         fpath = os.path.join(folder_abs, fname)
         if not os.path.isfile(fpath):
             continue
-        if not _is_image_file(fpath):
-            skipped_files.append(fname)
-            continue
-        # Tenta abrir para confirmar que e imagem valida
-        try:
-            _test = Image.open(fpath)
-            _test.verify()
-            image_files.append(fname)
-        except Exception:
-            skipped_files.append(fname)
+        if _is_image_file(fpath):
+            try:
+                _test = Image.open(fpath)
+                _test.verify()
+                image_files.append(fname)
+            except Exception:
+                other_files.append(fname)
+        else:
+            other_files.append(fname)
 
-    if not image_files:
-        raise ValueError(f"Nenhuma imagem encontrada em: {folder_path}")
+    all_files = image_files + other_files
+    if not all_files:
+        raise ValueError(f"Nenhum arquivo encontrado em: {folder_path}")
 
     file_entries        = []
     all_pp_payloads     = []
     current_offset      = 0
     total_original_size = 0
 
-    for fname in image_files:
+    for fname in all_files:
         fpath = os.path.join(folder_abs, fname)
 
         # Comprime para arquivo .PP temporario
         with tempfile.NamedTemporaryFile(suffix='.PP', delete=False) as _tmp:
             tmp_path = _tmp.name
         try:
-            stats = compress(fpath, tmp_path, quality=quality, lossless=lossless)
+            if fname in image_files:
+                stats = compress(fpath, tmp_path, quality=quality, lossless=lossless)
+            else:
+                stats = compress_file(fpath, tmp_path)
             with open(tmp_path, 'rb') as _f:
                 pp_bytes = _f.read()
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
-        file_entries.append({
+        entry = {
             'name':             fname,
             'offset':           current_offset,
             'size':             len(pp_bytes),
             'original_size':    stats['original_size'],
             'compressed_size':  stats['compressed_size'],
-            'width':            stats['width'],
-            'height':           stats['height'],
-            'format':           stats['original_format'],
-        })
+        }
+        if stats.get('universal'):
+            entry['universal'] = True
+            entry['format'] = stats.get('original_ext', '')
+        else:
+            entry['width'] = stats.get('width', 0)
+            entry['height'] = stats.get('height', 0)
+            entry['format'] = stats.get('original_format', '')
+        file_entries.append(entry)
         all_pp_payloads.append(pp_bytes)
         current_offset      += len(pp_bytes)
         total_original_size += stats['original_size']
@@ -1850,6 +2123,8 @@ def compress_folder(folder_path: str, output_path: str = None,
         'input_folder':          folder_path,
         'output_file':           output_path,
         'total_images':          len(image_files),
+        'total_other_files':     len(other_files),
+        'total_files':           len(all_files),
         'skipped_files':         skipped_files,
         'total_original_size':   total_original_size,
         'total_compressed_size': total_compressed,
@@ -1921,8 +2196,11 @@ def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
             tmp_path = _tmp.name
 
         try:
-            # output_path = None deixa o decompress escolher extensao correta
-            stats      = decompress(tmp_path, output_path=None)
+            # Detecta tipo e descomprime adequadamente
+            if is_universal(tmp_path):
+                stats   = decompress_file(tmp_path, output_path=None)
+            else:
+                stats   = decompress(tmp_path, output_path=None)
             tmp_out    = stats['output_file']
 
             # Renomeia para o nome original (sem sufixo _restored)
