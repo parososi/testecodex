@@ -19,6 +19,8 @@ from pied_piper import __version__
 from pied_piper.codec import (
     compress, decompress, info, engine_info, PP_EXTENSION,
     compress_folder, decompress_bundle, is_bundle, quality_check,
+    compress_file, decompress_file, is_universal,
+    smart_compress, smart_decompress,
 )
 
 
@@ -303,6 +305,65 @@ def _print_decompress_stats(s: dict) -> None:
     print()
 
 
+def _print_compress_universal_stats(s: dict) -> None:
+    _header(f'PIED PIPER \u2014 COMPRESSAO UNIVERSAL    {GREEN}{BOLD}[ SEM PERDAS ]{RESET}')
+    print()
+    _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
+    _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
+    _row('Tipo:', f'{CYAN}{s.get("original_ext", "N/A")}{RESET}')
+    _hline()
+    _row('Tamanho original:', _human(s['original_size']))
+    _row('Tamanho comprimido:', _human(s['compressed_size']))
+    ratio = s['compression_ratio']
+    _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio}:1{RESET}')
+    r = s['reduction_percent']
+    if r >= 0:
+        _row('Reducao:', f'{GREEN}{BOLD}{r}%{RESET}')
+        print(f'  {"":24}{_bar(r)}  {GREEN}{r}%{RESET}')
+    else:
+        _row('Reducao:', f'{RED}{r}% (arquivo cresceu){RESET}')
+    _hline()
+    _row('Algoritmo:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
+    all_results = s.get('all_results', {})
+    if all_results:
+        print(f'  {BOLD}{YELLOW}  COMPARACAO DE ALGORITMOS{RESET}')
+        _hline()
+        for alg, size in sorted(all_results.items(), key=lambda x: x[1]):
+            marker = f' {GREEN}<-- melhor{RESET}' if alg == s.get('strategy') else ''
+            _row(f'  {alg}:', f'{_human(size)}{marker}')
+    _hline()
+    _row('SHA-256:', f'{GRAY}{s.get("hash", "N/A")[:32]}...{RESET}')
+    _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}')
+    _row('Tempo:', f'{s["time_seconds"]}s')
+    _row('Throughput:', f'{s.get("bytes_per_second", 0):,} bytes/s')
+    _dline()
+    print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
+    print()
+
+
+def _print_decompress_universal_stats(s: dict) -> None:
+    _header(f'PIED PIPER \u2014 DESCOMPRESSAO UNIVERSAL    {GREEN}{BOLD}[ SEM PERDAS ]{RESET}')
+    print()
+    _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
+    _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
+    _row('Arquivo original:', f'{CYAN}{s.get("filename", "N/A")}{RESET}')
+    _hline()
+    _row('Tamanho .PP:', _human(s['pp_size']))
+    _row('Tamanho restaurado:', _human(s['restored_size']))
+    _row('Algoritmo usado:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
+    _hline()
+    v = s.get('integrity_verified')
+    if v is True:
+        check = f'{GREEN}\u2714 VERIFICADA \u2013 bytes identicos{RESET}' if _UNICODE else f'{GREEN}OK \u2013 bytes identicos{RESET}'
+        _row('Integridade SHA-256:', check)
+    elif v is False:
+        _row('Integridade SHA-256:', f'{RED}\u2716 FALHOU \u2013 dados corrompidos!{RESET}')
+    _row('Tempo:', f'{s["time_seconds"]}s')
+    _dline()
+    print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
+    print()
+
+
 def _print_compress_folder_stats(s: dict) -> None:
     _header('PIED PIPER \u2014 PASTA COMPRIMIDA')
     print()
@@ -310,9 +371,14 @@ def _print_compress_folder_stats(s: dict) -> None:
     _row('Saida (.PP bundle):', f'{WHITE}{s["output_file"]}{RESET}')
     _row('Modo:', f'{GREEN}LOSSLESS{RESET}' if s['lossless'] else f'{YELLOW}LOSSY (q={s["quality"]}){RESET}')
     _hline()
-    _row('Imagens comprimidas:', f'{GREEN}{BOLD}{s["total_images"]}{RESET}')
+    total_files = s.get('total_files', s['total_images'])
+    _row('Total de arquivos:', f'{GREEN}{BOLD}{total_files}{RESET}')
+    _row('Imagens:', f'{GREEN}{s["total_images"]}{RESET}')
+    other = s.get('total_other_files', 0)
+    if other:
+        _row('Outros arquivos:', f'{CYAN}{other}{RESET}')
     if s['skipped_files']:
-        _row('Arquivos ignorados:', f'{YELLOW}{len(s["skipped_files"])} (nao-imagem){RESET}')
+        _row('Ignorados:', f'{YELLOW}{len(s["skipped_files"])}{RESET}')
     _hline()
     _row('Tamanho original total:', _human(s['total_original_size']))
     _row('Tamanho bundle .PP:', _human(s['total_compressed_size']))
@@ -357,6 +423,26 @@ def _print_decompress_bundle_stats(s: dict) -> None:
 
 
 def _print_info(i: dict) -> None:
+    # Arquivo universal
+    if i.get('universal', False):
+        _header(f'PIED PIPER \u2014 INFO DO ARQUIVO .PP    {GREEN}{BOLD}[ UNIVERSAL ]{RESET}')
+        print()
+        _row('Arquivo:', f'{WHITE}{i["file"]}{RESET}')
+        _row('Tamanho total:', _human(i['file_size']))
+        _row('Versao do formato:', str(i['version']))
+        _row('Header:', _human(i['header_size']))
+        _row('Dados comprimidos:', _human(i['data_size']))
+        _hline()
+        _row('Arquivo original:', f'{WHITE}{i.get("filename", "N/A")}{RESET}')
+        _row('Extensao:', f'{CYAN}{i.get("original_ext", "N/A")}{RESET}')
+        _row('Tamanho original:', _human(i.get('original_size', 0)))
+        _row('Algoritmo:', f'{CYAN}{i.get("strategy", "N/A")}{RESET}')
+        _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}')
+        _row('SHA-256:', f'{GRAY}{i.get("hash", "N/A")[:32]}...{RESET}')
+        _dline()
+        print()
+        return
+
     lossless = i.get('lossless', False)
     badge = _mode_badge(lossless)
 
@@ -383,13 +469,23 @@ def _print_engine() -> None:
 
     _header('PIED PIPER \u2014 MOTOR DE COMPRESSAO')
     print()
-    _row('Motor C:', e['engine'])
+    _row('Motor:', e['engine'])
     avail = e['c_engine_available']
     _row('C engine disponivel:', f'{GREEN}Sim{RESET}' if avail else f'{YELLOW}Nao (modo Python puro){RESET}')
     ll = e.get('lossless_available')
     _row('Modo lossless:', f'{GREEN}Disponivel{RESET}' if ll else f'{RED}Indisponivel{RESET}')
+    uni = e.get('universal_available')
+    _row('Compressao universal:', f'{GREEN}Disponivel{RESET}' if uni else f'{RED}Indisponivel{RESET}')
     _row('Biblioteca:', e['library_path'])
     _row('Linguagens:', e.get('languages', 'N/A'))
+    _hline()
+    algos = e.get('algorithms', [])
+    if algos:
+        print(f'  {BOLD}{YELLOW}  ALGORITMOS DISPONIVEIS{RESET}')
+        _hline()
+        for alg in algos:
+            print(f'    {GREEN}\u2022{RESET} {alg}')
+    _hline()
     _row('Versao formato .PP:', f'v{e.get("format_version", "?")}')
     _row('Versao Pied Piper:', __version__)
     _dline()
@@ -411,35 +507,40 @@ def _print_help() -> None:
         print(f'    {GRAY}>{RESET} {WHITE}{ex}{RESET}{c}')
 
     section('COMANDOS')
-    cmd_line('pp c <imagem|pasta> [-q Q] [-l]',         'Comprime imagem ou pasta \u2192 .PP')
-    cmd_line('pp d <arquivo.PP> [-o SAIDA]',             'Descomprime .PP \u2192 imagem ou pasta')
+    cmd_line('pp c <arquivo|pasta> [-q Q] [-l]',         'Comprime QUALQUER arquivo ou pasta \u2192 .PP')
+    cmd_line('pp d <arquivo.PP> [-o SAIDA]',             'Descomprime .PP \u2192 arquivo original')
     cmd_line('pp i <arquivo.PP>',                        'Mostra info do .PP')
-    cmd_line('pp q <original> <restaurada>',             'Avalia qualidade da descompressao')
-    cmd_line('pp q <pasta_orig> <pasta_rest>',           'Compara qualidade de pastas inteiras')
+    cmd_line('pp q <original> <restaurada>',             'Avalia qualidade (imagens)')
+    cmd_line('pp q <pasta_orig> <pasta_rest>',           'Compara qualidade de pastas')
     cmd_line('pp engine',                                'Status do motor de compressao')
     cmd_line('pp verify <imagem>',                       'Verifica integridade lossless')
-    cmd_line('pp register',                              'Registra .PP no Windows como "Arquivo Pied Piper"')
+    cmd_line('pp register',                              'Registra .PP no Windows')
     cmd_line('pp help',                                  'Esta ajuda')
     cmd_line('pp version',                               'Versao')
     print()
 
-    section('EXEMPLOS — IMAGEM UNICA')
+    section('EXEMPLOS — QUALQUER ARQUIVO')
+    example('pp c relatorio.pdf',               'comprime PDF \u2192 relatorio.PP')
+    example('pp c dados.csv',                   'comprime CSV \u2192 dados.PP')
+    example('pp c programa.exe',                'comprime executavel \u2192 programa.PP')
+    example('pp c musica.wav',                  'comprime audio WAV \u2192 musica.PP')
+    example('pp c codigo.py',                   'comprime codigo fonte \u2192 codigo.PP')
+    example('pp d relatorio.PP',                'restaura arquivo original identico')
+    print()
+
+    section('EXEMPLOS — IMAGENS')
     example('pp c foto.jpg',                    'lossy, qualidade 75 (padrao)')
     example('pp c foto.jpg -q 90',              'lossy, qualidade alta')
-    example('pp c foto.png -l',                 'lossless sem perdas (auto-escolhe melhor estrategia)')
+    example('pp c foto.png -l',                 'lossless sem perdas')
     example('pp c foto.bmp -o out.PP',          'saida customizada')
     example('pp d foto.PP',                     'descomprime \u2192 formato original')
-    example('pp d foto.PP -o img.png',          'descomprime \u2192 PNG especifico')
-    example('pp i foto.PP',                     'ver metadados e modo')
-    example('pp q foto.jpg foto_restored.png',  'avalia perda de qualidade apos compressao')
+    example('pp q foto.jpg foto_restored.png',  'avalia perda de qualidade')
     print()
 
     section('EXEMPLOS — PASTA INTEIRA')
-    example('pp c /fotos/',           'comprime todas as imagens da pasta \u2192 fotos.PP')
-    example('pp c /fotos/ -l',        'lossless (padrao para pastas)')
-    example('pp c /fotos/ -q 80',     'lossy qualidade 80 para toda a pasta')
-    example('pp d fotos.PP',          'extrai todas as imagens \u2192 fotos_extracted/')
-    example('pp d fotos.PP -o /dest/','extrai para pasta especifica')
+    example('pp c /meus-arquivos/',     'comprime TODOS os arquivos da pasta')
+    example('pp c /fotos/ -l',          'lossless para imagens')
+    example('pp d meus-arquivos.PP',    'extrai todos os arquivos')
     print()
 
     section('MODOS DE COMPRESSAO')
@@ -462,9 +563,21 @@ def _print_help() -> None:
     print(f'    {GREEN}81-100{RESET}   {_bar(90, 20)}  Quase sem perdas')
     print()
 
-    section('FORMATOS SUPORTADOS (entrada)')
-    print(f'    {DIM}PNG, JPEG, BMP, TIFF, GIF, WEBP, ICO, TGA, PPM, PGM,{RESET}')
-    print(f'    {DIM}PCX, PSD, DDS, APNG, JP2, e muitos outros (via Pillow){RESET}')
+    section('COMPRESSAO UNIVERSAL (nao-imagens)')
+    print(f'    {GREEN}{BOLD}QUALQUER ARQUIVO{RESET} e comprimido sem perdas usando o melhor')
+    print(f'    algoritmo entre: {CYAN}LZMA (7-Zip), BZ2 (bzip2), DEFLATE (zlib),{RESET}')
+    print(f'    {CYAN}BWT+MTF (Burrows-Wheeler), Delta+LZMA{RESET}')
+    print(f'    {DIM}Inspirado no 7-Zip e WinRAR. Integridade verificada por SHA-256.{RESET}')
+    print()
+
+    section('FORMATOS SUPORTADOS')
+    print(f'    {GREEN}{BOLD}Imagens:{RESET} {DIM}PNG, JPEG, BMP, TIFF, GIF, WEBP, ICO, TGA, PPM, PGM, PCX, PSD{RESET}')
+    print(f'    {GREEN}{BOLD}Texto:{RESET}   {DIM}TXT, CSV, JSON, XML, HTML, MD, LOG, YAML, INI, CFG{RESET}')
+    print(f'    {GREEN}{BOLD}Codigo:{RESET}  {DIM}PY, JS, TS, C, CPP, H, JAVA, RS, GO, RB, PHP, SH{RESET}')
+    print(f'    {GREEN}{BOLD}Docs:{RESET}    {DIM}PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT, RTF{RESET}')
+    print(f'    {GREEN}{BOLD}Audio:{RESET}   {DIM}WAV, FLAC, MP3, OGG, AAC, AIFF, WMA{RESET}')
+    print(f'    {GREEN}{BOLD}Video:{RESET}   {DIM}MP4, AVI, MKV, MOV, WEBM, FLV, WMV{RESET}')
+    print(f'    {GREEN}{BOLD}Outros:{RESET}  {DIM}EXE, DLL, SO, BIN, ZIP, TAR, GZ, 7Z, RAR, e QUALQUER OUTRO{RESET}')
     print()
 
 
@@ -556,34 +669,65 @@ def cmd_compress(args: list) -> int:
             traceback.print_exc()
             return 1
 
-    # --- Compressao de imagem individual ---
-    if not lossless and not 1 <= quality <= 100:
-        print(f'  {FAIL} Qualidade deve estar entre 1 e 100 (recebido: {quality})')
-        return 1
-
+    # --- Compressao de arquivo individual ---
     _print_banner()
     print(f'  {CYAN}Arquivo:{RESET}   {WHITE}{input_path}{RESET}')
-    if lossless:
-        print(f'  {CYAN}Modo:{RESET}      {GREEN}LOSSLESS{RESET} \u2013 multi-estrategia sem perdas')
+
+    # Detecta se e imagem
+    from pied_piper.codec import _is_image_path
+    is_image = _is_image_path(input_path)
+    if is_image:
+        try:
+            from PIL import Image as _TestImg
+            _t = _TestImg.open(input_path)
+            _t.verify()
+        except Exception:
+            is_image = False
+
+    if is_image:
+        if not lossless and not 1 <= quality <= 100:
+            print(f'  {FAIL} Qualidade deve estar entre 1 e 100 (recebido: {quality})')
+            return 1
+        if lossless:
+            print(f'  {CYAN}Modo:{RESET}      {GREEN}LOSSLESS{RESET} \u2013 multi-estrategia sem perdas')
+        else:
+            print(f'  {CYAN}Modo:{RESET}      {YELLOW}LOSSY{RESET} \u2013 DCT + Quantizacao adaptativa')
+            print(f'  {CYAN}Qualidade:{RESET} {quality}/100')
+        print()
+
+        sp = Spinner('Comprimindo imagem...')
+        sp.start()
+        try:
+            stats = compress(input_path, output_path, quality, lossless=lossless)
+            sp.stop(True, 'Compressao concluida!')
+            _print_compress_stats(stats)
+            return 0
+        except Exception as e:
+            sp.stop(False, 'Erro durante a compressao')
+            print(f'\n  {RED}Detalhe: {e}{RESET}')
+            import traceback
+            traceback.print_exc()
+            return 1
     else:
-        print(f'  {CYAN}Modo:{RESET}      {YELLOW}LOSSY{RESET} \u2013 DCT + Quantizacao adaptativa')
-        print(f'  {CYAN}Qualidade:{RESET} {quality}/100')
-    print()
+        # Arquivo nao-imagem: compressao universal (sempre lossless)
+        ext = os.path.splitext(input_path)[1]
+        print(f'  {CYAN}Tipo:{RESET}      {WHITE}{ext or "(sem extensao)"}{RESET}')
+        print(f'  {CYAN}Modo:{RESET}      {GREEN}UNIVERSAL LOSSLESS{RESET} \u2013 multi-algoritmo (LZMA/BZ2/DEFLATE/BWT)')
+        print()
 
-    sp = Spinner('Comprimindo...')
-    sp.start()
-
-    try:
-        stats = compress(input_path, output_path, quality, lossless=lossless)
-        sp.stop(True, 'Compressao concluida!')
-        _print_compress_stats(stats)
-        return 0
-    except Exception as e:
-        sp.stop(False, 'Erro durante a compressao')
-        print(f'\n  {RED}Detalhe: {e}{RESET}')
-        import traceback
-        traceback.print_exc()
-        return 1
+        sp = Spinner('Comprimindo arquivo...')
+        sp.start()
+        try:
+            stats = compress_file(input_path, output_path)
+            sp.stop(True, 'Compressao concluida!')
+            _print_compress_universal_stats(stats)
+            return 0
+        except Exception as e:
+            sp.stop(False, 'Erro durante a compressao')
+            print(f'\n  {RED}Detalhe: {e}{RESET}')
+            import traceback
+            traceback.print_exc()
+            return 1
 
 
 def cmd_decompress(args: list) -> int:
@@ -604,7 +748,7 @@ def cmd_decompress(args: list) -> int:
     if is_bundle(input_path):
         _print_banner()
         print(f'  {CYAN}Bundle:{RESET}   {WHITE}{input_path}{RESET}')
-        print(f'  {DIM}(arquivo de pasta comprimida — extraindo imagens...){RESET}')
+        print(f'  {DIM}(arquivo de pasta comprimida — extraindo arquivos...){RESET}')
         print()
         sp = Spinner('Extraindo pasta...')
         sp.start()
@@ -615,6 +759,27 @@ def cmd_decompress(args: list) -> int:
             return 0
         except Exception as e:
             sp.stop(False, 'Erro ao extrair bundle')
+            print(f'\n  {RED}Detalhe: {e}{RESET}')
+            import traceback
+            traceback.print_exc()
+            return 1
+
+    # --- Arquivo universal (nao-imagem) ---
+    if is_universal(input_path):
+        _print_banner()
+        print(f'  {CYAN}Arquivo:{RESET}  {WHITE}{input_path}{RESET}')
+        print(f'  {DIM}(arquivo universal — descomprimindo...){RESET}')
+        print()
+
+        sp = Spinner('Descomprimindo arquivo...')
+        sp.start()
+        try:
+            stats = decompress_file(input_path, output_path)
+            sp.stop(True, 'Descompressao concluida!')
+            _print_decompress_universal_stats(stats)
+            return 0
+        except Exception as e:
+            sp.stop(False, 'Erro durante a descompressao')
             print(f'\n  {RED}Detalhe: {e}{RESET}')
             import traceback
             traceback.print_exc()

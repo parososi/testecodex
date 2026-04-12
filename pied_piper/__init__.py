@@ -15,4 +15,7 @@ __version__ = "3.0.0"
 __author__ = "Pied Piper"
 __license__ = "Proprietary"
 
-from pied_piper.codec import compress, decompress, info, compress_folder, decompress_bundle, is_bundle
+from pied_piper.codec import (
+    compress, decompress, info, compress_folder, decompress_bundle, is_bundle,
+    compress_file, decompress_file, is_universal, smart_compress, smart_decompress,
+)
