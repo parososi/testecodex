@@ -1,13 +1,27 @@
 """
 Pied Piper CLI - Interface de linha de comando.
 
+Compressor universal para QUALQUER tipo de arquivo.
+
 Comandos:
-    pp c <imagem|pasta> [-q 75] [-l]  Comprimir imagem ou pasta para .PP
-    pp d <arquivo.PP> [-o SAIDA]       Descomprimir .PP para imagem/pasta
+    pp c <arquivo|pasta> [-q 75] [-l]  Comprimir qualquer arquivo ou pasta para .PP
+    pp d <arquivo.PP> [-o SAIDA]       Descomprimir .PP para arquivo original
     pp i <arquivo.PP>                  Mostrar informacoes do .PP
+    pp verify <arquivo>                Verificar integridade (qualquer arquivo)
+    pp q <original> <restaurado>       Comparar qualidade (imagens)
     pp engine                          Status do motor de compressao
-    pp verify <img>                    Verificar integridade lossless
     pp help                            Mostrar ajuda
+
+Exemplos rapidos:
+    pp c foto.jpg                 Comprime imagem (lossy, qualidade 75)
+    pp c foto.png -l              Comprime imagem sem perdas (lossless)
+    pp c relatorio.pdf            Comprime PDF (sempre lossless)
+    pp c dados.csv                Comprime CSV (sempre lossless)
+    pp c musica.wav               Comprime audio WAV (sempre lossless)
+    pp c /minha-pasta/            Comprime todos os arquivos da pasta
+    pp d foto.PP                  Descomprime qualquer arquivo .PP
+    pp verify documento.pdf       Verifica integridade de qualquer arquivo
+    pp i arquivo.PP               Mostra estatisticas do arquivo comprimido
 """
 
 import os
@@ -312,8 +326,15 @@ def _print_compress_universal_stats(s: dict) -> None:
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
     _row('Tipo:', f'{CYAN}{s.get("original_ext", "N/A")}{RESET}')
     _hline()
+    print(f'  {BOLD}{YELLOW}  ESTATISTICAS DO ARQUIVO{RESET}')
+    _hline()
     _row('Tamanho original:', _human(s['original_size']))
     _row('Tamanho comprimido:', _human(s['compressed_size']))
+    diff = s['original_size'] - s['compressed_size']
+    if diff >= 0:
+        _row('Economia:', f'{GREEN}{_human(diff)}{RESET}')
+    else:
+        _row('Overhead:', f'{RED}{_human(-diff)}{RESET}')
     ratio = s['compression_ratio']
     _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio}:1{RESET}')
     r = s['reduction_percent']
@@ -323,6 +344,8 @@ def _print_compress_universal_stats(s: dict) -> None:
     else:
         _row('Reducao:', f'{RED}{r}% (arquivo cresceu){RESET}')
     _hline()
+    print(f'  {BOLD}{YELLOW}  ALGORITMO SELECIONADO{RESET}')
+    _hline()
     _row('Algoritmo:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
     all_results = s.get('all_results', {})
     if all_results:
@@ -330,7 +353,8 @@ def _print_compress_universal_stats(s: dict) -> None:
         _hline()
         for alg, size in sorted(all_results.items(), key=lambda x: x[1]):
             marker = f' {GREEN}<-- melhor{RESET}' if alg == s.get('strategy') else ''
-            _row(f'  {alg}:', f'{_human(size)}{marker}')
+            pct = (1 - size / s['original_size']) * 100 if s['original_size'] > 0 else 0
+            _row(f'  {alg}:', f'{_human(size)} ({pct:.1f}% reducao){marker}')
     _hline()
     _row('SHA-256:', f'{GRAY}{s.get("hash", "N/A")[:32]}...{RESET}')
     _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}')
@@ -348,8 +372,13 @@ def _print_decompress_universal_stats(s: dict) -> None:
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
     _row('Arquivo original:', f'{CYAN}{s.get("filename", "N/A")}{RESET}')
     _hline()
+    print(f'  {BOLD}{YELLOW}  ESTATISTICAS{RESET}')
+    _hline()
     _row('Tamanho .PP:', _human(s['pp_size']))
     _row('Tamanho restaurado:', _human(s['restored_size']))
+    if s['restored_size'] > 0 and s['pp_size'] > 0:
+        ratio = s['restored_size'] / s['pp_size']
+        _row('Taxa de expansao:', f'{CYAN}{ratio:.2f}:1{RESET}')
     _row('Algoritmo usado:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
     _hline()
     v = s.get('integrity_verified')
@@ -428,15 +457,33 @@ def _print_info(i: dict) -> None:
         _header(f'PIED PIPER \u2014 INFO DO ARQUIVO .PP    {GREEN}{BOLD}[ UNIVERSAL ]{RESET}')
         print()
         _row('Arquivo:', f'{WHITE}{i["file"]}{RESET}')
-        _row('Tamanho total:', _human(i['file_size']))
+        _row('Tamanho total .PP:', _human(i['file_size']))
         _row('Versao do formato:', str(i['version']))
         _row('Header:', _human(i['header_size']))
         _row('Dados comprimidos:', _human(i['data_size']))
         _hline()
+        print(f'  {BOLD}{YELLOW}  DADOS DO ARQUIVO ORIGINAL{RESET}')
+        _hline()
         _row('Arquivo original:', f'{WHITE}{i.get("filename", "N/A")}{RESET}')
         _row('Extensao:', f'{CYAN}{i.get("original_ext", "N/A")}{RESET}')
-        _row('Tamanho original:', _human(i.get('original_size', 0)))
+        orig_size = i.get('original_size', 0)
+        _row('Tamanho original:', _human(orig_size))
+        _hline()
+        print(f'  {BOLD}{YELLOW}  ESTATISTICAS DE COMPRESSAO{RESET}')
+        _hline()
         _row('Algoritmo:', f'{CYAN}{i.get("strategy", "N/A")}{RESET}')
+        if orig_size > 0 and i['file_size'] > 0:
+            ratio = orig_size / i['file_size']
+            reduction = (1 - i['file_size'] / orig_size) * 100
+            _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio:.2f}:1{RESET}')
+            if reduction >= 0:
+                _row('Reducao:', f'{GREEN}{BOLD}{reduction:.2f}%{RESET}')
+                print(f'  {"":24}{_bar(reduction)}  {GREEN}{reduction:.2f}%{RESET}')
+            else:
+                _row('Reducao:', f'{RED}{reduction:.2f}% (arquivo cresceu){RESET}')
+            diff = orig_size - i['file_size']
+            if diff >= 0:
+                _row('Economia:', f'{GREEN}{_human(diff)}{RESET}')
         _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}')
         _row('SHA-256:', f'{GRAY}{i.get("hash", "N/A")[:32]}...{RESET}')
         _dline()
@@ -509,11 +556,11 @@ def _print_help() -> None:
     section('COMANDOS')
     cmd_line('pp c <arquivo|pasta> [-q Q] [-l]',         'Comprime QUALQUER arquivo ou pasta \u2192 .PP')
     cmd_line('pp d <arquivo.PP> [-o SAIDA]',             'Descomprime .PP \u2192 arquivo original')
-    cmd_line('pp i <arquivo.PP>',                        'Mostra info do .PP')
+    cmd_line('pp i <arquivo.PP>',                        'Mostra info e estatisticas do .PP')
+    cmd_line('pp verify <arquivo>',                      'Verifica integridade (QUALQUER arquivo)')
     cmd_line('pp q <original> <restaurada>',             'Avalia qualidade (imagens)')
     cmd_line('pp q <pasta_orig> <pasta_rest>',           'Compara qualidade de pastas')
     cmd_line('pp engine',                                'Status do motor de compressao')
-    cmd_line('pp verify <imagem>',                       'Verifica integridade lossless')
     cmd_line('pp register',                              'Registra .PP no Windows')
     cmd_line('pp help',                                  'Esta ajuda')
     cmd_line('pp version',                               'Versao')
@@ -526,6 +573,15 @@ def _print_help() -> None:
     example('pp c musica.wav',                  'comprime audio WAV \u2192 musica.PP')
     example('pp c codigo.py',                   'comprime codigo fonte \u2192 codigo.PP')
     example('pp d relatorio.PP',                'restaura arquivo original identico')
+    print()
+
+    section('EXEMPLOS — VERIFICACAO DE INTEGRIDADE')
+    example('pp verify foto.png',               'verifica imagem (pixel-perfeito)')
+    example('pp verify relatorio.pdf',          'verifica PDF (bytes identicos)')
+    example('pp verify dados.csv',              'verifica CSV (bytes identicos)')
+    example('pp verify programa.exe',           'verifica executavel (bytes identicos)')
+    print(f'    {DIM}O comando verify comprime, descomprime e compara SHA-256{RESET}')
+    print(f'    {DIM}para garantir que o arquivo e restaurado perfeitamente.{RESET}')
     print()
 
     section('EXEMPLOS — IMAGENS')
@@ -828,51 +884,124 @@ def cmd_info(args: list) -> int:
 
 
 def cmd_verify(args: list) -> int:
-    """Verifica integridade: comprime lossless, descomprime, compara SHA-256."""
+    """Verifica integridade: comprime lossless, descomprime, compara SHA-256.
+    Funciona com QUALQUER tipo de arquivo (imagens, texto, binarios, etc.)."""
     positional = _get_positional(args)
     if not positional:
-        print(f'  {FAIL} Informe a imagem para verificar.')
-        print(f'  {DIM}Uso: pp verify <imagem>{RESET}')
+        print(f'  {FAIL} Informe o arquivo para verificar.')
+        print(f'  {DIM}Uso: pp verify <arquivo>{RESET}')
+        print(f'  {DIM}Exemplos:{RESET}')
+        print(f'  {DIM}  pp verify foto.png        # verifica imagem{RESET}')
+        print(f'  {DIM}  pp verify relatorio.pdf    # verifica PDF{RESET}')
+        print(f'  {DIM}  pp verify dados.csv        # verifica CSV{RESET}')
+        print(f'  {DIM}  pp verify programa.exe      # verifica executavel{RESET}')
         return 1
 
     import tempfile
+    import hashlib
     input_path = positional[0]
     if not os.path.exists(input_path):
         print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
         return 1
 
     _print_banner()
-    print(f'  {CYAN}Arquivo:{RESET}  {WHITE}{input_path}{RESET}')
+    original_size = os.path.getsize(input_path)
+    ext = os.path.splitext(input_path)[1]
+    print(f'  {CYAN}Arquivo:{RESET}   {WHITE}{input_path}{RESET}')
+    print(f'  {CYAN}Tipo:{RESET}      {WHITE}{ext or "(sem extensao)"}{RESET}')
+    print(f'  {CYAN}Tamanho:{RESET}   {WHITE}{_human(original_size)}{RESET}')
     print()
+
+    # Detecta se e imagem
+    from pied_piper.codec import _is_image_path
+    is_image = _is_image_path(input_path)
+    if is_image:
+        try:
+            from PIL import Image as _TestImg
+            _t = _TestImg.open(input_path)
+            _t.verify()
+        except Exception:
+            is_image = False
 
     sp = Spinner('Comprimindo e descomprimindo para verificacao...')
     sp.start()
 
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            pp_path  = os.path.join(tmp, 'test.PP')
-            out_path = os.path.join(tmp, 'test_restored.png')
+            pp_path = os.path.join(tmp, 'test.PP')
 
-            c_stats = compress(input_path, pp_path, lossless=True)
-            d_stats = decompress(pp_path, out_path)
-            v = d_stats.get('integrity_verified')
+            if is_image:
+                # Verificacao de imagem: comprime lossless e verifica pixels
+                out_path = os.path.join(tmp, 'test_restored.png')
+                c_stats = compress(input_path, pp_path, lossless=True)
+                d_stats = decompress(pp_path, out_path)
+                v = d_stats.get('integrity_verified')
+                compressed_size = c_stats['compressed_size']
+                ratio = c_stats['compression_ratio']
+                h_orig = d_stats.get('original_hash', 'N/A')
+                h_rest = d_stats.get('restored_hash', 'N/A')
+                verify_type = 'imagem (pixel-perfeito)'
+            else:
+                # Verificacao universal: comprime e verifica bytes via SHA-256
+                c_stats = compress_file(input_path, pp_path)
+                compressed_size = c_stats['compressed_size']
+                ratio = c_stats['compression_ratio']
+
+                # Calcula hash do original
+                _hash = hashlib.sha256()
+                with open(input_path, 'rb') as _f:
+                    for _chunk in iter(lambda: _f.read(65536), b''):
+                        _hash.update(_chunk)
+                h_orig = _hash.hexdigest()
+
+                # Descomprime
+                d_stats = decompress_file(pp_path)
+                out_path = d_stats['output_file']
+                v = d_stats.get('integrity_verified')
+
+                # Verifica hash do restaurado
+                _hash2 = hashlib.sha256()
+                with open(out_path, 'rb') as _f:
+                    for _chunk in iter(lambda: _f.read(65536), b''):
+                        _hash2.update(_chunk)
+                h_rest = _hash2.hexdigest()
+
+                # Se pipeline nao verificou, faz a comparacao direta
+                if v is None:
+                    v = (h_orig == h_rest)
+                verify_type = 'arquivo (bytes identicos)'
 
         sp.stop(v is not False, 'Verificacao concluida!')
 
         _header('PIED PIPER \u2014 VERIFICACAO DE INTEGRIDADE')
         print()
         _row('Arquivo:', f'{WHITE}{input_path}{RESET}')
-        h_orig = d_stats.get('original_hash', 'N/A')
-        h_rest = d_stats.get('restored_hash',  'N/A')
-        _row('Hash original:', f'{GRAY}{h_orig[:32]}...{RESET}')
-        _row('Hash restaurado:', f'{GRAY}{h_rest[:32]}...{RESET}')
-        _row('Compressao .PP:', f'{_human(c_stats["compressed_size"])} (ratio {c_stats["compression_ratio"]}:1)')
+        _row('Tipo:', f'{WHITE}{ext or "(sem extensao)"}{RESET}')
+        _row('Verificacao:', f'{CYAN}{verify_type}{RESET}')
+        _hline()
+        _row('Tamanho original:', _human(original_size))
+        _row('Tamanho comprimido:', _human(compressed_size))
+        _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio}:1{RESET}')
+        r = (1 - compressed_size / original_size) * 100 if original_size > 0 else 0
+        if r >= 0:
+            _row('Reducao:', f'{GREEN}{BOLD}{r:.2f}%{RESET}')
+            print(f'  {"":24}{_bar(r)}  {GREEN}{r:.2f}%{RESET}')
+        else:
+            _row('Reducao:', f'{RED}{r:.2f}% (arquivo cresceu){RESET}')
+        _hline()
+        _row('SHA-256 original:', f'{GRAY}{h_orig[:32]}...{RESET}')
+        _row('SHA-256 restaurado:', f'{GRAY}{h_rest[:32]}...{RESET}')
         _hline()
         if v is True:
-            print(f'  {OK} {GREEN}{BOLD}APROVADO{RESET} \u2013 reconstrucao pixel-perfeita garantida')
-            print(f'     O algoritmo Middle-Out DPCM e VERDADEIRAMENTE LOSSLESS.')
+            if is_image:
+                print(f'  {OK} {GREEN}{BOLD}APROVADO{RESET} \u2013 reconstrucao pixel-perfeita garantida')
+                print(f'     O algoritmo Middle-Out DPCM e VERDADEIRAMENTE LOSSLESS.')
+            else:
+                print(f'  {OK} {GREEN}{BOLD}APROVADO{RESET} \u2013 bytes identicos ao original')
+                print(f'     Arquivo restaurado e BIT-A-BIT identico ao original.')
         elif v is False:
             print(f'  {FAIL} {RED}{BOLD}FALHOU{RESET} \u2013 dados corrompidos na compressao!')
+            print(f'     Os hashes SHA-256 nao coincidem.')
         else:
             print(f'  {WARN} {YELLOW}Nao foi possivel verificar (hash ausente){RESET}')
         _dline()
