@@ -1,5 +1,5 @@
 @echo off
-title Pied Piper - Compressor de Imagens
+title Pied Piper - Compressor Universal de Arquivos
 python "%~dp0pp" %*
 if %ERRORLEVEL% NEQ 0 (
     echo.
