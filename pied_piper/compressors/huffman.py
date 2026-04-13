@@ -70,7 +70,7 @@ def _build_codes(root: _HuffNode) -> dict:
 
 def huffman_compress(data: bytes) -> bytes:
     """
-    Comprime dados usando Huffman coding.
+    Comprime dados usando Huffman coding canonico.
 
     Formato:
       [4 bytes: tamanho original LE]
@@ -89,17 +89,32 @@ def huffman_compress(data: bytes) -> bytes:
     for b in data:
         freq[b] += 1
 
-    # Arvore e codigos
+    # Arvore e codigos (usados apenas para obter comprimentos)
     tree = _build_tree(freq)
     codes = _build_codes(tree)
 
     if not codes:
         return struct.pack('<I', 0)
 
-    # Codifica dados em bitstream
+    # Reconstroi codigos canonicos a partir dos comprimentos
+    # (garante que compressor e descompressor usam os mesmos codigos)
+    sorted_codes = sorted(codes.items(), key=lambda x: (len(x[1]), x[0]))
+
+    canonical_codes = {}
+    code_val = 0
+    prev_len = 0
+    for byte_val, tree_code in sorted_codes:
+        clen = len(tree_code)
+        if prev_len > 0:
+            code_val = (code_val + 1) << (clen - prev_len)
+        code_str = bin(code_val)[2:].zfill(clen)
+        canonical_codes[byte_val] = code_str
+        prev_len = clen
+
+    # Codifica dados em bitstream usando codigos canonicos
     bits = []
     for b in data:
-        bits.append(codes[b])
+        bits.append(canonical_codes[b])
     bitstring = ''.join(bits)
     total_bits = len(bitstring)
 
@@ -111,16 +126,13 @@ def huffman_compress(data: bytes) -> bytes:
         encoded.append(int(bitstring[i:i + 8], 2))
 
     # Serializa tabela de codigos (formato canonico)
-    # Ordena por comprimento de codigo, depois por valor
-    sorted_codes = sorted(codes.items(), key=lambda x: (len(x[1]), x[0]))
-
     out = bytearray()
     out += struct.pack('<I', len(data))
     out += struct.pack('<H', len(sorted_codes))
 
-    for byte_val, code in sorted_codes:
+    for byte_val, tree_code in sorted_codes:
         out.append(byte_val)
-        out.append(len(code))
+        out.append(len(tree_code))
 
     out += struct.pack('<I', total_bits)
     out += encoded

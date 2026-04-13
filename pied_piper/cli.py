@@ -546,6 +546,47 @@ def _print_decompress_bundle_stats(s: dict) -> None:
 
 
 def _print_info(i: dict) -> None:
+    # Bundle (pasta comprimida)
+    if i.get('bundle', False):
+        _header(f'PIED PIPER \u2014 INFO DO ARQUIVO .PP    {GREEN}{BOLD}[ BUNDLE ]{RESET}')
+        print()
+        _row('Arquivo:', f'{WHITE}{i["file"]}{RESET}')
+        _row('Tamanho total .PP:', _human(i['file_size']))
+        _row('Versao do formato:', str(i['version']))
+        _row('Header:', _human(i['header_size']))
+        _row('Dados comprimidos:', _human(i['data_size']))
+        _hline()
+        print(f'  {BOLD}{YELLOW}  DADOS DO BUNDLE{RESET}')
+        _hline()
+        _row('Pasta original:', f'{WHITE}{i.get("source_folder", "N/A")}{RESET}')
+        _row('Total de arquivos:', f'{CYAN}{i.get("file_count", 0)}{RESET}')
+        lossless = i.get('lossless', False)
+        _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}' if lossless else f'{YELLOW}LOSSY{RESET}')
+        _row('Qualidade gravada:', f'{i.get("quality", 0)}/100')
+        total_orig = i.get('total_original_size', 0)
+        if total_orig > 0 and i['file_size'] > 0:
+            _hline()
+            print(f'  {BOLD}{YELLOW}  ESTATISTICAS DE COMPRESSAO{RESET}')
+            _hline()
+            _row('Tamanho original:', _human(total_orig))
+            ratio = total_orig / i['file_size']
+            reduction = (1 - i['file_size'] / total_orig) * 100
+            _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio:.2f}:1{RESET}')
+            if reduction >= 0:
+                _row('Reducao:', f'{GREEN}{BOLD}{reduction:.2f}%{RESET}')
+            else:
+                _row('Reducao:', f'{RED}{reduction:.2f}% (arquivo cresceu){RESET}')
+        _hline()
+        print(f'  {BOLD}{YELLOW}  ARQUIVOS NO BUNDLE{RESET}')
+        _hline()
+        for entry in i.get('files', []):
+            name = entry.get('name', '?')
+            orig = _human(entry.get('original_size', 0))
+            _row(f'  {name}:', f'{orig}')
+        _dline()
+        print()
+        return
+
     # Arquivo universal
     if i.get('universal', False):
         _header(f'PIED PIPER \u2014 INFO DO ARQUIVO .PP    {GREEN}{BOLD}[ UNIVERSAL ]{RESET}')
