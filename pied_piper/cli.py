@@ -9,24 +9,17 @@ Comandos:
     pp i <arquivo.PP>                  Mostrar informacoes do .PP
     pp verify <arquivo>                Verificar integridade (qualquer arquivo)
     pp q <original> <restaurado>       Comparar qualidade (imagens)
+    pp bench <arquivo>                 Benchmark de todos os algoritmos
+    pp list <arquivo.PP>               Listar arquivos em bundle
+    pp stats <arquivo>                 Estatisticas do arquivo sem comprimir
     pp engine                          Status do motor de compressao
     pp help                            Mostrar ajuda
-
-Exemplos rapidos:
-    pp c foto.jpg                 Comprime imagem (lossy, qualidade 75)
-    pp c foto.png -l              Comprime imagem sem perdas (lossless)
-    pp c relatorio.pdf            Comprime PDF (sempre lossless)
-    pp c dados.csv                Comprime CSV (sempre lossless)
-    pp c musica.wav               Comprime audio WAV (sempre lossless)
-    pp c /minha-pasta/            Comprime todos os arquivos da pasta
-    pp d foto.PP                  Descomprime qualquer arquivo .PP
-    pp verify documento.pdf       Verifica integridade de qualquer arquivo
-    pp i arquivo.PP               Mostra estatisticas do arquivo comprimido
 """
 
 import os
 import sys
 import time
+import hashlib
 import threading
 
 from pied_piper import __version__
@@ -62,7 +55,7 @@ _COLOR = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
 def _has_unicode():
     enc = getattr(sys.stdout, 'encoding', None) or 'ascii'
     try:
-        '\u2714\u2716\u280b\u2588\u2591'.encode(enc)
+        '\u2714\u2716\u280b\u2588\u2591\u2502\u250c\u2510\u2514\u2518'.encode(enc)
         return True
     except (UnicodeEncodeError, LookupError):
         return False
@@ -70,11 +63,22 @@ def _has_unicode():
 
 _UNICODE = _COLOR and _has_unicode()
 
-# Caracteres unicode usados em barras/linhas (evita backslash em f-strings no py3.11)
+# Caracteres unicode usados em barras/linhas
 _BLOCK_FULL  = '\u2588'   # █
+_BLOCK_MED   = '\u2593'   # ▓
 _BLOCK_LIGHT = '\u2591'   # ░
 _HLINE_THIN  = '\u2500'   # ─
 _HLINE_THICK = '\u2550'   # ═
+_VLINE       = '\u2502'   # │
+_CORNER_TL   = '\u256d'   # ╭
+_CORNER_TR   = '\u256e'   # ╮
+_CORNER_BL   = '\u2570'   # ╰
+_CORNER_BR   = '\u256f'   # ╯
+_ARROW_R     = '\u25b6'   # ▶
+_DIAMOND     = '\u25c6'   # ◆
+_STAR        = '\u2605'   # ★
+_CIRCLE      = '\u25cf'   # ●
+_SPARK       = '\u2737'   # ✷
 
 
 def _c(code):
@@ -84,6 +88,8 @@ def _c(code):
 RESET   = _c('\033[0m')
 BOLD    = _c('\033[1m')
 DIM     = _c('\033[2m')
+ITALIC  = _c('\033[3m')
+UNDER   = _c('\033[4m')
 CYAN    = _c('\033[96m')
 GREEN   = _c('\033[92m')
 YELLOW  = _c('\033[93m')
@@ -93,13 +99,32 @@ MAGENTA = _c('\033[95m')
 WHITE   = _c('\033[97m')
 GRAY    = _c('\033[90m')
 
+# Cores extras para gradientes
+C_ORANGE  = _c('\033[38;5;208m')
+C_PINK    = _c('\033[38;5;213m')
+C_LIME    = _c('\033[38;5;118m')
+C_SKY     = _c('\033[38;5;117m')
+C_VIOLET  = _c('\033[38;5;141m')
+C_GOLD    = _c('\033[38;5;220m')
+C_TEAL    = _c('\033[38;5;43m')
+C_CORAL   = _c('\033[38;5;210m')
+
+# Backgrounds
+BG_GREEN  = _c('\033[42m')
+BG_RED    = _c('\033[41m')
+BG_BLUE   = _c('\033[44m')
+BG_YELLOW = _c('\033[43m')
+BG_CYAN   = _c('\033[46m')
+BG_GRAY   = _c('\033[48;5;236m')
+
 OK   = (f'{GREEN}\u2714{RESET}' if _UNICODE else f'{GREEN}+{RESET}')
 FAIL = (f'{RED}\u2716{RESET}'   if _UNICODE else f'{RED}x{RESET}')
-WARN = (f'{YELLOW}!{RESET}')
+WARN = (f'{YELLOW}\u26a0{RESET}' if _UNICODE else f'{YELLOW}!{RESET}')
+INFO = (f'{CYAN}\u25cf{RESET}'  if _UNICODE else f'{CYAN}*{RESET}')
 
 
 # ---------------------------------------------------------------------------
-# Spinner animado
+# Spinner animado com gradiente de cores
 # ---------------------------------------------------------------------------
 
 class Spinner:
@@ -107,6 +132,8 @@ class Spinner:
                      '\u283c', '\u2834', '\u2826', '\u2827',
                      '\u2807', '\u280f']
     _FRAMES_ASCII = ['|', '/', '-', '\\']
+    _COLORS = [CYAN, C_SKY, BLUE, C_VIOLET, MAGENTA, C_PINK,
+               C_CORAL, C_ORANGE, C_GOLD, YELLOW, C_LIME, GREEN, C_TEAL]
 
     def __init__(self, msg: str):
         self.msg = msg
@@ -118,9 +145,10 @@ class Spinner:
         i = 0
         while not self._stop.is_set():
             f = self._frames[i % len(self._frames)]
-            sys.stdout.write(f'\r  {CYAN}{f}{RESET} {self.msg} ')
+            color = self._COLORS[i % len(self._COLORS)]
+            sys.stdout.write(f'\r  {color}{BOLD}{f}{RESET} {WHITE}{self.msg}{RESET} ')
             sys.stdout.flush()
-            time.sleep(0.08)
+            time.sleep(0.07)
             i += 1
         sys.stdout.write('\r' + ' ' * (len(self.msg) + 10) + '\r')
         sys.stdout.flush()
@@ -159,7 +187,19 @@ def _bar(percent: float, width: int = 30) -> str:
     p = max(0.0, min(100.0, percent))
     filled = int(p / 100 * width)
     if _UNICODE:
-        inner = f'{GREEN}{_BLOCK_FULL * filled}{GRAY}{_BLOCK_LIGHT * (width - filled)}{RESET}'
+        # Gradient bar: green -> cyan -> blue
+        bar_chars = ''
+        for i in range(width):
+            if i < filled:
+                if i < width // 3:
+                    bar_chars += f'{GREEN}{_BLOCK_FULL}'
+                elif i < 2 * width // 3:
+                    bar_chars += f'{C_TEAL}{_BLOCK_FULL}'
+                else:
+                    bar_chars += f'{CYAN}{_BLOCK_FULL}'
+            else:
+                bar_chars += f'{GRAY}{_BLOCK_LIGHT}'
+        inner = f'{bar_chars}{RESET}'
     else:
         inner = f'{GREEN}{"#" * filled}{DIM}{"." * (width - filled)}{RESET}'
     return f'[{inner}]'
@@ -167,7 +207,11 @@ def _bar(percent: float, width: int = 30) -> str:
 
 def _mode_badge(lossless: bool) -> str:
     if lossless:
+        if _UNICODE:
+            return f'{GREEN}{BOLD}{_DIAMOND} SEM PERDAS {_DIAMOND}{RESET}'
         return f'{GREEN}{BOLD}[ SEM PERDAS ]{RESET}'
+    if _UNICODE:
+        return f'{YELLOW}{BOLD}{_DIAMOND} LOSSY {_DIAMOND}{RESET}'
     return f'{YELLOW}{BOLD}[   LOSSY    ]{RESET}'
 
 
@@ -180,20 +224,58 @@ def _hline(W: int = 64) -> None:
 
 def _dline(W: int = 64) -> None:
     if _UNICODE:
-        print(f'  {CYAN}{_HLINE_THICK * W}{RESET}')
+        print(f'  {C_TEAL}{_HLINE_THICK * W}{RESET}')
     else:
         print('  ' + '=' * W)
 
 
+def _boxline(W: int = 64, style: str = 'top') -> None:
+    """Draw a rounded box border."""
+    if not _UNICODE:
+        _hline(W)
+        return
+    if style == 'top':
+        print(f'  {C_SKY}{_CORNER_TL}{_HLINE_THIN * W}{_CORNER_TR}{RESET}')
+    elif style == 'bottom':
+        print(f'  {C_SKY}{_CORNER_BL}{_HLINE_THIN * W}{_CORNER_BR}{RESET}')
+    elif style == 'mid':
+        print(f'  {C_SKY}{_VLINE}{DIM}{_HLINE_THIN * W}{RESET}{C_SKY}{_VLINE}{RESET}')
+
+
 def _header(title: str, W: int = 64) -> None:
     print()
-    _dline(W)
-    print(f'  {BOLD}{WHITE}{title}{RESET}')
-    _dline(W)
+    if _UNICODE:
+        _boxline(W, 'top')
+        pad = W - len(title.replace('\033[0m', '').replace('\033[1m', '')
+                         .replace('\033[92m', '').replace('\033[93m', '')
+                         .replace('\033[91m', '').replace('\033[96m', '')
+                         .replace('\033[95m', '').replace('\033[97m', '')
+                         .replace('\033[94m', '').replace('\033[90m', '')
+                         .replace('\033[2m', '').replace('\033[3m', '')
+                         .replace('\033[4m', ''))
+        # just center the title roughly
+        print(f'  {C_SKY}{_VLINE}{RESET} {BOLD}{WHITE}{title}{RESET}')
+        _boxline(W, 'bottom')
+    else:
+        _dline(W)
+        print(f'  {BOLD}{WHITE}{title}{RESET}')
+        _dline(W)
+
+
+def _section(title: str) -> None:
+    """Colorful section divider."""
+    if _UNICODE:
+        print(f'  {C_ORANGE}{_ARROW_R}{RESET} {BOLD}{C_GOLD}{title}{RESET}')
+    else:
+        print(f'  > {BOLD}{YELLOW}{title}{RESET}')
+    _hline()
 
 
 def _row(label: str, value: str) -> None:
-    print(f'  {CYAN}{label:<24}{RESET}{value}')
+    if _UNICODE:
+        print(f'  {C_SKY}{_VLINE}{RESET} {CYAN}{label:<22}{RESET}{value}')
+    else:
+        print(f'  {CYAN}{label:<24}{RESET}{value}')
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +283,9 @@ def _row(label: str, value: str) -> None:
 # ---------------------------------------------------------------------------
 
 def _print_banner() -> None:
+    # Gradient colors for the ASCII art
+    _GRAD = [C_TEAL, CYAN, C_SKY, BLUE, C_VIOLET, MAGENTA]
+
     art = [
         r"   ____  _          _   ____  _              ",
         r"  |  _ \(_) ___  __| | |  _ \(_)_ __   ___ _ __",
@@ -210,14 +295,20 @@ def _print_banner() -> None:
         r"                               |_|              ",
     ]
     print()
-    for line in art:
-        print(f'{CYAN}{BOLD}{line}{RESET}')
-    print(f'  {DIM}Middle-Out Compression Engine  {GRAY}v{__version__}{RESET}')
+    for i, line in enumerate(art):
+        color = _GRAD[i % len(_GRAD)]
+        print(f'{color}{BOLD}{line}{RESET}')
+
+    if _UNICODE:
+        tag = f'{C_GOLD}{_STAR}{RESET}'
+        print(f'  {tag} {C_SKY}Middle-Out Compression Engine{RESET}  '
+              f'{DIM}{_HLINE_THIN * 3}{RESET}  '
+              f'{C_VIOLET}v{__version__}{RESET}  '
+              f'{DIM}{_HLINE_THIN * 3}{RESET}  '
+              f'{tag}')
+    else:
+        print(f'  {DIM}Middle-Out Compression Engine  {GRAY}v{__version__}{RESET}')
     print()
-
-
-# Compatibilidade com codigo legado que acessa BANNER como constante
-BANNER = ''
 
 
 # ---------------------------------------------------------------------------
@@ -232,42 +323,44 @@ def _print_compress_stats(s: dict) -> None:
     print()
     _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
-    _row('Formato original:', f'{s["original_format"]} ({s["original_mode"]})')
+    _row('Formato original:', f'{C_ORANGE}{s["original_format"]}{RESET} ({s["original_mode"]})')
     _hline()
-    _row('Dimensoes:', f'{s["width"]} x {s["height"]} pixels')
+    _section('DIMENSOES')
+    _row('Dimensoes:', f'{WHITE}{s["width"]} x {s["height"]}{RESET} pixels')
     _row('Total de pixels:', f'{s["total_pixels"]:,}')
-    _row('Megapixels:', f'{s["megapixels"]} MP')
-    _row('Canal Alpha:', 'Sim' if s['has_alpha'] else 'Nao')
+    _row('Megapixels:', f'{C_GOLD}{s["megapixels"]} MP{RESET}')
+    _row('Canal Alpha:', f'{GREEN}Sim{RESET}' if s['has_alpha'] else f'{GRAY}Nao{RESET}')
     _hline()
-    _row('Tamanho original:', _human(s['original_size']))
-    _row('Tamanho comprimido:', _human(s['compressed_size']))
+    _section('RESULTADO DA COMPRESSAO')
+    _row('Tamanho original:', f'{WHITE}{_human(s["original_size"])}{RESET}')
+    _row('Tamanho comprimido:', f'{C_LIME}{BOLD}{_human(s["compressed_size"])}{RESET}')
     _row('Taxa de compressao:', f'{GREEN}{BOLD}{s["compression_ratio"]}:1{RESET}')
-    _row('Bits por pixel:', str(s['bits_per_pixel']))
+    _row('Bits por pixel:', f'{C_SKY}{s["bits_per_pixel"]}{RESET}')
     r = s['reduction_percent']
     if r >= 0:
         _row('Reducao:', f'{GREEN}{BOLD}{r}%{RESET}')
         print(f'  {"":24}{_bar(r)}  {GREEN}{r}%{RESET}')
     else:
-        _row('Reducao:', f'{RED}{r}% (arquivo cresceu){RESET}')
+        _row('Reducao:', f'{RED}{BOLD}{r}% (arquivo cresceu){RESET}')
     _hline()
-    print(f'  {BOLD}{YELLOW}  ALGORITMO MIDDLE-OUT \u2014 ESTATISTICAS{RESET}')
-    _hline()
+    _section('ALGORITMO MIDDLE-OUT')
     if lossless:
         strategy_label = s.get('lossless_strategy_label', 'Pixel-perfeito')
-        _row('Modo:', f'{GREEN}LOSSLESS \u2013 {strategy_label}{RESET}')
-        _row('PSNR:', s['psnr_str'])
+        _row('Modo:', f'{GREEN}{BOLD}LOSSLESS{RESET} {C_TEAL}\u2013 {strategy_label}{RESET}')
+        _row('PSNR:', f'{GREEN}{s["psnr_str"]}{RESET}')
     else:
-        _row('Modo:', f'{YELLOW}LOSSY \u2013 DCT + Quantizacao adaptativa{RESET}')
-        _row('Qualidade:', f'{s["quality"]}/100')
-        _row('PSNR:', s['psnr_str'])
-    _row('Blocos processados:', f'{s["total_blocks"]:,}')
-    _row('Blocos preditos:', f'{s["predicted_blocks"]:,} ({s["prediction_percent"]}%)')
-    if not lossless:
-        _row('Blocos vazios:', f'{s["zero_blocks"]:,} ({s["zero_blocks_percent"]}%)')
-    _row('Esparsidade residual:', f'{s["coefficient_sparsity"]}%')
+        _row('Modo:', f'{YELLOW}{BOLD}LOSSY{RESET} {C_ORANGE}\u2013 DCT + Quantizacao adaptativa{RESET}')
+        _row('Qualidade:', f'{C_GOLD}{BOLD}{s["quality"]}/100{RESET}')
+        _row('PSNR:', f'{C_SKY}{s["psnr_str"]}{RESET}')
+    if s["total_blocks"] > 0:
+        _row('Blocos processados:', f'{WHITE}{s["total_blocks"]:,}{RESET}')
+        _row('Blocos preditos:', f'{C_VIOLET}{s["predicted_blocks"]:,}{RESET} ({s["prediction_percent"]}%)')
+        if not lossless:
+            _row('Blocos vazios:', f'{C_SKY}{s["zero_blocks"]:,}{RESET} ({s["zero_blocks_percent"]}%)')
+        _row('Esparsidade:', f'{C_TEAL}{s["coefficient_sparsity"]}%{RESET}')
     _hline()
-    _row('Tempo:', f'{s["time_seconds"]}s')
-    _row('Throughput:', f'{s["pixels_per_second"]:,} px/s')
+    _row('Tempo:', f'{C_GOLD}{s["time_seconds"]}s{RESET}')
+    _row('Throughput:', f'{C_LIME}{s["pixels_per_second"]:,} px/s{RESET}')
     _dline()
     print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
     print()
@@ -281,15 +374,17 @@ def _print_decompress_stats(s: dict) -> None:
     print()
     _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
-    _row('Formato original:', s['original_format'])
+    _row('Formato original:', f'{C_ORANGE}{s["original_format"]}{RESET}')
     _hline()
-    _row('Dimensoes:', f'{s["width"]} x {s["height"]} pixels')
+    _section('DIMENSOES')
+    _row('Dimensoes:', f'{WHITE}{s["width"]} x {s["height"]}{RESET} pixels')
     _row('Total de pixels:', f'{s["total_pixels"]:,}')
-    _row('Megapixels:', f'{s["megapixels"]} MP')
-    _row('Canal Alpha:', 'Sim' if s['has_alpha'] else 'Nao')
+    _row('Megapixels:', f'{C_GOLD}{s["megapixels"]} MP{RESET}')
+    _row('Canal Alpha:', f'{GREEN}Sim{RESET}' if s['has_alpha'] else f'{GRAY}Nao{RESET}')
     _hline()
-    _row('Tamanho .PP:', _human(s['pp_size']))
-    _row('Tamanho restaurado:', _human(s['restored_size']))
+    _section('RESULTADO')
+    _row('Tamanho .PP:', f'{WHITE}{_human(s["pp_size"])}{RESET}')
+    _row('Tamanho restaurado:', f'{C_LIME}{BOLD}{_human(s["restored_size"])}{RESET}')
     if lossless:
         strat = s.get('lossless_strategy', '')
         strat_labels = {
@@ -298,41 +393,40 @@ def _print_decompress_stats(s: dict) -> None:
             'dpcm':   'RCT + DPCM espiral + zlib',
         }
         if strat:
-            _row('Estrategia:', f'{GREEN}{strat_labels.get(strat, strat)}{RESET}')
-        _row('PSNR:', s['psnr_str'])
+            _row('Estrategia:', f'{C_VIOLET}{strat_labels.get(strat, strat)}{RESET}')
+        _row('PSNR:', f'{GREEN}{s["psnr_str"]}{RESET}')
         v = s.get('integrity_verified')
         if v is True:
-            check = f'{GREEN}\u2714 VERIFICADA \u2013 pixels identicos{RESET}' if _UNICODE else f'{GREEN}OK \u2013 pixels identicos{RESET}'
+            check = f'{GREEN}{BOLD}\u2714 VERIFICADA \u2013 pixels identicos{RESET}' if _UNICODE else f'{GREEN}OK \u2013 pixels identicos{RESET}'
             _row('Integridade SHA-256:', check)
         elif v is False:
-            _row('Integridade SHA-256:', f'{RED}\u2716 FALHOU \u2013 dados corrompidos!{RESET}')
+            _row('Integridade SHA-256:', f'{RED}{BOLD}\u2716 FALHOU \u2013 dados corrompidos!{RESET}')
         else:
             _row('Integridade SHA-256:', f'{YELLOW}hash original nao disponivel{RESET}')
     else:
-        _row('Qualidade usada:', f'{s["quality"]}/100')
-        _row('PSNR:', s['psnr_str'])
+        _row('Qualidade usada:', f'{C_GOLD}{BOLD}{s["quality"]}/100{RESET}')
+        _row('PSNR:', f'{C_SKY}{s["psnr_str"]}{RESET}')
     _hline()
-    _row('Tempo:', f'{s["time_seconds"]}s')
-    _row('Throughput:', f'{s["pixels_per_second"]:,} px/s')
+    _row('Tempo:', f'{C_GOLD}{s["time_seconds"]}s{RESET}')
+    _row('Throughput:', f'{C_LIME}{s["pixels_per_second"]:,} px/s{RESET}')
     _dline()
     print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
     print()
 
 
 def _print_compress_universal_stats(s: dict) -> None:
-    _header(f'PIED PIPER \u2014 COMPRESSAO UNIVERSAL    {GREEN}{BOLD}[ SEM PERDAS ]{RESET}')
+    _header(f'PIED PIPER \u2014 COMPRESSAO UNIVERSAL    {_mode_badge(True)}')
     print()
     _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
-    _row('Tipo:', f'{CYAN}{s.get("original_ext", "N/A")}{RESET}')
+    _row('Tipo:', f'{C_ORANGE}{BOLD}{s.get("original_ext", "N/A")}{RESET}')
     _hline()
-    print(f'  {BOLD}{YELLOW}  ESTATISTICAS DO ARQUIVO{RESET}')
-    _hline()
-    _row('Tamanho original:', _human(s['original_size']))
-    _row('Tamanho comprimido:', _human(s['compressed_size']))
+    _section('RESULTADO DA COMPRESSAO')
+    _row('Tamanho original:', f'{WHITE}{_human(s["original_size"])}{RESET}')
+    _row('Tamanho comprimido:', f'{C_LIME}{BOLD}{_human(s["compressed_size"])}{RESET}')
     diff = s['original_size'] - s['compressed_size']
     if diff >= 0:
-        _row('Economia:', f'{GREEN}{_human(diff)}{RESET}')
+        _row('Economia:', f'{GREEN}{BOLD}{_human(diff)}{RESET}')
     else:
         _row('Overhead:', f'{RED}{_human(-diff)}{RESET}')
     ratio = s['compression_ratio']
@@ -342,59 +436,59 @@ def _print_compress_universal_stats(s: dict) -> None:
         _row('Reducao:', f'{GREEN}{BOLD}{r}%{RESET}')
         print(f'  {"":24}{_bar(r)}  {GREEN}{r}%{RESET}')
     else:
-        _row('Reducao:', f'{RED}{r}% (arquivo cresceu){RESET}')
+        _row('Reducao:', f'{RED}{BOLD}{r}% (arquivo cresceu){RESET}')
     _hline()
-    print(f'  {BOLD}{YELLOW}  ALGORITMO SELECIONADO{RESET}')
-    _hline()
-    _row('Algoritmo:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
+    _section('ALGORITMO SELECIONADO')
+    _row('Algoritmo:', f'{C_VIOLET}{BOLD}{s.get("strategy", "N/A")}{RESET}')
     all_results = s.get('all_results', {})
     if all_results:
-        print(f'  {BOLD}{YELLOW}  COMPARACAO DE ALGORITMOS{RESET}')
-        _hline()
+        _section('COMPARACAO DE ALGORITMOS')
         for alg, size in sorted(all_results.items(), key=lambda x: x[1]):
-            marker = f' {GREEN}<-- melhor{RESET}' if alg == s.get('strategy') else ''
+            if alg == s.get('strategy'):
+                marker = f' {C_LIME}{BOLD}{_STAR} melhor{RESET}'
+            else:
+                marker = ''
             pct = (1 - size / s['original_size']) * 100 if s['original_size'] > 0 else 0
-            _row(f'  {alg}:', f'{_human(size)} ({pct:.1f}% reducao){marker}')
+            _row(f'  {alg}:', f'{_human(size)} ({C_TEAL}{pct:.1f}%{RESET} reducao){marker}')
     _hline()
     _row('SHA-256:', f'{GRAY}{s.get("hash", "N/A")[:32]}...{RESET}')
-    _row('Modo:', f'{GREEN}LOSSLESS (sem perdas){RESET}')
-    _row('Tempo:', f'{s["time_seconds"]}s')
-    _row('Throughput:', f'{s.get("bytes_per_second", 0):,} bytes/s')
+    _row('Modo:', f'{GREEN}{BOLD}LOSSLESS (sem perdas){RESET}')
+    _row('Tempo:', f'{C_GOLD}{s["time_seconds"]}s{RESET}')
+    _row('Throughput:', f'{C_LIME}{s.get("bytes_per_second", 0):,} bytes/s{RESET}')
     _dline()
     print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
     print()
 
 
 def _print_decompress_universal_stats(s: dict) -> None:
-    _header(f'PIED PIPER \u2014 DESCOMPRESSAO UNIVERSAL    {GREEN}{BOLD}[ SEM PERDAS ]{RESET}')
+    _header(f'PIED PIPER \u2014 DESCOMPRESSAO UNIVERSAL    {_mode_badge(True)}')
     print()
     _row('Entrada:', f'{WHITE}{s["input_file"]}{RESET}')
     _row('Saida:', f'{WHITE}{s["output_file"]}{RESET}')
-    _row('Arquivo original:', f'{CYAN}{s.get("filename", "N/A")}{RESET}')
+    _row('Arquivo original:', f'{C_ORANGE}{s.get("filename", "N/A")}{RESET}')
     _hline()
-    print(f'  {BOLD}{YELLOW}  ESTATISTICAS{RESET}')
-    _hline()
-    _row('Tamanho .PP:', _human(s['pp_size']))
-    _row('Tamanho restaurado:', _human(s['restored_size']))
+    _section('RESULTADO')
+    _row('Tamanho .PP:', f'{WHITE}{_human(s["pp_size"])}{RESET}')
+    _row('Tamanho restaurado:', f'{C_LIME}{BOLD}{_human(s["restored_size"])}{RESET}')
     if s['restored_size'] > 0 and s['pp_size'] > 0:
         ratio = s['restored_size'] / s['pp_size']
-        _row('Taxa de expansao:', f'{CYAN}{ratio:.2f}:1{RESET}')
-    _row('Algoritmo usado:', f'{CYAN}{s.get("strategy", "N/A")}{RESET}')
+        _row('Taxa de expansao:', f'{C_GOLD}{ratio:.2f}:1{RESET}')
+    _row('Algoritmo usado:', f'{C_VIOLET}{BOLD}{s.get("strategy", "N/A")}{RESET}')
     _hline()
     v = s.get('integrity_verified')
     if v is True:
-        check = f'{GREEN}\u2714 VERIFICADA \u2013 bytes identicos{RESET}' if _UNICODE else f'{GREEN}OK \u2013 bytes identicos{RESET}'
+        check = f'{GREEN}{BOLD}\u2714 VERIFICADA \u2013 bytes identicos{RESET}' if _UNICODE else f'{GREEN}OK \u2013 bytes identicos{RESET}'
         _row('Integridade SHA-256:', check)
     elif v is False:
-        _row('Integridade SHA-256:', f'{RED}\u2716 FALHOU \u2013 dados corrompidos!{RESET}')
-    _row('Tempo:', f'{s["time_seconds"]}s')
+        _row('Integridade SHA-256:', f'{RED}{BOLD}\u2716 FALHOU \u2013 dados corrompidos!{RESET}')
+    _row('Tempo:', f'{C_GOLD}{s["time_seconds"]}s{RESET}')
     _dline()
     print(f'  {OK} {GREEN}{BOLD}Concluido com sucesso!{RESET}')
     print()
 
 
 def _print_compress_folder_stats(s: dict) -> None:
-    _header('PIED PIPER \u2014 PASTA COMPRIMIDA')
+    _header(f'PIED PIPER \u2014 PASTA COMPRIMIDA')
     print()
     _row('Pasta de entrada:', f'{WHITE}{s["input_folder"]}{RESET}')
     _row('Saida (.PP bundle):', f'{WHITE}{s["output_file"]}{RESET}')
@@ -516,25 +610,30 @@ def _print_engine() -> None:
 
     _header('PIED PIPER \u2014 MOTOR DE COMPRESSAO')
     print()
-    _row('Motor:', e['engine'])
+    _row('Motor:', f'{C_VIOLET}{BOLD}{e["engine"]}{RESET}')
     avail = e['c_engine_available']
-    _row('C engine disponivel:', f'{GREEN}Sim{RESET}' if avail else f'{YELLOW}Nao (modo Python puro){RESET}')
+    if avail:
+        _row('C engine:', f'{GREEN}{BOLD}Ativo{RESET} {C_TEAL}\u2013 performance nativa{RESET}')
+    else:
+        _row('C engine:', f'{YELLOW}Inativo{RESET} {DIM}(modo Python/NumPy vetorizado){RESET}')
     ll = e.get('lossless_available')
-    _row('Modo lossless:', f'{GREEN}Disponivel{RESET}' if ll else f'{RED}Indisponivel{RESET}')
+    _row('Modo lossless:', f'{GREEN}{BOLD}Disponivel{RESET}' if ll else f'{RED}Indisponivel{RESET}')
     uni = e.get('universal_available')
-    _row('Compressao universal:', f'{GREEN}Disponivel{RESET}' if uni else f'{RED}Indisponivel{RESET}')
-    _row('Biblioteca:', e['library_path'])
-    _row('Linguagens:', e.get('languages', 'N/A'))
+    _row('Compressao universal:', f'{GREEN}{BOLD}Disponivel{RESET}' if uni else f'{RED}Indisponivel{RESET}')
+    _row('Biblioteca:', f'{GRAY}{e["library_path"]}{RESET}')
+    _row('Linguagens:', f'{C_SKY}{e.get("languages", "N/A")}{RESET}')
     _hline()
     algos = e.get('algorithms', [])
     if algos:
-        print(f'  {BOLD}{YELLOW}  ALGORITMOS DISPONIVEIS{RESET}')
-        _hline()
-        for alg in algos:
-            print(f'    {GREEN}\u2022{RESET} {alg}')
+        _section('ALGORITMOS DISPONIVEIS')
+        algo_colors = [C_LIME, C_TEAL, C_SKY, C_VIOLET, C_PINK, C_GOLD, C_ORANGE]
+        for i, alg in enumerate(algos):
+            color = algo_colors[i % len(algo_colors)]
+            bullet = _DIAMOND if _UNICODE else '*'
+            print(f'    {color}{bullet}{RESET} {WHITE}{alg}{RESET}')
     _hline()
-    _row('Versao formato .PP:', f'v{e.get("format_version", "?")}')
-    _row('Versao Pied Piper:', __version__)
+    _row('Versao formato .PP:', f'{C_GOLD}v{e.get("format_version", "?")}{RESET}')
+    _row('Versao Pied Piper:', f'{C_VIOLET}{BOLD}{__version__}{RESET}')
     _dline()
     print()
 
@@ -542,49 +641,61 @@ def _print_engine() -> None:
 def _print_help() -> None:
     _print_banner()
 
-    def section(title):
-        print(f'  {BOLD}{CYAN}{title}{RESET}')
+    def help_section(title):
+        if _UNICODE:
+            print(f'  {C_ORANGE}{_ARROW_R}{RESET} {BOLD}{C_GOLD}{title}{RESET}')
+        else:
+            print(f'  {BOLD}{CYAN}{title}{RESET}')
         print()
 
     def cmd_line(usage, desc):
-        print(f'    {GREEN}{usage:<40}{RESET}{DIM}{desc}{RESET}')
+        arrow = f'{C_TEAL}\u2192{RESET}' if _UNICODE else '->'
+        print(f'    {GREEN}{BOLD}{usage:<40}{RESET}{DIM}{desc}{RESET}')
 
     def example(ex, comment=''):
         c = f'  {GRAY}# {comment}{RESET}' if comment else ''
-        print(f'    {GRAY}>{RESET} {WHITE}{ex}{RESET}{c}')
+        bullet = f'{C_SKY}{_CIRCLE}{RESET}' if _UNICODE else f'{GRAY}>{RESET}'
+        print(f'    {bullet} {WHITE}{ex}{RESET}{c}')
 
-    section('COMANDOS')
+    help_section('COMANDOS PRINCIPAIS')
     cmd_line('pp c <arquivo|pasta> [-q Q] [-l]',         'Comprime QUALQUER arquivo ou pasta \u2192 .PP')
     cmd_line('pp d <arquivo.PP> [-o SAIDA]',             'Descomprime .PP \u2192 arquivo original')
     cmd_line('pp i <arquivo.PP>',                        'Mostra info e estatisticas do .PP')
     cmd_line('pp verify <arquivo>',                      'Verifica integridade (QUALQUER arquivo)')
     cmd_line('pp q <original> <restaurada>',             'Avalia qualidade (imagens)')
-    cmd_line('pp q <pasta_orig> <pasta_rest>',           'Compara qualidade de pastas')
+    print()
+
+    help_section('COMANDOS DE ANALISE')
+    cmd_line('pp bench <arquivo>',                       'Benchmark de todos os algoritmos')
+    cmd_line('pp list <arquivo.PP>',                     'Lista arquivos em um bundle .PP')
+    cmd_line('pp stats <arquivo>',                       'Estatisticas do arquivo sem comprimir')
+    print()
+
+    help_section('OUTROS COMANDOS')
     cmd_line('pp engine',                                'Status do motor de compressao')
     cmd_line('pp register',                              'Registra .PP no Windows')
     cmd_line('pp help',                                  'Esta ajuda')
     cmd_line('pp version',                               'Versao')
     print()
 
-    section('EXEMPLOS — QUALQUER ARQUIVO')
+    help_section('EXEMPLOS \u2014 QUALQUER ARQUIVO')
     example('pp c relatorio.pdf',               'comprime PDF \u2192 relatorio.PP')
     example('pp c dados.csv',                   'comprime CSV \u2192 dados.PP')
     example('pp c programa.exe',                'comprime executavel \u2192 programa.PP')
     example('pp c musica.wav',                  'comprime audio WAV \u2192 musica.PP')
-    example('pp c codigo.py',                   'comprime codigo fonte \u2192 codigo.PP')
     example('pp d relatorio.PP',                'restaura arquivo original identico')
     print()
 
-    section('EXEMPLOS — VERIFICACAO DE INTEGRIDADE')
+    help_section('EXEMPLOS \u2014 VERIFICACAO E BENCHMARK')
     example('pp verify foto.png',               'verifica imagem (pixel-perfeito)')
     example('pp verify relatorio.pdf',          'verifica PDF (bytes identicos)')
-    example('pp verify dados.csv',              'verifica CSV (bytes identicos)')
-    example('pp verify programa.exe',           'verifica executavel (bytes identicos)')
+    example('pp bench dados.csv',               'testa todos os algoritmos')
+    example('pp stats programa.exe',            'analisa arquivo sem comprimir')
     print(f'    {DIM}O comando verify comprime, descomprime e compara SHA-256{RESET}')
     print(f'    {DIM}para garantir que o arquivo e restaurado perfeitamente.{RESET}')
     print()
 
-    section('EXEMPLOS — IMAGENS')
+    help_section('EXEMPLOS \u2014 IMAGENS')
     example('pp c foto.jpg',                    'lossy, qualidade 75 (padrao)')
     example('pp c foto.jpg -q 90',              'lossy, qualidade alta')
     example('pp c foto.png -l',                 'lossless sem perdas')
@@ -593,47 +704,55 @@ def _print_help() -> None:
     example('pp q foto.jpg foto_restored.png',  'avalia perda de qualidade')
     print()
 
-    section('EXEMPLOS — PASTA INTEIRA')
+    help_section('EXEMPLOS \u2014 PASTA INTEIRA')
     example('pp c /meus-arquivos/',     'comprime TODOS os arquivos da pasta')
     example('pp c /fotos/ -l',          'lossless para imagens')
     example('pp d meus-arquivos.PP',    'extrai todos os arquivos')
+    example('pp list meus-arquivos.PP', 'lista arquivos no bundle')
     print()
 
-    section('MODOS DE COMPRESSAO')
-    print(f'    {YELLOW}{BOLD}LOSSY{RESET}     DCT + Quantizacao adaptativa \u2014 maxima reducao, qualidade configuravel')
-    print(f'    {GREEN}{BOLD}LOSSLESS{RESET}  Multi-estrategia sem perdas \u2014 pixel-perfeito garantido por SHA-256')
+    help_section('MODOS DE COMPRESSAO')
+    print(f'    {YELLOW}{BOLD}LOSSY{RESET}     {DIM}DCT + Quantizacao adaptativa \u2014 maxima reducao{RESET}')
+    print(f'    {GREEN}{BOLD}LOSSLESS{RESET}  {DIM}Multi-estrategia sem perdas \u2014 SHA-256 verificado{RESET}')
     print()
     print(f'    {DIM}  Estrategias lossless (escolhe a menor automaticamente):{RESET}')
-    print(f'    {DIM}  \u2022 stored  \u2014 bytes originais sem re-codificacao (JPEG/WebP ja comprimidos){RESET}')
-    print(f'    {DIM}  \u2022 png     \u2014 PNG otimizado em memoria via DEFLATE (ideal para BMP/TIFF){RESET}')
-    print(f'    {DIM}  \u2022 dpcm    \u2014 RCT + DPCM espiral + zlib/DEFLATE (fallback){RESET}')
-    print()
-    print(f'    {DIM}  NOTA: JPEG e WebP em modo lossy sao armazenados sem re-DCT para{RESET}')
-    print(f'    {DIM}  evitar dupla compressao lossy. A descompressao gera PNG (DEFLATE).{RESET}')
-    print()
-
-    section('QUALIDADE (modo lossy, flag -q)')
-    print(f'    {RED}  1-30{RESET}   {_bar(15, 20)}  Maxima compressao')
-    print(f'    {YELLOW} 31-60{RESET}   {_bar(45, 20)}  Balanceado')
-    print(f'    {CYAN} 61-80{RESET}   {_bar(70, 20)}  Alta qualidade {DIM}(padrao: 75){RESET}')
-    print(f'    {GREEN}81-100{RESET}   {_bar(90, 20)}  Quase sem perdas')
+    strats = [
+        ('stored', 'Bytes originais sem re-codificacao'),
+        ('png',    'PNG otimizado via DEFLATE'),
+        ('dpcm',   'RCT + DPCM espiral + zlib'),
+    ]
+    for name, desc in strats:
+        bullet = f'{C_TEAL}{_DIAMOND}{RESET}' if _UNICODE else '*'
+        print(f'    {bullet} {C_SKY}{name:<8}{RESET} {DIM}{desc}{RESET}')
     print()
 
-    section('COMPRESSAO UNIVERSAL (nao-imagens)')
+    help_section('QUALIDADE (modo lossy, flag -q)')
+    print(f'    {RED}{BOLD}  1-30{RESET}   {_bar(15, 20)}  {DIM}Maxima compressao{RESET}')
+    print(f'    {C_ORANGE}{BOLD} 31-60{RESET}   {_bar(45, 20)}  {DIM}Balanceado{RESET}')
+    print(f'    {C_SKY}{BOLD} 61-80{RESET}   {_bar(70, 20)}  {DIM}Alta qualidade{RESET} {C_GOLD}(padrao: 75){RESET}')
+    print(f'    {GREEN}{BOLD}81-100{RESET}   {_bar(90, 20)}  {DIM}Quase sem perdas{RESET}')
+    print()
+
+    help_section('COMPRESSAO UNIVERSAL')
     print(f'    {GREEN}{BOLD}QUALQUER ARQUIVO{RESET} e comprimido sem perdas usando o melhor')
-    print(f'    algoritmo entre: {CYAN}LZMA (7-Zip), BZ2 (bzip2), DEFLATE (zlib),{RESET}')
-    print(f'    {CYAN}BWT+MTF (Burrows-Wheeler), Delta+LZMA{RESET}')
+    print(f'    algoritmo entre: {C_VIOLET}LZMA{RESET}, {C_SKY}BZ2{RESET}, {C_TEAL}DEFLATE{RESET}, '
+          f'{C_ORANGE}BWT+MTF{RESET}, {C_PINK}Delta+LZMA{RESET}')
     print(f'    {DIM}Inspirado no 7-Zip e WinRAR. Integridade verificada por SHA-256.{RESET}')
     print()
 
-    section('FORMATOS SUPORTADOS')
-    print(f'    {GREEN}{BOLD}Imagens:{RESET} {DIM}PNG, JPEG, BMP, TIFF, GIF, WEBP, ICO, TGA, PPM, PGM, PCX, PSD{RESET}')
-    print(f'    {GREEN}{BOLD}Texto:{RESET}   {DIM}TXT, CSV, JSON, XML, HTML, MD, LOG, YAML, INI, CFG{RESET}')
-    print(f'    {GREEN}{BOLD}Codigo:{RESET}  {DIM}PY, JS, TS, C, CPP, H, JAVA, RS, GO, RB, PHP, SH{RESET}')
-    print(f'    {GREEN}{BOLD}Docs:{RESET}    {DIM}PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT, RTF{RESET}')
-    print(f'    {GREEN}{BOLD}Audio:{RESET}   {DIM}WAV, FLAC, MP3, OGG, AAC, AIFF, WMA{RESET}')
-    print(f'    {GREEN}{BOLD}Video:{RESET}   {DIM}MP4, AVI, MKV, MOV, WEBM, FLV, WMV{RESET}')
-    print(f'    {GREEN}{BOLD}Outros:{RESET}  {DIM}EXE, DLL, SO, BIN, ZIP, TAR, GZ, 7Z, RAR, e QUALQUER OUTRO{RESET}')
+    help_section('FORMATOS SUPORTADOS')
+    fmt_items = [
+        ('Imagens', C_LIME,   'PNG, JPEG, BMP, TIFF, GIF, WEBP, ICO, TGA, PSD'),
+        ('Texto',   C_SKY,    'TXT, CSV, JSON, XML, HTML, MD, LOG, YAML'),
+        ('Codigo',  C_VIOLET, 'PY, JS, TS, C, CPP, JAVA, RS, GO, RB, PHP'),
+        ('Docs',    C_GOLD,   'PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ODT'),
+        ('Audio',   C_PINK,   'WAV, FLAC, MP3, OGG, AAC, AIFF, WMA'),
+        ('Video',   C_ORANGE, 'MP4, AVI, MKV, MOV, WEBM, FLV, WMV'),
+        ('Outros',  C_TEAL,   'EXE, DLL, SO, BIN, ZIP, TAR, GZ, 7Z, RAR, *'),
+    ]
+    for name, color, fmts in fmt_items:
+        bullet = f'{color}{_CIRCLE}{RESET}' if _UNICODE else f'{color}*{RESET}'
+        print(f'    {bullet} {color}{BOLD}{name:<8}{RESET} {DIM}{fmts}{RESET}')
     print()
 
 
@@ -1414,12 +1533,387 @@ def cmd_engine(args: list) -> int:
 
 
 def cmd_version(args: list) -> int:
-    print(f'{CYAN}{BOLD}Pied Piper{RESET} v{__version__}')
+    if _UNICODE:
+        print(f'  {C_TEAL}{_STAR}{RESET} {CYAN}{BOLD}Pied Piper{RESET} {C_VIOLET}v{__version__}{RESET} '
+              f'{DIM}\u2014 Middle-Out Compression Engine{RESET}')
+    else:
+        print(f'{CYAN}{BOLD}Pied Piper{RESET} v{__version__}')
     return 0
 
 
 def cmd_help(args: list) -> int:
     _print_help()
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Novos comandos: bench, list, stats
+# ---------------------------------------------------------------------------
+
+def cmd_bench(args: list) -> int:
+    """Benchmark: testa todos os algoritmos de compressao e mostra comparacao."""
+    positional = _get_positional(args)
+    if not positional:
+        print(f'  {FAIL} Informe o arquivo para benchmark.')
+        print(f'  {DIM}Uso: pp bench <arquivo>{RESET}')
+        return 1
+
+    input_path = positional[0]
+    if not os.path.exists(input_path):
+        print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
+        return 1
+
+    _print_banner()
+    original_size = os.path.getsize(input_path)
+    ext = os.path.splitext(input_path)[1]
+    print(f'  {CYAN}Arquivo:{RESET}   {WHITE}{input_path}{RESET}')
+    print(f'  {CYAN}Tipo:{RESET}      {WHITE}{ext or "(sem extensao)"}{RESET}')
+    print(f'  {CYAN}Tamanho:{RESET}   {WHITE}{_human(original_size)}{RESET}')
+    print()
+
+    # Le dados do arquivo
+    with open(input_path, 'rb') as f:
+        raw_data = f.read()
+
+    import lzma
+    import bz2
+    import zlib
+
+    strategies = [
+        ('LZMA (7-Zip)',       lambda d: lzma.compress(d, preset=9 | lzma.PRESET_EXTREME)),
+        ('BZ2 (bzip2)',        lambda d: bz2.compress(d, compresslevel=9)),
+        ('DEFLATE (zlib)',     lambda d: zlib.compress(d, level=9)),
+    ]
+
+    # BWT so para arquivos <= 2MB
+    if original_size <= 2 * 1024 * 1024:
+        try:
+            from pied_piper.compressors.bwt import bwt_compress
+            strategies.append(('BWT+MTF',
+                lambda d: zlib.compress(bwt_compress(d), level=9)))
+        except ImportError:
+            pass
+
+    try:
+        from pied_piper.compressors.delta import delta_compress
+        strategies.append(('Delta+LZMA',
+            lambda d: lzma.compress(delta_compress(d), preset=9 | lzma.PRESET_EXTREME)))
+    except ImportError:
+        pass
+
+    results = []
+    best_size = original_size
+    best_name = 'stored (sem compressao)'
+
+    _header('PIED PIPER \u2014 BENCHMARK DE COMPRESSAO')
+    print()
+    _section('TESTANDO ALGORITMOS')
+
+    for name, func in strategies:
+        sp = Spinner(f'Testando {name}...')
+        sp.start()
+        try:
+            t0 = time.time()
+            compressed = func(raw_data)
+            elapsed = time.time() - t0
+            c_size = len(compressed)
+            ratio = original_size / c_size if c_size > 0 else 0
+            reduction = (1 - c_size / original_size) * 100 if original_size > 0 else 0
+            throughput = int(original_size / elapsed) if elapsed > 0 else 0
+            results.append({
+                'name': name, 'size': c_size, 'ratio': ratio,
+                'reduction': reduction, 'time': elapsed,
+                'throughput': throughput, 'ok': True,
+            })
+            if c_size < best_size:
+                best_size = c_size
+                best_name = name
+            sp.stop(True, f'{name}: {_human(c_size)} ({reduction:.1f}% reducao) em {elapsed:.3f}s')
+        except Exception as e:
+            sp.stop(False, f'{name}: erro - {e}')
+            results.append({'name': name, 'ok': False, 'error': str(e)})
+
+    print()
+    _section('RANKING DE ALGORITMOS')
+
+    ok_results = [r for r in results if r.get('ok')]
+    ok_results.sort(key=lambda x: x['size'])
+
+    medals = [f'{C_GOLD}{_STAR}{RESET}', f'{WHITE}{_DIAMOND}{RESET}', f'{C_ORANGE}{_CIRCLE}{RESET}']
+
+    for i, r in enumerate(ok_results):
+        medal = medals[i] if i < len(medals) else f'{DIM} {RESET}'
+        is_best = r['name'] == best_name
+        name_fmt = f'{GREEN}{BOLD}{r["name"]}{RESET}' if is_best else f'{WHITE}{r["name"]}{RESET}'
+        bar_w = 20
+        pct = max(0, min(100, r['reduction']))
+        bar_str = _bar(pct, bar_w)
+        best_tag = f' {C_LIME}{BOLD}\u2190 MELHOR{RESET}' if is_best else ''
+        print(f'    {medal} {name_fmt:<35} {_human(r["size"]):>12}  '
+              f'{bar_str} {C_TEAL}{r["reduction"]:.1f}%{RESET}  '
+              f'{GRAY}{r["time"]:.3f}s{RESET}{best_tag}')
+
+    # Stored comparison
+    print(f'    {GRAY}  {"Stored (sem compressao)":<33} {_human(original_size):>12}  '
+          f'{_bar(0, 20)} 0.0%{RESET}')
+
+    _hline()
+    economy = original_size - best_size
+    _row('Melhor algoritmo:', f'{GREEN}{BOLD}{best_name}{RESET}')
+    _row('Tamanho original:', f'{WHITE}{_human(original_size)}{RESET}')
+    _row('Melhor comprimido:', f'{C_LIME}{BOLD}{_human(best_size)}{RESET}')
+    if economy > 0:
+        _row('Economia:', f'{GREEN}{BOLD}{_human(economy)}{RESET} ({(economy/original_size*100):.1f}%)')
+    else:
+        _row('Resultado:', f'{YELLOW}Nenhum algoritmo reduziu o tamanho{RESET}')
+    _dline()
+    print()
+    return 0
+
+
+def cmd_list(args: list) -> int:
+    """Lista arquivos contidos em um bundle .PP (pasta comprimida)."""
+    positional = _get_positional(args)
+    if not positional:
+        print(f'  {FAIL} Informe o arquivo .PP bundle.')
+        print(f'  {DIM}Uso: pp list <arquivo.PP>{RESET}')
+        return 1
+
+    input_path = positional[0]
+    if not os.path.exists(input_path):
+        print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
+        return 1
+
+    import json
+    import struct
+    from pied_piper.codec import PP_MAGIC
+
+    _print_banner()
+
+    try:
+        with open(input_path, 'rb') as f:
+            magic = f.read(4)
+            if magic != PP_MAGIC:
+                print(f'  {FAIL} Nao e um arquivo .PP valido.')
+                return 1
+            f.read(2)  # version
+            header_size = struct.unpack('<I', f.read(4))[0]
+            header = json.loads(f.read(header_size).decode('utf-8'))
+
+        if not header.get('bundle', False):
+            # Arquivo individual - mostra info basica
+            if header.get('universal', False):
+                print(f'  {INFO} Arquivo universal (nao e bundle)')
+                _row('Nome original:', f'{WHITE}{header.get("filename", "N/A")}{RESET}')
+                _row('Extensao:', f'{C_ORANGE}{header.get("original_ext", "N/A")}{RESET}')
+                _row('Algoritmo:', f'{C_VIOLET}{header.get("strategy", "N/A")}{RESET}')
+            else:
+                print(f'  {INFO} Arquivo de imagem individual (nao e bundle)')
+                _row('Formato:', f'{C_ORANGE}{header.get("original_format", "N/A")}{RESET}')
+                _row('Dimensoes:', f'{WHITE}{header.get("width", 0)} x {header.get("height", 0)}{RESET}')
+            print(f'  {DIM}Use "pp i {input_path}" para info detalhada.{RESET}')
+            return 0
+
+        # Bundle - lista todos os arquivos
+        files = header.get('files', [])
+        source = header.get('source_folder', 'N/A')
+        bundle_size = os.path.getsize(input_path)
+
+        _header(f'PIED PIPER \u2014 CONTEUDO DO BUNDLE')
+        print()
+        _row('Arquivo:', f'{WHITE}{input_path}{RESET}')
+        _row('Pasta original:', f'{C_ORANGE}{source}{RESET}')
+        _row('Tamanho bundle:', f'{WHITE}{_human(bundle_size)}{RESET}')
+        _row('Total de arquivos:', f'{C_LIME}{BOLD}{len(files)}{RESET}')
+        _hline()
+
+        _section('ARQUIVOS')
+
+        total_orig = 0
+        col_w = 32
+        print(f'  {BOLD}{"#":>4}  {"Arquivo":<{col_w}} {"Original":>10} {"Comprimido":>12} {"Tipo"}{RESET}')
+        _hline()
+
+        for i, entry in enumerate(files, 1):
+            name = entry.get('name', '?')
+            orig_s = entry.get('original_size', 0)
+            comp_s = entry.get('compressed_size', 0) or entry.get('size', 0)
+            total_orig += orig_s
+
+            if name and len(name) > col_w - 1:
+                name = name[:col_w - 4] + '...'
+
+            if entry.get('universal'):
+                tipo = f'{C_VIOLET}{entry.get("format", "?")}{RESET}'
+            else:
+                w = entry.get('width', 0)
+                h = entry.get('height', 0)
+                tipo = f'{C_SKY}{w}x{h}{RESET}' if w else f'{GRAY}?{RESET}'
+
+            print(f'  {GRAY}{i:>4}{RESET}  {WHITE}{name:<{col_w}}{RESET} '
+                  f'{_human(orig_s):>10} {C_TEAL}{_human(comp_s):>12}{RESET} {tipo}')
+
+        _hline()
+        ratio = total_orig / bundle_size if bundle_size > 0 else 0
+        _row('Tamanho original total:', f'{WHITE}{_human(total_orig)}{RESET}')
+        _row('Taxa de compressao:', f'{GREEN}{BOLD}{ratio:.2f}:1{RESET}')
+        _dline()
+        print()
+        return 0
+
+    except Exception as e:
+        print(f'  {FAIL} {RED}Erro ao ler bundle: {e}{RESET}')
+        return 1
+
+
+def cmd_stats(args: list) -> int:
+    """Mostra estatisticas detalhadas de um arquivo sem comprimir."""
+    positional = _get_positional(args)
+    if not positional:
+        print(f'  {FAIL} Informe o arquivo para analisar.')
+        print(f'  {DIM}Uso: pp stats <arquivo>{RESET}')
+        return 1
+
+    input_path = positional[0]
+    if not os.path.exists(input_path):
+        print(f'  {FAIL} Arquivo nao encontrado: {RED}{input_path}{RESET}')
+        return 1
+
+    _print_banner()
+
+    file_size = os.path.getsize(input_path)
+    ext = os.path.splitext(input_path)[1].lower()
+    basename = os.path.basename(input_path)
+
+    # Calcula SHA-256
+    h = hashlib.sha256()
+    byte_freq = [0] * 256
+    total_bytes = 0
+    with open(input_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(65536), b''):
+            h.update(chunk)
+            for b in chunk:
+                byte_freq[b] += 1
+            total_bytes += len(chunk)
+    sha = h.hexdigest()
+
+    # Calcula entropia de Shannon
+    import math
+    entropy = 0.0
+    if total_bytes > 0:
+        for freq in byte_freq:
+            if freq > 0:
+                p = freq / total_bytes
+                entropy -= p * math.log2(p)
+
+    # Calcula compressibilidade estimada (entropia max = 8 bits/byte)
+    compressibility = (1 - entropy / 8.0) * 100 if total_bytes > 0 else 0
+
+    # Detecta tipo
+    from pied_piper.codec import _is_image_path
+    is_image = _is_image_path(input_path)
+    if is_image:
+        try:
+            from PIL import Image as _TestImg
+            _t = _TestImg.open(input_path)
+            _t.verify()
+        except Exception:
+            is_image = False
+
+    # Monta timestamp
+    mtime = os.path.getmtime(input_path)
+    from datetime import datetime
+    mod_date = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+
+    _header(f'PIED PIPER \u2014 ANALISE DO ARQUIVO')
+    print()
+    _row('Arquivo:', f'{WHITE}{BOLD}{basename}{RESET}')
+    _row('Caminho:', f'{GRAY}{os.path.dirname(os.path.abspath(input_path))}{RESET}')
+    _row('Extensao:', f'{C_ORANGE}{BOLD}{ext or "(nenhuma)"}{RESET}')
+    _row('Tamanho:', f'{WHITE}{BOLD}{_human(file_size)}{RESET} ({file_size:,} bytes)')
+    _row('Modificado:', f'{C_SKY}{mod_date}{RESET}')
+    _hline()
+
+    _section('ANALISE DE CONTEUDO')
+    _row('SHA-256:', f'{GRAY}{sha[:40]}...{RESET}')
+    _row('Entropia:', f'{C_VIOLET}{BOLD}{entropy:.4f}{RESET} bits/byte (max: 8.0)')
+
+    # Barra visual de entropia
+    ent_pct = entropy / 8.0 * 100
+    print(f'  {"":24}{_bar(ent_pct)}  {C_VIOLET}{entropy:.2f}/8.00{RESET}')
+
+    # Compressibilidade estimada
+    if compressibility > 30:
+        comp_color = GREEN
+        comp_label = 'Alta \u2013 compressao eficiente esperada'
+    elif compressibility > 10:
+        comp_color = YELLOW
+        comp_label = 'Media \u2013 compressao moderada'
+    else:
+        comp_color = RED
+        comp_label = 'Baixa \u2013 dados ja comprimidos ou aleatorios'
+
+    _row('Compressibilidade:', f'{comp_color}{BOLD}{compressibility:.1f}%{RESET} {DIM}({comp_label}){RESET}')
+
+    # Bytes unicos
+    unique_bytes = sum(1 for f in byte_freq if f > 0)
+    _row('Bytes unicos:', f'{C_TEAL}{unique_bytes}/256{RESET}')
+
+    # Top bytes mais frequentes
+    top_bytes = sorted(enumerate(byte_freq), key=lambda x: -x[1])[:5]
+    top_str = ', '.join(
+        f'{C_SKY}0x{b:02x}{RESET}={C_GOLD}{cnt:,}{RESET}'
+        for b, cnt in top_bytes if cnt > 0
+    )
+    _row('Bytes mais comuns:', top_str)
+
+    _hline()
+    _section('TIPO DE ARQUIVO')
+
+    if is_image:
+        try:
+            from PIL import Image as _Img
+            img = _Img.open(input_path)
+            _row('Tipo:', f'{C_LIME}{BOLD}Imagem{RESET}')
+            _row('Formato:', f'{C_ORANGE}{img.format}{RESET}')
+            _row('Dimensoes:', f'{WHITE}{img.width} x {img.height}{RESET} pixels')
+            _row('Modo:', f'{C_SKY}{img.mode}{RESET}')
+            _row('Total pixels:', f'{WHITE}{img.width * img.height:,}{RESET}')
+            mp = round(img.width * img.height / 1_000_000, 3)
+            _row('Megapixels:', f'{C_GOLD}{mp} MP{RESET}')
+            _row('Bits/pixel fonte:', f'{C_VIOLET}{round(file_size * 8 / (img.width * img.height), 2)}{RESET}')
+            img.close()
+        except Exception:
+            _row('Tipo:', f'{C_LIME}Imagem (erro ao abrir detalhes){RESET}')
+    else:
+        # Detecta se e texto ou binario
+        null_count = byte_freq[0]
+        text_chars = sum(byte_freq[i] for i in range(32, 127)) + byte_freq[10] + byte_freq[13] + byte_freq[9]
+        text_ratio = text_chars / total_bytes * 100 if total_bytes > 0 else 0
+
+        if text_ratio > 85:
+            _row('Tipo:', f'{C_SKY}{BOLD}Texto/Codigo{RESET}')
+        elif null_count > total_bytes * 0.01:
+            _row('Tipo:', f'{C_ORANGE}{BOLD}Binario{RESET}')
+        else:
+            _row('Tipo:', f'{C_VIOLET}{BOLD}Misto{RESET}')
+        _row('Conteudo texto:', f'{C_TEAL}{text_ratio:.1f}%{RESET}')
+
+    # Recomendacao
+    _hline()
+    _section('RECOMENDACAO')
+    if is_image:
+        print(f'    {OK} {WHITE}Use {GREEN}pp c {basename}{RESET} para lossy ou {GREEN}pp c {basename} -l{RESET} para lossless')
+    elif compressibility < 5:
+        print(f'    {WARN} {YELLOW}Arquivo parece ja estar comprimido. Resultado pode ser marginal.{RESET}')
+        print(f'    {DIM}   Tente: pp c {basename}{RESET}')
+    else:
+        est_savings = file_size * compressibility / 100
+        print(f'    {OK} {WHITE}Economia estimada: ~{GREEN}{BOLD}{_human(est_savings)}{RESET}')
+        print(f'    {DIM}   Comando: pp c {basename}{RESET}')
+
+    _dline()
+    print()
     return 0
 
 
@@ -1434,6 +1928,9 @@ COMMANDS = {
     'i': cmd_info,           'info': cmd_info,
     'verify': cmd_verify,    'check': cmd_verify,
     'q': cmd_quality,        'quality': cmd_quality,       'qcheck': cmd_quality,
+    'bench': cmd_bench,      'benchmark': cmd_bench,
+    'list': cmd_list,        'ls': cmd_list,               'dir': cmd_list,
+    'stats': cmd_stats,      'stat': cmd_stats,            'analyze': cmd_stats,
     'register': cmd_register,
     'engine': cmd_engine,
     'version': cmd_version,  '-v': cmd_version,     '--version': cmd_version,

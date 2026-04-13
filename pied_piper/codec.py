@@ -280,13 +280,14 @@ def _rct_forward(rgb: np.ndarray) -> tuple:
 def _rct_inverse(y: np.ndarray, cb: np.ndarray, cr: np.ndarray) -> np.ndarray:
     """
     Inversa exata da RCT (JPEG 2000). Reconstroi RGB uint8 pixel-perfeito.
+    Clipping garante seguranca contra valores fora de faixa por arredondamento.
     """
     y32  = y.astype(np.int32)
     cb32 = cb.astype(np.int32)
     cr32 = cr.astype(np.int32)
-    g = (y32 - ((cb32 + cr32) >> 2)).astype(np.uint8)
-    r = (cr32 + g.astype(np.int32)).astype(np.uint8)
-    b = (cb32 + g.astype(np.int32)).astype(np.uint8)
+    g = np.clip(y32 - ((cb32 + cr32) >> 2), 0, 255).astype(np.uint8)
+    r = np.clip(cr32 + g.astype(np.int32), 0, 255).astype(np.uint8)
+    b = np.clip(cb32 + g.astype(np.int32), 0, 255).astype(np.uint8)
     return np.stack([r, g, b], axis=-1)
 
 
@@ -430,7 +431,13 @@ def _compress_lossless_v4(channel: np.ndarray) -> bytes:
 
 def _decompress_lossless_v4(data: bytes, height: int, width: int) -> np.ndarray:
     """Descomprime canal lossless v4 (DPCM horizontal)."""
-    dpcm = np.frombuffer(data, dtype=np.int16).reshape(height, width).astype(np.int32)
+    expected = height * width * 2
+    if len(data) < expected:
+        raise ValueError(
+            f"Dados lossless corrompidos: esperado {expected} bytes, "
+            f"recebido {len(data)} (para {width}x{height})"
+        )
+    dpcm = np.frombuffer(data[:expected], dtype=np.int16).reshape(height, width).astype(np.int32)
     return np.cumsum(dpcm, axis=1).astype(np.int16)
 
 
@@ -510,12 +517,14 @@ def _rle_encode_py(data):
         v = int(v)
         if v == 0:
             zeros += 1
-            if zeros == 255:
-                out += b'\xff\x00\x00'
+            if zeros == 254:
+                # Flush at 254 to avoid collision with end marker (0xFF, 0x00, 0x00)
+                out += bytes([254, 0, 0])
                 zeros = 0
         else:
             out += bytes([zeros & 0xFF, v & 0xFF, (v >> 8) & 0xFF])
             zeros = 0
+    # End marker
     out += b'\xff\x00\x00'
     return bytes(out)
 
@@ -532,13 +541,10 @@ def _rle_decode_py(data, length=64):
         in_pos += 3
         if skip == 0xFF and val == 0:
             break
-        for _ in range(skip):
-            if out_pos < length:
-                out_pos += 1
-        if not (skip == 255 and val == 0):
-            if out_pos < length:
-                out[out_pos] = val
-                out_pos += 1
+        out_pos += skip
+        if out_pos < length:
+            out[out_pos] = val
+            out_pos += 1
     return out
 
 
@@ -906,16 +912,6 @@ def _decompress_channel_c(data: bytes, width: int, height: int,
 # ==============================================================
 # Leitura de imagens - suporta TODOS os formatos
 # ==============================================================
-
-SUPPORTED_FORMATS = {
-    'PNG', 'JPEG', 'JPG', 'BMP', 'TIFF', 'TIF', 'GIF', 'WEBP', 'ICO',
-    'TGA', 'PPM', 'PGM', 'PBM', 'PNM', 'XBM', 'XPM', 'DIB', 'EPS', 'IM',
-    'PCX', 'MSP', 'SGI', 'SPIDER', 'DDS', 'FLI', 'FLC', 'FPX', 'FTEX',
-    'GBR', 'GD', 'IMT', 'IPTC', 'NAA', 'MCIDAS', 'MIC', 'MPO', 'PALM',
-    'PCD', 'PIXAR', 'PSD', 'WMF', 'EMF', 'WAL', 'XVTHUMB', 'APNG', 'JFIF',
-    'JP2', 'JPX', 'JPF', 'J2K', 'J2C',
-}
-
 
 def _load_any_image(path: str) -> tuple:
     """
@@ -1957,11 +1953,18 @@ def info(input_path: str) -> dict:
 def engine_info() -> dict:
     """Retorna informacoes sobre o motor de compressao."""
     lib = _load_engine()
+    c_available = lib is not None
+    if c_available:
+        engine_name = 'C (libmiddleout) + Python (universal)'
+        languages = 'C (motor) + Python (codec/universal) + Shell (launcher)'
+    else:
+        engine_name = 'Python puro (NumPy vetorizado) + universal'
+        languages = 'Python (codec/universal) + Shell (launcher)'
     return {
-        'engine': 'C (libmiddleout) + Python (universal)',
-        'c_engine_available': lib is not None,
+        'engine': engine_name,
+        'c_engine_available': c_available,
         'library_path': _find_engine_library() or 'nao encontrada',
-        'languages': 'C (motor) + Python (codec/universal) + Shell (launcher) + NASM Assembly (DCT)',
+        'languages': languages,
         'format_version': PP_VERSION,
         'lossless_available': True,
         'universal_available': True,
@@ -1978,16 +1981,9 @@ def engine_info() -> dict:
 # Extensoes de imagem suportadas (para varredura de pastas)
 # ==============================================================
 
-_IMAGE_EXTS = frozenset({
-    '.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.gif', '.webp',
-    '.ico', '.tga', '.ppm', '.pgm', '.pbm', '.pnm', '.jp2', '.jpx',
-    '.j2k', '.j2c', '.pcx', '.psd', '.dds',
-})
-
-
 def _is_image_file(path: str) -> bool:
     """Retorna True se a extensao do arquivo e de imagem suportada."""
-    return os.path.splitext(path)[1].lower() in _IMAGE_EXTS
+    return _is_image_path(path)
 
 
 # ==============================================================

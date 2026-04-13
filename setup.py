@@ -2,10 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='pied-piper',
-    version='2.0.0',
-    description='Pied Piper - Middle-Out Image Compression (.PP format)',
-    long_description='High-performance image compressor using the exclusive '
-                     'Middle-Out Compression algorithm with a C engine.',
+    version='4.0.0',
+    description='Pied Piper - Universal File Compression with Middle-Out Algorithm (.PP format)',
+    long_description='Universal file compressor supporting any file type: images (lossy/lossless), '
+                     'text, binary, audio, video, documents. Uses multi-algorithm pipeline '
+                     '(LZMA, BZ2, DEFLATE, BWT+MTF, Delta+LZMA) with automatic strategy selection.',
     packages=find_packages(),
     python_requires='>=3.8',
     install_requires=[
