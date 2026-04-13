@@ -1916,6 +1916,25 @@ def info(input_path: str) -> dict:
 
     file_size = os.path.getsize(input_path)
 
+    # Bundle (pasta comprimida)
+    if header.get('bundle', False):
+        file_entries = header.get('files', [])
+        total_original = sum(e.get('original_size', 0) for e in file_entries)
+        return {
+            'file': input_path,
+            'file_size': file_size,
+            'version': version,
+            'header_size': header_size,
+            'data_size': data_size,
+            'bundle': True,
+            'source_folder': header.get('source_folder', 'N/A'),
+            'file_count': header.get('file_count', len(file_entries)),
+            'lossless': header.get('lossless', False),
+            'quality': header.get('quality', 0),
+            'files': file_entries,
+            'total_original_size': total_original,
+        }
+
     # Arquivo universal (nao-imagem)
     if header.get('universal', False):
         return {
@@ -2191,6 +2210,7 @@ def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
             _tmp.write(pp_bytes)
             tmp_path = _tmp.name
 
+        tmp_out = None
         try:
             # Detecta tipo e descomprime adequadamente
             if is_universal(tmp_path):
@@ -2210,7 +2230,11 @@ def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
                 final_name = base_name + '_restored' + out_ext
                 final_path = os.path.join(output_dir, final_name)
 
-            os.rename(tmp_out, final_path)
+            # shutil.move funciona entre filesystems diferentes
+            # (os.rename falha com EXDEV quando /tmp e outro mount)
+            import shutil
+            shutil.move(tmp_out, final_path)
+            tmp_out = None  # movido com sucesso, nao precisa limpar
 
             results.append({
                 'name':          final_name,
@@ -2223,6 +2247,9 @@ def decompress_bundle(input_path: str, output_dir: str = None) -> dict:
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
+            # Limpa arquivo descomprimido temporario se nao foi movido
+            if tmp_out and os.path.exists(tmp_out):
+                os.unlink(tmp_out)
 
     elapsed = time.time() - start_time
 
